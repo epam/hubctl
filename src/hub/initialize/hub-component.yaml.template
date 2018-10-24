@@ -1,0 +1,31 @@
+---
+version: 1
+kind: component
+meta:
+  name: ${project}
+  brief: ${project}
+  source:
+      dir: ./
+
+requires:
+  - kubernetes
+  - ingress
+
+provides:
+  - ${project}
+
+parameters:
+  - name: component.ingress.fqdn
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: dns.name
+    env: NAME
+
+templates:
+  files:
+    - "*.template"
+
+outputs:
+  - name: component.${project}.api
+    brief: API endpoint
+    value: http://${project}.${component.ingress.fqdn}

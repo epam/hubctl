@@ -1,0 +1,34 @@
+{
+    "name": "${name}",
+    "template": "",
+    "environment": "",
+    "tags": ["adapter=metal"],
+    "parameters": [{
+        "name": "dns.domain",
+        "value": ""
+    }, {
+        "name": "kubernetes.api.endpoint",
+        "value": ""
+    }, {
+        "name": "kubernetes.api.caCert",
+        "value": ""
+    }, {
+        "name": "kubernetes.api.clientCert",
+        "value": ""
+    }, {
+        "name": "kubernetes.api.clientKey",
+        "value": ""
+    }, {
+        "name": "component.ingress.staticIp",
+        "value": ""
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.ingress.ssl.enabled",
+        "value": "false"
+    }]
+}

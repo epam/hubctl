@@ -1,0 +1,36 @@
+{
+    "name": "EKS",
+    "description": "EKS with Terraform",
+    "stack": "eks:1",
+    "componentsEnabled": ["stack-k8s-eks", "tiller", "traefik", "dex", "kube-dashboard"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": [],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "component.kubernetes.eks.cluster"
+    }, {
+        "name": "component.kubernetes.eks.admin"
+    }, {
+        "name": "component.kubernetes.eks.availabilityZones"
+    }, {
+        "name": "component.kubernetes.worker.count",
+        "value": 3
+    }, {
+        "name": "component.kubernetes.worker.size",
+        "value": "r4.large"
+    }, {
+        "name": "component.kubernetes.worker.spotPrice",
+        "value": 0.06
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.ingress.ssl.enabled",
+        "value": "false"
+    }],
+    "teamsPermissions": []
+}

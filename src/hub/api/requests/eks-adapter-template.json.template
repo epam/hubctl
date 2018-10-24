@@ -1,0 +1,27 @@
+{
+    "name": "${name}",
+    "description": "EKS Adapter",
+    "stack": "eks-adapter:1",
+    "componentsEnabled": ["k8s-eks", "tiller", "traefik", "dex", "kube-dashboard"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["adapter=eks"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "kubernetes.api.endpoint"
+    }, {
+        "name": "kubernetes.api.caCert"
+    }, {
+        "name": "kubernetes.eks.cluster"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.ingress.ssl.enabled",
+        "value": "false"
+    }],
+    "teamsPermissions": []
+}

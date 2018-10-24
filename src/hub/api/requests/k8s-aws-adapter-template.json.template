@@ -1,0 +1,27 @@
+{
+    "name": "${name}",
+    "description": "AgileStack's K8S on AWS adapter",
+    "stack": "k8s-adapter:1",
+    "componentsEnabled": ["k8s-aws", "tiller", "traefik", "dex", "kube-dashboard"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["adapter=k8s-aws"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "kubernetes.api.caCert"
+    }, {
+        "name": "kubernetes.api.clientCert"
+    }, {
+        "name": "kubernetes.api.clientKey"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.ingress.ssl.enabled",
+        "value": "false"
+    }],
+    "teamsPermissions": []
+}

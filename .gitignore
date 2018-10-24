@@ -1,0 +1,15 @@
+pkg/
+bin/linux
+bin/darwin
+.cache
+.envrc
+
+src/github.com
+src/golang.org
+src/gopkg.in
+
+src/hub/util/version.go
+
+!/src/hub/vendor/
+/src/hub/vendor/*
+!/src/hub/vendor/vendor.json

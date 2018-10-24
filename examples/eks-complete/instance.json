@@ -1,0 +1,25 @@
+{
+    "name": "eks",
+    "template": "88",
+    "environment": "45",
+    "tags": [],
+    "parameters": [{
+        "name": "cloud.region",
+        "value": "us-east-1"
+    }, {
+        "name": "cloud.availabilityZone",
+        "value": "us-east-1a"
+    }, {
+        "name": "dns.domain",
+        "value": "eks.demo.superhub.io"
+    }, {
+        "name": "component.kubernetes.eks.cluster",
+        "value": "demo"
+    }, {
+        "name": "component.kubernetes.eks.admin",
+        "value": "arkadi"
+    }, {
+        "name": "component.kubernetes.eks.availabilityZones",
+        "value": "[\"us-east-1a\", \"us-east-1b\", \"us-east-1c\"]"
+    }]
+}

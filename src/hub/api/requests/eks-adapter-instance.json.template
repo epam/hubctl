@@ -1,0 +1,28 @@
+{
+    "name": "${name}",
+    "template": "",
+    "environment": "",
+    "tags": ["adapter=eks"],
+    "parameters": [{
+        "name": "dns.domain",
+        "value": ""
+    }, {
+        "name": "kubernetes.api.endpoint",
+        "value": ""
+    }, {
+        "name": "kubernetes.api.caCert",
+        "value": ""
+    }, {
+        "name": "kubernetes.eks.cluster",
+        "value": ""
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.ingress.ssl.enabled",
+        "value": "false"
+    }]
+}

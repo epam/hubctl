@@ -1,0 +1,21 @@
+{
+    "name": "pg",
+    "template": "12",
+    "environment": "2",
+    "platform": "17",
+    "tags": [],
+    "parameters": [{
+        "name": "component.postgresql.password",
+        "kind": "secret",
+        "value": {
+            "kind": "password",
+            "password": "qwerty123"
+        }
+    }, {
+        "name": "component.postgresql.user",
+        "value": "pgu"
+    }, {
+        "name": "component.postgresql.database",
+        "value": "pgdb"
+    }]
+}

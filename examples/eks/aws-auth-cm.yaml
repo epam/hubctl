@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::957622438981:role/EKSWorkers-NodeInstanceRole-HLS2HN4WC2YP
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+    - rolearn: arn:aws:iam::957622438981:role/agilestacks00a75eecd71afacf76be436b27
+      username: arkadi364
+      groups:
+        - system:masters
+    - rolearn: arn:aws:iam::957622438981:role/agilestacks00f6325e328a2c2f9c609dfd0b
+      username: superhub
+      groups:
+        - system:masters
+  mapUsers: |
+    - userarn: arn:aws:iam::957622438981:user/demo01
+      username: admin
+      groups:
+        - system:masters

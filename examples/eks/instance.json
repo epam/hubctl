@@ -1,0 +1,28 @@
+{
+    "name": "arkadi352",
+    "template": "10",
+    "environment": "1",
+    "tags": ["adapter=eks"],
+    "parameters": [{
+        "name": "dns.domain",
+        "value": "arkadi352.arkadi351.kubernetes.delivery"
+    }, {
+        "name": "kubernetes.api.endpoint",
+        "value": "C624F7F4161404F47AA37B9CAF62E103.sk1.us-east-1.eks.amazonaws.com"
+    }, {
+        "name": "kubernetes.api.caCert",
+        "value": ""
+    }, {
+        "name": "kubernetes.eks.cluster",
+        "value": "arkadi352"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.ingress.ssl.enabled",
+        "value": "false"
+    }]
+}

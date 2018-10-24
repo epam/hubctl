@@ -1,0 +1,28 @@
+---
+version: 1
+kind: stack
+meta:
+  name: ${project}:1
+  brief: ${project}
+  description: ...
+  source:
+      dir: ./
+
+components:
+  - name: first-component
+    source:
+      dir: ../components/first-component
+
+lifecycle:
+  verbs: [deploy, deploy-test, undeploy]
+  order: [first-component]
+
+outputs:
+  - name: first-component:dns.domain
+
+parameters:
+  - name: cloud
+    parameters:
+      - name: provider
+        default: aws
+        value: aws

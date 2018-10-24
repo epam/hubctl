@@ -1,0 +1,47 @@
+---
+parameters:
+- name: cloud
+  brief: Cloud
+  kind: user
+  parameters:
+  - name: kind
+    brief: Cloud Kind
+    default: aws
+  - name: provider
+    brief: Cloud Provider
+    default: aws
+  - name: account
+    brief: Cloud Account Number or Project
+  - name: region
+    brief: Cloud Region
+  - name: availabilityZone
+    brief: Cloud Availability Zone
+  - name: sshKey
+    brief: SSH Key Name
+- name: dns
+  brief: DNS
+  kind: user
+  parameters:
+  - name: name
+    brief: DNS Name
+    default: test
+  - name: baseDomain
+    brief: DNS Base Domain
+    default: stacks.delivery
+  - name: domain
+    brief: DNS Domain
+- name: terraform.bucket
+  brief: Terraform state location
+  parameters:
+  - name: name
+    brief: Terraform state bucket name
+  - name: region
+    brief: Terraform state bucket region
+
+bundles:
+- name: aws
+  parameters:
+  - cloud.account
+  - cloud.region
+  - cloud.availabilityZone
+  - cloud.sshKey

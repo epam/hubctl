@@ -1,0 +1,5 @@
+// +build git
+
+package util
+
+const CliVersion = "$version"
