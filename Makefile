@@ -4,6 +4,12 @@ export GOPATH := $(abspath .)
 export GOBIN  := $(GOPATH)/bin/$(shell uname -s | tr A-Z a-z)
 export PATH   := $(GOBIN):$(PATH)
 
+export AWS_PROFILE ?=
+S3_BUCKET          ?= controlplane.agilestacks.io
+S3_DISTRIBUTION    ?= s3://$(S3_BUCKET)/dist/hub-cli
+
+aws := aws
+
 install:
 	@go get -u github.com/mitchellh/gox
 	@go get -u github.com/kardianos/govendor
@@ -33,6 +39,11 @@ compile: govendor version
 		-output=$(GOPATH)/bin/{{.OS}}/{{.Dir}} \
 		hub/...
 .PHONY: compile
+
+distribute: compile
+	$(aws) s3 cp bin/darwin/hub $(S3_DISTRIBUTION)/hub.darwin_amd64
+	$(aws) s3 cp bin/linux/hub  $(S3_DISTRIBUTION)/hub.linux_amd64
+.PHONY: distribute
 
 get: version
 	@go get -tags git hub
