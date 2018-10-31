@@ -271,7 +271,7 @@ NEXT_COMPONENT:
 		}
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters, allOutputs,
+		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters,
 			dir, osEnv, request.PipeOutputInRealtime)
 
 		var rawOutputs parameters.RawOutputs = nil
@@ -460,7 +460,7 @@ func findComponentManifest(component *manifest.ComponentRef, componentsManifests
 }
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
-	componentParameters parameters.LockedParameters, allOutputs parameters.CapturedOutputs,
+	componentParameters parameters.LockedParameters,
 	dir string, osEnv []string, pipeOutputInRealtime bool) (string, error) {
 
 	if config.Debug && len(componentParameters) > 0 {
@@ -469,7 +469,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 	}
 
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
-	errs := processTemplates(component, &componentManifest.Templates, componentParameters, allOutputs, dir)
+	errs := processTemplates(component, &componentManifest.Templates, componentParameters, dir)
 	if len(errs) > 0 {
 		return "", fmt.Errorf("Failed to process templates:\n\t%s", util.Errors("\n\t", errs...))
 	}

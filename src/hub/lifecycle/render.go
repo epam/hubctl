@@ -85,7 +85,7 @@ func Render(manifestFilenames []string, stateFilenames []string, componentName,
 		Files: templates,
 	}
 
-	errs = processTemplates(component, &templateSetup, componentParameters, outputs, dir)
+	errs = processTemplates(component, &templateSetup, componentParameters, dir)
 	if len(errs) > 0 {
 		maybeFatalf("Failed to process component `%s` templates:\n\t%s",
 			componentName, util.Errors("\n\t", errs...))

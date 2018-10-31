@@ -163,7 +163,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		prepareComponentRequires(provides, componentManifest, stackParameters, allOutputs, optionalRequires)
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters, allOutputs,
+		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters,
 			dir, osEnv, request.PipeOutputInRealtime)
 
 		var rawOutputs parameters.RawOutputs = nil
