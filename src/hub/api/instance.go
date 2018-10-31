@@ -64,6 +64,9 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 	if len(instance.ComponentsEnabled) > 0 {
 		fmt.Printf("\t\tComponents: %s\n", strings.Join(instance.ComponentsEnabled, ", "))
 	}
+	if instance.GitRemote.Public != "" {
+		fmt.Printf("\t\tGit: %s\n", instance.GitRemote.Public)
+	}
 	if len(instance.StateFiles) > 0 {
 		fmt.Printf("\t\tState files:\n\t\t\t%s\n", strings.Join(instance.StateFiles, "\n\t\t\t"))
 	}
