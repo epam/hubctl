@@ -159,7 +159,7 @@ type StackInstance struct {
 	Template          StackTemplateRef
 	Platform          PlatformRef
 	ComponentsEnabled []string `json:"componentsEnabled"`
-	GitRemote         GitRef `json:"gitRemote"`
+	GitRemote         GitRef   `json:"gitRemote"`
 	Parameters        []Parameter
 	Outputs           []Output
 	Provides          map[string][]string
