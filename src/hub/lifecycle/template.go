@@ -59,6 +59,7 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
 	kv := parameters.ParametersKV(componentParameters)
+	templateSetup = expandParametersInTemplateSetup(templateSetup, kv)
 	templates := scanTemplates(componentName, dir, templateSetup)
 
 	if config.Verbose {
@@ -92,6 +93,63 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 		errs = append(errs, processTemplate(template, componentName, component.Depends, kv)...)
 	}
 	return errs
+}
+
+func maybeExpandParametersInTemplateGlob(glob string, kv map[string]string, section string, index int) string {
+	if !parameters.RequireExpansion(glob) {
+		return glob
+	}
+	value, errs := expandParametersInTemplateGlob(fmt.Sprintf("%s.%d", section, index), glob, kv)
+	if len(errs) > 0 {
+		log.Fatalf("Failed to expand templates globs:\n\t%s", util.Errors("\n\t", errs...))
+	}
+	return value
+}
+
+func expandParametersInTemplateGlob(what string, value string, kv map[string]string) (string, []error) {
+	piggy := manifest.Parameter{Name: fmt.Sprintf("templates.%s", what), Value: value}
+	errs := parameters.ExpandParameter(&piggy, []string{}, kv)
+	return piggy.Value, errs
+}
+
+func expandParametersInTemplateSetup(templateSetup *manifest.TemplateSetup,
+	kv map[string]string) *manifest.TemplateSetup {
+
+	setup := manifest.TemplateSetup{
+		Kind:        templateSetup.Kind,
+		Files:       make([]string, 0, len(templateSetup.Files)),
+		Directories: make([]string, 0, len(templateSetup.Directories)),
+		Extra:       make([]manifest.TemplateTarget, 0, len(templateSetup.Extra)),
+	}
+
+	for i, glob := range templateSetup.Files {
+		setup.Files = append(setup.Files, maybeExpandParametersInTemplateGlob(glob, kv, "files", i))
+	}
+	for i, glob := range templateSetup.Directories {
+		setup.Directories = append(setup.Directories, maybeExpandParametersInTemplateGlob(glob, kv, "directories", i))
+	}
+	for j, templateExtra := range templateSetup.Extra {
+		extra := manifest.TemplateTarget{
+			Kind:        templateExtra.Kind,
+			Files:       make([]string, 0, len(templateExtra.Files)),
+			Directories: make([]string, 0, len(templateExtra.Directories)),
+		}
+
+		prefix := fmt.Sprintf("extra.%d", j)
+
+		prefix2 := fmt.Sprintf("%s.files", prefix)
+		for i, glob := range templateExtra.Files {
+			extra.Files = append(extra.Files, maybeExpandParametersInTemplateGlob(glob, kv, prefix2, i))
+		}
+		prefix2 = fmt.Sprintf("%s.directories", prefix)
+		for i, glob := range templateExtra.Directories {
+			extra.Directories = append(extra.Directories, maybeExpandParametersInTemplateGlob(glob, kv, prefix2, i))
+		}
+
+		setup.Extra = append(setup.Extra, extra)
+	}
+
+	return &setup
 }
 
 func scanTemplates(componentName string, baseDir string, templateSetup *manifest.TemplateSetup) []TemplateRef {
