@@ -550,9 +550,6 @@ func goWait(routine func()) chan string {
 }
 
 func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer, bytes.Buffer, error) {
-	var stdoutBuffer bytes.Buffer
-	var stderrBuffer bytes.Buffer
-	// https://github.com/golang/go/issues/13155
 	stderr, err := impl.StderrPipe()
 	if err != nil {
 		log.Fatalf("Unable to obtain stderr pipe: %v", err)
@@ -564,6 +561,8 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer
 	os.Stdout.Sync()
 	os.Stderr.Sync()
 
+	var stdoutBuffer bytes.Buffer
+	var stderrBuffer bytes.Buffer
 	var stdoutWritter io.Writer = &stdoutBuffer
 	var stderrWritter io.Writer = &stderrBuffer
 	if pipeOutputInRealtime {
@@ -578,7 +577,11 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer
 
 	stdoutComplete := goWait(func() { io.Copy(stdoutWritter, stdout) })
 	stderrComplete := goWait(func() { io.Copy(stderrWritter, stderr) })
-	err = impl.Run()
+	// Wait will close the pipe after seeing the command exit, so most callers
+	// need not close the pipe themselves; however, an implication is that it is
+	// incorrect to call Wait before all reads from the pipe have completed.
+	// For the same reason, it is incorrect to call Run when using StdoutPipe.
+	err = impl.Start()
 	<-stdoutComplete
 	<-stderrComplete
 
@@ -588,6 +591,10 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer
 
 	os.Stdout.Sync()
 	os.Stderr.Sync()
+
+	if err == nil {
+		err = impl.Wait()
+	}
 
 	return stdoutBuffer, stderrBuffer, err
 }
