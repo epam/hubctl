@@ -13,7 +13,7 @@ const templatesResource = "hub/api/v1/templates"
 
 var templatesCache = make(map[string]*StackTemplate)
 
-func Templates(selector string, showGitRemote bool) {
+func Templates(selector string, showGitRemote, showGitStatus bool) {
 	templates, err := templatesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Template(s): %v", err)
@@ -40,7 +40,7 @@ func Templates(selector string, showGitRemote bool) {
 				}
 				fmt.Printf("%s%s\n", title, formatGitRemoteWithKey(template.GitRemote.Public, deploymentKey))
 			} else {
-				errors = formatTemplateEntity(&template, errors)
+				errors = formatTemplateEntity(&template, showGitStatus, errors)
 			}
 		}
 		if len(errors) > 0 {
@@ -60,7 +60,7 @@ func formatGitRemoteWithKey(url, key string) string {
 	return url
 }
 
-func formatTemplateEntity(template *StackTemplate, errors []error) []error {
+func formatTemplateEntity(template *StackTemplate, showGitStatus bool, errors []error) []error {
 	title := formatTemplate(template)
 	if template.Description != "" {
 		title = fmt.Sprintf("%s - %s", title, template.Description)
@@ -83,6 +83,18 @@ func formatTemplateEntity(template *StackTemplate, errors []error) []error {
 	}
 	if template.GitRemote.Public != "" {
 		fmt.Printf("\t\tGit: %s\n", template.GitRemote.Public)
+		if showGitStatus {
+			g, err := templateGitStatus(template.Id)
+			if err != nil {
+				errors = append(errors, err)
+			} else {
+				commit := g.Commit
+				if len(commit) > 7 {
+					commit = commit[:7]
+				}
+				fmt.Printf("\t\t\t%s %s %s %s %s\n", commit, g.Ref, g.Author, g.Date, g.Subject)
+			}
+		}
 	}
 	if len(template.Parameters) > 0 {
 		fmt.Print("\t\tParameters:\n")
@@ -184,6 +196,22 @@ func templatesByName(name string) ([]StackTemplate, error) {
 	return jsResp, nil
 }
 
+func templateGitStatus(id string) (*TemplateStatus, error) {
+	path := fmt.Sprintf("%s/%s/git/status", templatesResource, url.PathEscape(id))
+	var jsResp TemplateStatus
+	code, err := get(hubApi, path, &jsResp)
+	if code == 404 {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Error querying Hub Service Template Git status: %v", err)
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Template Git status, expected 200 HTTP", code)
+	}
+	return &jsResp, nil
+}
+
 func formatTemplate(template *StackTemplate) string {
 	return fmt.Sprintf("%s [%s]", template.Name, template.Id)
 }
@@ -201,7 +229,7 @@ func CreateTemplate(body io.Reader) {
 	if err != nil {
 		log.Fatalf("Unable to create Hub Service Template: %v", err)
 	}
-	errors := formatTemplateEntity(template, make([]error, 0))
+	errors := formatTemplateEntity(template, false, make([]error, 0))
 	if len(errors) > 0 {
 		fmt.Print("Errors encountered formatting response:\n")
 		for _, err := range errors {

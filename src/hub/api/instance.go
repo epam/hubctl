@@ -65,7 +65,16 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 		fmt.Printf("\t\tComponents: %s\n", strings.Join(instance.ComponentsEnabled, ", "))
 	}
 	if instance.GitRemote.Public != "" {
-		fmt.Printf("\t\tGit: %s\n", instance.GitRemote.Public)
+		g := instance.GitRemote
+		templateRef := ""
+		if g.Template.Ref != "" {
+			templateRef = fmt.Sprintf("\n\t\t\tRef: %s", g.Template.Ref)
+		}
+		k8sRef := ""
+		if g.K8s.Ref != "" {
+			k8sRef = fmt.Sprintf("\n\t\t\tstack-k8s-aws ref: %s", g.K8s.Ref)
+		}
+		fmt.Printf("\t\tGit: %s%s%s\n", g.Public, templateRef, k8sRef)
 	}
 	if len(instance.StateFiles) > 0 {
 		fmt.Printf("\t\tState files:\n\t\t\t%s\n", strings.Join(instance.StateFiles, "\n\t\t\t"))
@@ -94,6 +103,14 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 	}
 	if instance.Status.Status != "" {
 		fmt.Printf("\t\tStatus: %s\n", instance.Status.Status)
+	}
+	if instance.Status.Template.Commit != "" {
+		t := instance.Status.Template
+		commit := t.Commit
+		if len(commit) > 7 {
+			commit = commit[:7]
+		}
+		fmt.Printf("\t\tTemplate deployed: %s %s %s %s %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
 	}
 	if len(instance.Status.Components) > 0 {
 		fmt.Print("\t\tComponents Status:\n")

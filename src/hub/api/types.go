@@ -78,7 +78,13 @@ type StackRef struct {
 }
 
 type GitRef struct {
-	Public string
+	Public   string
+	Template struct {
+		Ref string
+	}
+	K8s struct {
+		Ref string
+	}
 }
 
 type StackTemplate struct {
@@ -142,8 +148,17 @@ type InflightOperation struct {
 	Phases      []LifecyclePhase
 }
 
+type TemplateStatus struct {
+	Commit  string
+	Ref     string
+	Date    string
+	Author  string
+	Subject string
+}
+
 type StackInstanceStatus struct {
 	Status             string
+	Template           TemplateStatus
 	Components         []ComponentStatus
 	InflightOperations []InflightOperation
 }
