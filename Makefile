@@ -45,6 +45,11 @@ distribute: compile
 	$(aws) s3 cp bin/linux/hub  $(S3_DISTRIBUTION)/hub.linux_amd64
 .PHONY: distribute
 
+undistribute:
+	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.darwin_amd64
+	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_amd64
+.PHONY: undistribute
+
 get: version
 	@go get -tags git hub
 .PHONY: get
