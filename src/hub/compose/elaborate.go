@@ -136,7 +136,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 	componentsManifests, err := manifest.ParseComponentsManifestsWithExclusion(stackManifest.Components, excludedComponents,
 		stackBaseDir, componentsBaseDirCurrent)
 	if err != nil {
-		log.Fatalf("Unable to load component manifest of `%s`: %v", manifestFilename, err)
+		log.Fatalf("Unable to load component manifest refered from `%s`: %v", manifestFilename, err)
 	}
 
 	checkComponentsNames(stackManifest.Components)
