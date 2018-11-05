@@ -20,13 +20,15 @@ func Kubeconfig(filenames []string, providers []string, context string) {
 	state := state.MustParseStateFiles(filenames)
 
 	providerState, provider := findState(state, providers)
-	if providerState == nil {
-		log.Fatalf("There is no state for %v found in state file(s) %v", providers, filenames)
+	if providerState == nil && config.Verbose {
+		log.Printf("There is no state for %v found in state file(s) %v; trying stack parameters", providers, filenames)
 	}
 
 	outputs := make(parameters.CapturedOutputs)
-	for _, o := range providerState.CapturedOutputs {
-		outputs[o.QName()] = o
+	if providerState != nil {
+		for _, o := range providerState.CapturedOutputs {
+			outputs[o.QName()] = o
+		}
 	}
 	params := make(parameters.LockedParameters)
 	for _, p := range state.StackParameters {

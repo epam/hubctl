@@ -212,9 +212,13 @@ func SetupKubernetes(params parameters.LockedParameters,
 	}
 
 	if config.Verbose {
-		log.Printf("Setting up Kubeconfig from `%s` outputs", provider)
-		if config.Debug {
-			parameters.PrintCapturedOutputsByComponent(outputs, provider)
+		if provider != "" {
+			log.Printf("Setting up Kubeconfig from `%s` outputs", provider)
+			if config.Debug {
+				parameters.PrintCapturedOutputsByComponent(outputs, provider)
+			}
+		} else {
+			log.Printf("Setting up Kubeconfig from stack parameters")
 		}
 	}
 
@@ -271,10 +275,12 @@ func mayOutput(params parameters.LockedParameters,
 	outputs parameters.CapturedOutputs, component string, candidates ...string) (string, bool) {
 
 	for _, name := range candidates {
-		qName := parameters.OutputQualifiedName(name, component)
-		output, exist := outputs[qName]
-		if exist {
-			return output.Value, true
+		if component != "" {
+			qName := parameters.OutputQualifiedName(name, component)
+			output, exist := outputs[qName]
+			if exist {
+				return output.Value, true
+			}
 		}
 		param, exist := params[name]
 		if exist {
@@ -290,10 +296,14 @@ func mustOutput(params parameters.LockedParameters,
 	if value, exist := mayOutput(params, outputs, component, candidates...); exist {
 		return value
 	}
-	log.Printf("Component `%s` provides no %v output(s), nor such parameters are found", component, candidates)
-	if len(outputs) > 0 {
-		log.Print("Outputs:")
-		parameters.PrintCapturedOutputs(outputs)
+	if component != "" {
+		log.Printf("Component `%s` provides no %v output(s), nor such stack parameters are found", component, candidates)
+		if len(outputs) > 0 {
+			log.Print("Outputs:")
+			parameters.PrintCapturedOutputs(outputs)
+		}
+	} else {
+		log.Printf("No %v stack parameter(s) are found", candidates)
 	}
 	os.Exit(1)
 	return ""
