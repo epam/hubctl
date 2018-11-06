@@ -122,6 +122,8 @@ func AskParameter(parameter *manifest.Parameter,
 		}
 	}
 
+	// TODO review
+	// if parameter with default value is marked empty: allow, then we set value to default without prompt
 	if parameter.Empty != "allow" && isatty.IsTerminal(os.Stdin.Fd()) {
 		prompt := "Enter value for"
 		if parameter.Brief != "" {

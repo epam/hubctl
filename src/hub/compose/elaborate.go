@@ -217,6 +217,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 		stackManifest.Provides, componentsManifests)
 
 	if depth == 0 && util.Contains(elaborated.Requires, "kubernetes") {
+		// TODO distinguish EKS/etc. by kubernetes.flavor and setup appropriately
 		parameters = append(parameters, manifest.ParameterWrap(kube.RequiredKubernetesParameters()))
 	}
 	parameters = append(parameters, manifestsParameters...)
@@ -373,7 +374,7 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 				}
 			} else {
 				// a special case for Kubernetes keys
-				if strings.HasPrefix(parameter.Name, kube.KubernetesApiKeysOutputBase) {
+				if strings.HasPrefix(parameter.Name, "kubernetes.") {
 					for _, providerName := range kube.KubernetesDefaultProviders {
 						provider, exist := st.Components[providerName]
 						if exist {
