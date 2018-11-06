@@ -12,33 +12,31 @@ import (
 	"hub/util"
 )
 
-func printStartBlurb(request *Request, manifestFilename string, stackManifest *manifest.Manifest) {
+func startStopComponentsBlurb(request *Request, stackManifest *manifest.Manifest) string {
 	if len(request.Components) == 0 {
 		startAt := ""
 		if request.OffsetComponent != "" {
-			startAt = fmt.Sprintf(" starting with component %s", request.OffsetComponent)
+			startAt = fmt.Sprintf("\n\tstarting with component %s", request.OffsetComponent)
 		}
 		stopAt := ""
 		if request.LimitComponent != "" {
-			stopAt = fmt.Sprintf(" stoping at component %s", request.LimitComponent)
+			stopAt = fmt.Sprintf("\n\tstopping at component %s", request.LimitComponent)
 		}
-		log.Printf("%s %s (%s) with components %s%s%s", request.Verb, stackManifest.Meta.Name, manifestFilename,
+		return fmt.Sprintf(" with components %s%s%s",
 			strings.Join(manifest.ComponentsNamesFromRefs(stackManifest.Components), ", "), startAt, stopAt)
 	} else {
-		log.Printf("%s %s (%s) component %s", request.Verb, stackManifest.Meta.Name, manifestFilename,
-			strings.Join(request.Components, ", "))
+		return fmt.Sprintf(" %s %s", util.Plural(len(request.Components), "component"), strings.Join(request.Components, ", "))
 	}
+}
 
+func printStartBlurb(request *Request, manifestFilename string, stackManifest *manifest.Manifest) {
+	log.Printf("%s %s (%s)%s", request.Verb, stackManifest.Meta.Name, manifestFilename,
+			startStopComponentsBlurb(request, stackManifest))
 }
 
 func printEndBlurb(request *Request, stackManifest *manifest.Manifest) {
-	component := ""
-	if len(request.Components) > 0 {
-		component = fmt.Sprintf(" component(s) %s", strings.Join(request.Components, ", "))
-	} else if request.OffsetComponent != "" {
-		component = fmt.Sprintf(" starting with %s component", request.OffsetComponent)
-	}
-	log.Printf("Completed %s on %s%s", request.Verb, stackManifest.Meta.Name, component)
+	log.Printf("Completed %s on %s%s", request.Verb, stackManifest.Meta.Name,
+		startStopComponentsBlurb(request, stackManifest))
 }
 
 func printBackupStartBlurb(request *Request, bundles []string) {
