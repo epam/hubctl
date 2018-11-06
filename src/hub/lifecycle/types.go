@@ -8,7 +8,7 @@ type Request struct {
 	Component                string   // invoke
 	Components               []string // deploy & undeploy, backup
 	OffsetComponent          string   // deploy & undeploy
-	LimitComponent           string   // undeploy
+	LimitComponent           string   // deploy & undeploy
 	GuessComponent           bool     // undeploy
 	StrictParameters         bool
 	OsEnvironmentMode        string

@@ -152,6 +152,8 @@ func initDeployUndeployFlags(cmd *cobra.Command, verb string) {
 		fmt.Sprintf("A list of components to %s (separated by comma; state file must exist)", verb))
 	cmd.Flags().StringVarP(&offsetComponent, "offset", "o", "",
 		fmt.Sprintf("Component to start %s with (state file must exist)", verb))
+	cmd.Flags().StringVarP(&limitComponent, "limit", "l", "",
+		fmt.Sprintf("Component to stop %s at", verb))
 	cmd.Flags().StringVarP(&environmentOverrides, "environment", "e", "",
 		"Set environment overrides: -e 'NAME=demo,INSTANCE=r4.large,...'")
 	initCommonLifecycleFlags(cmd, verb)

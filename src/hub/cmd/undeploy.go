@@ -28,7 +28,5 @@ func init() {
 	initDeployUndeployFlags(undeployCmd, "undeploy")
 	undeployCmd.Flags().BoolVarP(&guessComponent, "guess", "", true,
 		"Guess component to start undeploy with (useful for failed deployments)")
-	undeployCmd.Flags().StringVarP(&limitComponent, "limit", "l", "",
-		"Component to stop undeploy at")
 	RootCmd.AddCommand(undeployCmd)
 }
