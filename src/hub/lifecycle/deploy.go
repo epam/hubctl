@@ -469,7 +469,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 	}
 
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
-	errs := processTemplates(component, &componentManifest.Templates, componentParameters, dir)
+	errs := processTemplates(component, &componentManifest.Templates, componentParameters, nil, dir)
 	if len(errs) > 0 {
 		return "", fmt.Errorf("Failed to process templates:\n\t%s", util.Errors("\n\t", errs...))
 	}

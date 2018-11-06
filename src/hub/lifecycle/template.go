@@ -54,7 +54,7 @@ type OpenErr struct {
 }
 
 func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.TemplateSetup,
-	componentParameters parameters.LockedParameters,
+	componentParameters parameters.LockedParameters, allOutputs parameters.CapturedOutputs,
 	dir string) []error {
 
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
@@ -88,6 +88,9 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 		return []error{fmt.Errorf("Unable to open `%s` component template input(s):\n%s", componentName, strings.Join(diag, "\n"))}
 	}
 
+	if allOutputs != nil {
+		kv = parameters.ParametersAndOutputsKV(componentParameters, allOutputs)
+	}
 	errs := make([]error, 0)
 	for _, template := range templates {
 		errs = append(errs, processTemplate(template, componentName, component.Depends, kv)...)
