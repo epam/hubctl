@@ -31,7 +31,7 @@ func startStopComponentsBlurb(request *Request, stackManifest *manifest.Manifest
 
 func printStartBlurb(request *Request, manifestFilename string, stackManifest *manifest.Manifest) {
 	log.Printf("%s %s (%s)%s", request.Verb, stackManifest.Meta.Name, manifestFilename,
-			startStopComponentsBlurb(request, stackManifest))
+		startStopComponentsBlurb(request, stackManifest))
 }
 
 func printEndBlurb(request *Request, stackManifest *manifest.Manifest) {
