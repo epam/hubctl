@@ -73,7 +73,7 @@ func CreateSecret(entityKind, selector, name, kind string, values map[string]str
 		case "environment":
 			Environments(selector, false, false, false, false)
 		case "stackTemplate":
-			Templates(selector, false, false)
+			Templates(selector, false, false, false)
 		case "stackInstance":
 			StackInstances(selector, true)
 		}

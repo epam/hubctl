@@ -13,7 +13,7 @@ const templatesResource = "hub/api/v1/templates"
 
 var templatesCache = make(map[string]*StackTemplate)
 
-func Templates(selector string, showGitRemote, showGitStatus bool) {
+func Templates(selector string, showGitRemote, wildcardSecret, showGitStatus bool) {
 	templates, err := templatesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Template(s): %v", err)
@@ -23,17 +23,28 @@ func Templates(selector string, showGitRemote, showGitStatus bool) {
 	} else {
 		deploymentKey := ""
 		if showGitRemote {
-			key, err := userDeploymentKey()
-			if err != nil {
-				log.Fatalf("Unable to retrieve deployment key: ", err)
+			if wildcardSecret {
+				key, err := userDeploymentKey("")
+				if err != nil {
+					log.Fatalf("Unable to retrieve deployment key: ", err)
+				}
+				deploymentKey = key
 			}
-			deploymentKey = key
 		} else {
 			fmt.Print("Templates:\n")
 		}
 		errors := make([]error, 0)
 		for _, template := range templates {
 			if showGitRemote {
+				if !wildcardSecret {
+					key, err := userDeploymentKey("git:" + template.Id)
+					if err != nil {
+						errors = append(errors, fmt.Errorf("Unable to retrieve deployment key: ", err))
+						deploymentKey = "(error)"
+					} else {
+						deploymentKey = key
+					}
+				}
 				title := ""
 				if len(templates) > 1 {
 					title = fmt.Sprintf("%s [%s]: ", template.Name, template.Id)

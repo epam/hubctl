@@ -2,12 +2,16 @@ package api
 
 import (
 	"fmt"
+	"net/url"
 )
 
 const userResource = "hub/api/v1/user"
 
-func userDeploymentKey() (string, error) {
-	path := fmt.Sprintf("%s/deployment-key", userResource)
+func userDeploymentKey(subject string) (string, error) {
+	if subject != "" {
+		subject = "?subject=" + url.QueryEscape(subject)
+	}
+	path := fmt.Sprintf("%s/deployment-key%s", userResource, subject)
 	var jsResp DeploymentKey
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
