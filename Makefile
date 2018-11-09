@@ -1,7 +1,9 @@
 .DEFAULT_GOAL := get
 
+OS := $(shell uname -s | tr A-Z a-z)
+
 export GOPATH := $(abspath .)
-export GOBIN  := $(GOPATH)/bin/$(shell uname -s | tr A-Z a-z)
+export GOBIN  := $(GOPATH)/bin/$(OS)
 export PATH   := $(GOBIN):$(PATH)
 
 export AWS_PROFILE ?=
@@ -10,11 +12,13 @@ S3_DISTRIBUTION    ?= s3://$(S3_BUCKET)/dist/hub-cli
 
 aws := aws
 
-install:
-	@go get -u github.com/mitchellh/gox
-	@go get -u github.com/kardianos/govendor
-	@go get -u github.com/tmthrgd/go-bindata/...
-.PHONY: install
+install: bin/$(OS)/govendor bin/$(OS)/gox bin/$(OS)/go-bindata
+bin/$(OS)/govendor:
+	go get -u github.com/kardianos/govendor
+bin/$(OS)/gox:
+	go get -u github.com/mitchellh/gox
+bin/$(OS)/go-bindata:
+	go get -u github.com/tmthrgd/go-bindata/...
 
 govendor-list:
 	@cd src/hub && $(GOBIN)/govendor list
@@ -33,7 +37,7 @@ version:
 		src/hub/util/version.go.template > src/hub/util/version.go
 .PHONY: version
 
-compile: govendor version
+compile: install govendor version
 	@$(GOBIN)/gox -rebuild -tags git \
 		-osarch="darwin/amd64 linux/amd64" \
 		-output=$(GOPATH)/bin/{{.OS}}/{{.Dir}} \
