@@ -84,9 +84,9 @@ func setupRequirement(requirement string, provider string,
 var bins = map[string][]string{
 	"gcp":        {"gcloud", "version"},
 	"gcs":        {"gsutil", "version"},
-	"kubectl":    {"kubectl", "version", "-c"},
-	"kubernetes": {"kubectl", "version", "-c"},
-	"helm":       {"helm", "version", "-c"},
+	"kubectl":    {"kubectl", "version", "--client"},
+	"kubernetes": {"kubectl", "version", "--client"},
+	"helm":       {"helm", "version", "--client"},
 }
 
 func checkRequires(requires []string, maybeOptional map[string][]string) map[string][]string {
