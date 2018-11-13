@@ -159,6 +159,7 @@ type TemplateStatus struct {
 type StackInstanceStatus struct {
 	Status             string
 	Template           TemplateStatus
+	K8s                TemplateStatus
 	Components         []ComponentStatus
 	InflightOperations []InflightOperation
 }

@@ -112,6 +112,14 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 		}
 		fmt.Printf("\t\tTemplate deployed: %s %s %s %s %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
 	}
+	if instance.Status.K8s.Commit != "" {
+		t := instance.Status.K8s
+		commit := t.Commit
+		if len(commit) > 7 {
+			commit = commit[:7]
+		}
+		fmt.Printf("\t\tKubernetes deployed: %s %s %s %s %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
+	}
 	if len(instance.Status.Components) > 0 {
 		fmt.Print("\t\tComponents Status:\n")
 		for _, comp := range instance.Status.Components {
