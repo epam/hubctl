@@ -350,7 +350,7 @@ func DeployStackInstance(selector string, waitAndTailDeployLogs bool) {
 func UndeployStackInstance(selector string, waitAndTailDeployLogs bool) {
 	err := commandStackInstance(selector, "undeploy", waitAndTailDeployLogs)
 	if err != nil {
-		log.Fatalf("Unable to deploy Hub Service Stack Instance: %v", err)
+		log.Fatalf("Unable to undeploy Hub Service Stack Instance: %v", err)
 	}
 }
 
