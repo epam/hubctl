@@ -12,8 +12,8 @@ const environmentsResource = "hub/api/v1/environments"
 
 var environmentsCache = make(map[string]*Environment)
 
-func Environments(selector string,
-	showMyTeams, showServiceAccount, showServiceAccountLoginToken, getCloudTemporaryCredentials bool) {
+func Environments(selector string, showSecrets, showMyTeams,
+	showServiceAccount, showServiceAccountLoginToken, getCloudTemporaryCredentials bool) {
 
 	envs, err := environmentsBy(selector)
 	if err != nil {
@@ -54,7 +54,7 @@ func Environments(selector string,
 			}
 			resource := fmt.Sprintf("%s/%s", environmentsResource, env.Id)
 			for _, param := range sortParameters(env.Parameters) {
-				formatted, err := formatParameter(resource, param)
+				formatted, err := formatParameter(resource, param, showSecrets)
 				fmt.Printf("\t\t%s\n", formatted)
 				if err != nil {
 					errors = append(errors, err)

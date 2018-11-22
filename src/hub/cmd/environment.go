@@ -41,12 +41,15 @@ func environment(args []string) error {
 	if showServiceAccountLoginToken {
 		showServiceAccount = true
 	}
-	api.Environments(selector, showMyTeams, showServiceAccount, showServiceAccountLoginToken, getCloudTemporaryCredentials)
+	api.Environments(selector, showSecrets, showMyTeams,
+		showServiceAccount, showServiceAccountLoginToken, getCloudTemporaryCredentials)
 
 	return nil
 }
 
 func init() {
+	environmentGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
+		"Show secrets")
 	environmentGetCmd.Flags().BoolVarP(&showMyTeams, "my-teams", "m", true,
 		"Show my Team(s) grants on environment")
 	environmentGetCmd.Flags().BoolVarP(&showServiceAccount, "service-account", "s", false,

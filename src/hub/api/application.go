@@ -12,7 +12,7 @@ const applicationsResource = "hub/api/v1/applications"
 
 var applicationsCache = make(map[string]*Application)
 
-func Applications(selector string) {
+func Applications(selector string, showSecrets bool) {
 	applications, err := applicationsBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Application(s): %v", err)
@@ -46,7 +46,7 @@ func Applications(selector string) {
 			}
 			resource := fmt.Sprintf("%s/%s", applicationsResource, application.Id)
 			for _, param := range sortParameters(application.Parameters) {
-				formatted, err := formatParameter(resource, param)
+				formatted, err := formatParameter(resource, param, showSecrets)
 				fmt.Printf("\t\t%s\n", formatted)
 				if err != nil {
 					errors = append(errors, err)

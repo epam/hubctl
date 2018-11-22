@@ -67,7 +67,8 @@ func template(args []string) error {
 	if templateWildcardSecret {
 		templateShowSecretGitRemote = true
 	}
-	api.Templates(selector, templateShowSecretGitRemote, templateWildcardSecret, templateShowGitStatus)
+	api.Templates(selector, showSecrets,
+		templateShowSecretGitRemote, templateWildcardSecret, templateShowGitStatus)
 
 	return nil
 }
@@ -103,6 +104,8 @@ func deleteTemplate(args []string) error {
 }
 
 func init() {
+	templateGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
+		"Show secrets")
 	templateGetCmd.Flags().BoolVarP(&templateShowSecretGitRemote, "git-secret", "g", false,
 		"Output template secret Git remote")
 	templateGetCmd.Flags().BoolVarP(&templateWildcardSecret, "git-wildcard-secret", "", false,

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	instanceNoLogs   bool
+	instanceShowLogs bool
 	kubeconfigOutput string
 )
 
@@ -79,7 +79,7 @@ func instance(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.StackInstances(selector, instanceNoLogs)
+	api.StackInstances(selector, showSecrets, instanceShowLogs)
 
 	return nil
 }
@@ -135,8 +135,10 @@ func kubeconfigInstance(args []string) error {
 }
 
 func init() {
-	instanceGetCmd.Flags().BoolVarP(&instanceNoLogs, "no-logs", "n", false,
-		"Skip logs")
+	instanceGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "s", false,
+		"Show secrets")
+	instanceGetCmd.Flags().BoolVarP(&instanceShowLogs, "logs", "l", false,
+		"Show logs")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,

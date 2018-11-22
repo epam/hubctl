@@ -71,11 +71,11 @@ func CreateSecret(entityKind, selector, name, kind string, values map[string]str
 	if config.Verbose {
 		switch entityKind {
 		case "environment":
-			Environments(selector, false, false, false, false)
+			Environments(selector, false, false, false, false, false)
 		case "stackTemplate":
-			Templates(selector, false, false, false)
+			Templates(selector, false, false, false, false)
 		case "stackInstance":
-			StackInstances(selector, true)
+			StackInstances(selector, false, false)
 		}
 	}
 }

@@ -18,7 +18,7 @@ const stackInstancesResource = "hub/api/v1/instances"
 
 var stackInstancesCache = make(map[string]*StackInstance)
 
-func StackInstances(selector string, noLogs bool) {
+func StackInstances(selector string, showSecrets, showLogs bool) {
 	instances, err := stackInstancesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
@@ -29,7 +29,7 @@ func StackInstances(selector string, noLogs bool) {
 		fmt.Print("Stack Instances:\n")
 		errors := make([]error, 0)
 		for _, instance := range instances {
-			errors = formatStackInstanceEntity(&instance, noLogs, errors)
+			errors = formatStackInstanceEntity(&instance, showSecrets, showLogs, errors)
 		}
 		if len(errors) > 0 {
 			fmt.Print("Errors encountered:\n")
@@ -40,7 +40,7 @@ func StackInstances(selector string, noLogs bool) {
 	}
 }
 
-func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []error) []error {
+func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bool, errors []error) []error {
 	title := fmt.Sprintf("%s / %s [%s]", instance.Name, instance.Domain, instance.Id)
 	if instance.Description != "" {
 		title = fmt.Sprintf("%s - %s", title, instance.Description)
@@ -85,7 +85,7 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 	}
 	resource := fmt.Sprintf("%s/%s", stackInstancesResource, instance.Id)
 	if len(instance.Outputs) > 0 {
-		formatted, errs := formatStackOutputs(resource, instance.Outputs)
+		formatted, errs := formatStackOutputs(resource, instance.Outputs, showSecrets)
 		fmt.Printf("\t\tOutputs:\n%s", formatted)
 		if len(errs) > 0 {
 			errors = append(errors, errs...)
@@ -95,7 +95,7 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 		fmt.Print("\t\tParameters:\n")
 	}
 	for _, param := range sortParameters(instance.Parameters) {
-		formatted, err := formatParameter(resource, param)
+		formatted, err := formatParameter(resource, param, showSecrets)
 		fmt.Printf("\t\t%s\n", formatted)
 		if err != nil {
 			errors = append(errors, err)
@@ -129,7 +129,7 @@ func formatStackInstanceEntity(instance *StackInstance, noLogs bool, errors []er
 	if len(instance.Status.InflightOperations) > 0 {
 		fmt.Print("\t\tInflight Operations:\n")
 		for _, op := range instance.Status.InflightOperations {
-			fmt.Print(formatInflightOperation(op, noLogs))
+			fmt.Print(formatInflightOperation(op, showLogs))
 		}
 	}
 	return errors
@@ -234,7 +234,7 @@ func formatStackProvides(provides map[string][]string) string {
 	return fmt.Sprintf("%s%s\n", ident, strings.Join(str, "\n"+ident))
 }
 
-func formatStackOutputs(resource string, outputs []Output) (string, []error) {
+func formatStackOutputs(resource string, outputs []Output, showSecrets bool) (string, []error) {
 	ident := "\t\t"
 	str := make([]string, 0, len(outputs))
 	errors := make([]error, 0)
@@ -252,7 +252,7 @@ func formatStackOutputs(resource string, outputs []Output) (string, []error) {
 			comp = fmt.Sprintf("%s:", o.Component)
 		}
 		title := fmt.Sprintf("%7s %s%s:", o.Kind, comp, o.Name)
-		formatted, err := formatParameterValue(resource, o.Kind, o.Value)
+		formatted, err := formatParameterValue(resource, o.Kind, o.Value, showSecrets)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -293,10 +293,10 @@ func formatComponentOutputs(outputs map[string]string, ident string) string {
 	return strings.Join(str, "\n\t"+ident)
 }
 
-func formatInflightOperation(op InflightOperation, noLogs bool) string {
+func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	ident := "\t\t\t"
 	logs := ""
-	if !noLogs && op.Logs != "" {
+	if showLogs && op.Logs != "" {
 		logs = fmt.Sprintf("%sLogs:\n%s\t%s\n",
 			ident, ident, strings.Join(strings.Split(op.Logs, "\n"), "\n"+ident+"\t"))
 	}
@@ -319,7 +319,7 @@ func CreateStackInstance(body io.Reader) {
 	if err != nil {
 		log.Fatalf("Unable to create Hub Service Stack Instance: %v", err)
 	}
-	errors := formatStackInstanceEntity(stackInstance, true, make([]error, 0))
+	errors := formatStackInstanceEntity(stackInstance, false, false, make([]error, 0))
 	if len(errors) > 0 {
 		fmt.Print("Errors encountered formatting response:\n")
 		for _, err := range errors {

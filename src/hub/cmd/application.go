@@ -32,12 +32,14 @@ func application(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.Applications(selector)
+	api.Applications(selector, showSecrets)
 
 	return nil
 }
 
 func init() {
+	applicationGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "s", false,
+		"Show secrets")
 	applicationCmd.AddCommand(applicationGetCmd)
 	apiCmd.AddCommand(applicationCmd)
 }

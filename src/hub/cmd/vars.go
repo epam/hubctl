@@ -24,4 +24,5 @@ var (
 	pipeOutputInRealtime  bool
 	outputFiles           string
 	waitAndTailDeployLogs bool
+	showSecrets           bool
 )

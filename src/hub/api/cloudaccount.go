@@ -77,7 +77,7 @@ func CloudAccounts(selector string,
 			}
 			resource := fmt.Sprintf("%s/%s", cloudAccountsResource, cloudAccount.Id)
 			for _, param := range sortParameters(cloudAccount.Parameters) {
-				formatted, err := formatParameter(resource, param)
+				formatted, err := formatParameter(resource, param, false)
 				fmt.Printf("\t\t%s\n", formatted)
 				if err != nil {
 					errors = append(errors, err)

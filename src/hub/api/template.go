@@ -13,7 +13,7 @@ const templatesResource = "hub/api/v1/templates"
 
 var templatesCache = make(map[string]*StackTemplate)
 
-func Templates(selector string, showGitRemote, wildcardSecret, showGitStatus bool) {
+func Templates(selector string, showSecrets, showGitRemote, wildcardSecret, showGitStatus bool) {
 	templates, err := templatesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Template(s): %v", err)
@@ -51,7 +51,7 @@ func Templates(selector string, showGitRemote, wildcardSecret, showGitStatus boo
 				}
 				fmt.Printf("%s%s\n", title, formatGitRemoteWithKey(template.GitRemote.Public, deploymentKey))
 			} else {
-				errors = formatTemplateEntity(&template, showGitStatus, errors)
+				errors = formatTemplateEntity(&template, showSecrets, showGitStatus, errors)
 			}
 		}
 		if len(errors) > 0 {
@@ -71,7 +71,7 @@ func formatGitRemoteWithKey(url, key string) string {
 	return url
 }
 
-func formatTemplateEntity(template *StackTemplate, showGitStatus bool, errors []error) []error {
+func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bool, errors []error) []error {
 	title := formatTemplate(template)
 	if template.Description != "" {
 		title = fmt.Sprintf("%s - %s", title, template.Description)
@@ -112,7 +112,7 @@ func formatTemplateEntity(template *StackTemplate, showGitStatus bool, errors []
 	}
 	resource := fmt.Sprintf("%s/%s", templatesResource, template.Id)
 	for _, param := range sortParameters(template.Parameters) {
-		formatted, err := formatParameter(resource, param)
+		formatted, err := formatParameter(resource, param, showSecrets)
 		fmt.Printf("\t\t%s\n", formatted)
 		if err != nil {
 			errors = append(errors, err)
@@ -240,7 +240,7 @@ func CreateTemplate(body io.Reader) {
 	if err != nil {
 		log.Fatalf("Unable to create Hub Service Template: %v", err)
 	}
-	errors := formatTemplateEntity(template, false, make([]error, 0))
+	errors := formatTemplateEntity(template, false, false, make([]error, 0))
 	if len(errors) > 0 {
 		fmt.Print("Errors encountered formatting response:\n")
 		for _, err := range errors {

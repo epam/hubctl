@@ -238,11 +238,11 @@ func maybePendingSecretCopy(param Parameter) (string, bool) {
 	return "", false
 }
 
-func formatParameter(resource string, param Parameter) (string, error) {
+func formatParameter(resource string, param Parameter, showSecret bool) (string, error) {
 	var err error
 	value, isCopy := maybePendingSecretCopy(param)
 	if !isCopy {
-		value, err = formatParameterValue(resource, param.Kind, param.Value)
+		value, err = formatParameterValue(resource, param.Kind, param.Value, showSecret)
 	}
 	origin := ""
 	if param.Origin != "" {
@@ -260,7 +260,7 @@ func formatParameter(resource string, param Parameter) (string, error) {
 	}
 }
 
-func formatParameterValue(resource string, kind string, value interface{}) (string, error) {
+func formatParameterValue(resource string, kind string, value interface{}, showSecret bool) (string, error) {
 	var err error
 	switch kind {
 
@@ -271,7 +271,11 @@ func formatParameterValue(resource string, kind string, value interface{}) (stri
 				err = err2
 				value = "(error)"
 			} else {
-				value = fmt.Sprintf("%s : %s", l.Component, l.LicenseKey)
+				if showSecret {
+					value = fmt.Sprintf("%s : %s", l.Component, l.LicenseKey)
+				} else {
+					value = fmt.Sprintf("[%s] <hidden>", id)
+				}
 			}
 		}
 
@@ -296,7 +300,13 @@ func formatParameterValue(resource string, kind string, value interface{}) (stri
 				err = err2
 				value2 = "<error>"
 			} else if s != nil {
-				value2 = formatSecret(s)
+				if showSecret {
+					value2 = formatSecret(s)
+				} else {
+					value2 = "<hidden>"
+				}
+			} else {
+				value2 = "<nil>"
 			}
 			if strings.Contains(value2, "\n") {
 				value = fmt.Sprintf("(%s)\n%s", annotation, value2)
