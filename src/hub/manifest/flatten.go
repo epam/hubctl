@@ -44,6 +44,9 @@ func flattenParametersWithPrefix(prefix string, kind string, empty string, compo
 			if parameter.Kind == "" && kind != "" {
 				parameter.Kind = kind
 			}
+			if parameter.Empty == "" && empty != "" {
+				parameter.Empty = empty
+			}
 			if parameter.Component == "" && component != "" {
 				parameter.Component = component
 			}
