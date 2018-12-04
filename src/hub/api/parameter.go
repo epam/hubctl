@@ -86,6 +86,10 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 }
 
 func looksLikePassword(name string) bool {
+	i := strings.Index(name, "|")
+	if i > 0 {
+		name = name[0:i]
+	}
 	return strings.HasSuffix(name, ".password") ||
 		strings.HasSuffix(name, "Password")
 }
