@@ -172,7 +172,7 @@ func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 	cmd.Flags().StringVarP(&osEnvironmentMode, "os-environment", "", "no-tfvars",
 		"OS environment mode for child process, one of: everything, no-tfvars, strict")
 	cmd.Flags().BoolVarP(&config.SwitchKubeconfigContext, "switch-kube-context", "", false,
-		"Switch current Kubeconfig context to new context. Better use kubectl --context=domain.name instead")
+		"Switch current Kubeconfig context to new context. Use kubectl --context=domain.name instead")
 }
 
 func initCommonApiFlags(cmd *cobra.Command) {

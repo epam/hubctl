@@ -114,7 +114,7 @@ func init() {
 	initCommonLifecycleFlags(backupCreateCmd, "backup")
 
 	backupUnbundleCmd.Flags().StringVarP(&outputFiles, "output", "o", "",
-		"Parameters output file(s), optionally to S3 (default to stdout)")
+		"Parameters output file(s), optionally write to S3 (default to stdout)")
 	backupUnbundleCmd.Flags().StringVarP(&backupRenameComponents, "rename", "r", "",
 		"Components to rename, for example -r pg1:postgresql,pg2:postgresql-rds")
 	backupUnbundleCmd.Flags().StringVarP(&backupEraseComponents, "erase", "e", "",
