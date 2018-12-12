@@ -254,7 +254,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	}
 
 	for _, secret := range secrets {
-		id, err := createSecret(stackInstancesResource, instance.Id, secret.Name, secret.Kind, secret.Values)
+		id, err := createSecret(stackInstancesResource, instance.Id, secret.Name, "", secret.Kind, secret.Values)
 		if err != nil {
 			return err
 		}

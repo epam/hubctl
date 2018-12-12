@@ -431,3 +431,14 @@ func PlainName(name string) string {
 	}
 	return name
 }
+
+func SplitQName(qName string) (string, string) {
+	name := qName
+	component := ""
+	parts := strings.SplitN(qName, "|", 2)
+	if len(parts) > 1 {
+		name = parts[0]
+		component = parts[1]
+	}
+	return name, component
+}

@@ -13,7 +13,7 @@ import (
 )
 
 func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
-	name string, create bool) (bool, string, error) {
+	name, component string, create bool) (bool, string, error) {
 
 	applicationEnvironmentIds := make([]string, 0)
 	stackInstanceEnvironmentId := ""
@@ -27,7 +27,7 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 			applicationEnvironmentIds = append(applicationEnvironmentIds, env.Id)
 		}
 		resource := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(app.Id))
-		found, value, err := getParameter(resource, app.Parameters, name)
+		found, value, err := getParameter(resource, app.Parameters, name, component)
 		if err != nil {
 			return false, "", err
 		}
@@ -42,7 +42,7 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 		}
 		stackInstanceEnvironmentId = instance.Environment.Id
 		resource := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(instance.Id))
-		found, value, err := getParameter(resource, instance.Parameters, name)
+		found, value, err := getParameter(resource, instance.Parameters, name, component)
 		if err != nil {
 			return false, "", err
 		}
@@ -66,7 +66,7 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 		}
 
 		resource := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(env.Id))
-		found, value, err := getParameter(resource, env.Parameters, name)
+		found, value, err := getParameter(resource, env.Parameters, name, component)
 		if err != nil {
 			return false, "", err
 		}
@@ -75,7 +75,7 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 		}
 
 		if create && looksLikePassword(name) {
-			value, err := createPasswordParameter(environment, env.Id, name)
+			value, err := createPasswordParameter(environment, env.Id, name, component)
 			if err != nil {
 				return false, "", err
 			}
@@ -94,15 +94,7 @@ func looksLikePassword(name string) bool {
 		strings.HasSuffix(name, "Password")
 }
 
-func getParameter(resource string, parameters []Parameter, qName string) (bool, string, error) {
-	name := qName
-	component := ""
-	parts := strings.SplitN(qName, "|", 2)
-	if len(parts) > 1 {
-		name = parts[0]
-		component = parts[1]
-	}
-
+func getParameter(resource string, parameters []Parameter, name, component string) (bool, string, error) {
 	var param *Parameter
 	if component != "" {
 		for i, p := range parameters {
@@ -195,13 +187,14 @@ func getParameter(resource string, parameters []Parameter, qName string) (bool, 
 	return false, "", nil
 }
 
-func createPasswordParameter(environment, environmentId, name string) (string, error) {
+func createPasswordParameter(environment, environmentId, name, component string) (string, error) {
 	kind := "password"
 	value, err := util.RandomString(8)
 	if err != nil {
 		return "", err
 	}
-	secretId, err := createSecret(environmentsResource, environmentId, name, kind, map[string]string{kind: value})
+	secretId, err := createSecret(environmentsResource, environmentId, name, component, kind,
+		map[string]string{kind: value})
 	if err != nil {
 		return "", fmt.Errorf("Unable to create secret `%s` in environment `%s`: %v", name, environment, err)
 	}

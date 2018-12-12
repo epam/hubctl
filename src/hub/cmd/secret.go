@@ -54,7 +54,7 @@ func secret(args []string) error {
 		return fmt.Errorf("Bad entity kind `%s`; supported %v", entityKind, supportedKinds)
 	}
 
-	name := args[1]
+	qName := args[1]
 	kind := args[2]
 	values := make(map[string]string)
 	if len(args) == 4 { // probably plain value prefixed with `key:`
@@ -87,7 +87,9 @@ func secret(args []string) error {
 			values[key] = value
 		}
 	}
-	api.CreateSecret(entityKind, selector, name, kind, values)
+
+	name, component := util.SplitQName(qName)
+	api.CreateSecret(entityKind, selector, name, component, kind, values)
 
 	return nil
 }

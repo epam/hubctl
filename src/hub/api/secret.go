@@ -13,7 +13,7 @@ type CreateSecretResponse struct {
 	Id string
 }
 
-func CreateSecret(entityKind, selector, name, kind string, values map[string]string) {
+func CreateSecret(entityKind, selector, name, component, kind string, values map[string]string) {
 	id := ""
 	resource := ""
 	var parameters []Parameter
@@ -55,12 +55,13 @@ func CreateSecret(entityKind, selector, name, kind string, values map[string]str
 	}
 
 	for _, existing := range parameters {
-		if name == existing.Name && existing.Value != "" {
+		if name == existing.Name && existing.Value != "" &&
+			(component == "" || existing.Component == component) {
 			log.Fatalf("Parameter `%s` already exist in %s `%s` and is not empty", name, entityKind, selector)
 		}
 	}
 
-	secretId, err := createSecret(resource, id, name, kind, values)
+	secretId, err := createSecret(resource, id, name, component, kind, values)
 	if err != nil {
 		log.Fatalf("Unable to create %s secret: %v", entityKind, err)
 	}
@@ -80,8 +81,11 @@ func CreateSecret(entityKind, selector, name, kind string, values map[string]str
 	}
 }
 
-func createSecret(resource, id, name, kind string, values map[string]string) (string, error) {
+func createSecret(resource, id, name, component, kind string, values map[string]string) (string, error) {
 	values["name"] = name
+	if component != "" {
+		values["component"] = component
+	}
 	values["kind"] = kind
 	path := fmt.Sprintf("%s/%s/secrets", resource, url.PathEscape(id))
 	var jsResp CreateSecretResponse
