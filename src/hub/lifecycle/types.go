@@ -15,7 +15,6 @@ type Request struct {
 	EnvironmentOverrides     string
 	ComponentsBaseDir        string
 	PipeOutputInRealtime     bool
-	CompressedState          bool
 	GitOutputs               bool
 	GitOutputsStatus         bool
 	Environment              string

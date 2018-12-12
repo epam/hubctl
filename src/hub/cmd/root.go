@@ -71,6 +71,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&config.AggWarnings, "all-warnings", "", true, "Repeat all warnings before [successful] exit")
 
 	RootCmd.PersistentFlags().BoolVarP(&config.Force, "force", "f", false, "Force operation despite of errors. Or set HUB_FORCE=1")
+
+	RootCmd.PersistentFlags().BoolVar(&config.Compressed, "compressed", true, "Write gzip compressed files")
 }
 
 // initConfig reads in config file and ENV variables if set.

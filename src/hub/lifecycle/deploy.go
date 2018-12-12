@@ -267,7 +267,7 @@ NEXT_COMPONENT:
 				componentName,
 				stackParameters, expandedComponentParameters,
 				nil, allOutputs, stackManifest.Outputs,
-				noEnvironmentProvides(provides), false, request.CompressedState)
+				noEnvironmentProvides(provides), false)
 		}
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
@@ -330,7 +330,7 @@ NEXT_COMPONENT:
 				componentName,
 				stackParameters, expandedComponentParameters,
 				rawOutputs, allOutputs, stackManifest.Outputs,
-				noEnvironmentProvides(provides), final, request.CompressedState)
+				noEnvironmentProvides(provides), final)
 		}
 
 		if err == nil && isDeploy {

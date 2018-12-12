@@ -16,7 +16,7 @@ func WriteState(manifest *StateManifest, stateFiles *storage.Files, componentNam
 	stackParameters parameters.LockedParameters, componentParameters []parameters.LockedParameter,
 	rawOutputs parameters.RawOutputs, outputs parameters.CapturedOutputs, requestedOutputs []manifest.Output,
 	provides map[string][]string,
-	final bool, compressed bool) *StateManifest {
+	final bool) *StateManifest {
 
 	if manifest == nil {
 		manifest = &StateManifest{}
@@ -56,13 +56,6 @@ func WriteState(manifest *StateManifest, stateFiles *storage.Files, componentNam
 	yamlBytes, err := yaml.Marshal(manifest)
 	if err != nil {
 		log.Fatalf("Unable to marshal state into YAML: %v", err)
-	}
-
-	if compressed {
-		yamlBytes, err = util.Gzip(yamlBytes)
-		if err != nil {
-			log.Fatalf("Unable to compress state file data: %v", err)
-		}
 	}
 
 	errs := storage.Write(yamlBytes, stateFiles)

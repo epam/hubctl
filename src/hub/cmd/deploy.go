@@ -120,7 +120,6 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 		EnvironmentOverrides:     environmentOverrides,
 		ComponentsBaseDir:        componentsBaseDir,
 		PipeOutputInRealtime:     pipeOutputInRealtime,
-		CompressedState:          compressedState,
 		GitOutputs:               gitOutputs,
 		GitOutputsStatus:         gitOutputsStatus,
 		Environment:              hubEnvironment,
@@ -186,8 +185,6 @@ func initCommonApiFlags(cmd *cobra.Command) {
 
 func init() {
 	initDeployUndeployFlags(deployCmd, "deploy")
-	deployCmd.Flags().BoolVarP(&compressedState, "compressed-state", "", true,
-		"Write gzip compressed state file")
 	deployCmd.Flags().BoolVarP(&gitOutputs, "git-outputs", "", true,
 		"Produce hub.components.<component-name>.git.* outputs")
 	deployCmd.Flags().BoolVarP(&gitOutputsStatus, "git-outputs-status", "", false,

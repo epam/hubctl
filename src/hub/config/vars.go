@@ -25,6 +25,7 @@ var (
 	AggWarnings             bool
 	Force                   bool
 	SwitchKubeconfigContext bool
+	Compressed              bool
 )
 
 func Update() {
