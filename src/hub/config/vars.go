@@ -26,6 +26,9 @@ var (
 	Force                   bool
 	SwitchKubeconfigContext bool
 	Compressed              bool
+	Encrypted               bool
+	EncryptionMode          string
+	CryptoPassword          string
 )
 
 func Update() {
@@ -42,5 +45,18 @@ func Update() {
 	}
 	if Force {
 		log.Print("Force flag set, some errors will be treated as warnings")
+	}
+	switch EncryptionMode {
+	case "true":
+		if CryptoPassword == "" {
+			log.Fatal("Set HUB_CRYPTO_PASSWORD='random password' for --encrypted=true")
+		}
+		Encrypted = true
+	case "false":
+		Encrypted = false
+	case "if-password-set":
+		Encrypted = CryptoPassword != ""
+	default:
+		log.Fatalf("Unknown --encrypted `%s`", EncryptionMode)
 	}
 }

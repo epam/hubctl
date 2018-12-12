@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -73,6 +74,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&config.Force, "force", "f", false, "Force operation despite of errors. Or set HUB_FORCE=1")
 
 	RootCmd.PersistentFlags().BoolVar(&config.Compressed, "compressed", true, "Write gzip compressed files")
+	RootCmd.PersistentFlags().StringVar(&config.EncryptionMode, "encrypted", "if-password-set",
+		"Write encrypted files if HUB_CRYPTO_PASSWORD is set. Also true / false")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -96,6 +99,7 @@ func initConfig() {
 	}
 
 	viper.SetEnvPrefix("hub")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
@@ -118,5 +122,8 @@ func initConfig() {
 	}
 	if viper.GetBool("trace") {
 		config.Trace = true
+	}
+	if pass := viper.GetString("crypto-password"); pass != "" {
+		config.CryptoPassword = pass
 	}
 }

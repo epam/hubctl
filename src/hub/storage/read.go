@@ -174,7 +174,8 @@ func chooseFile(files *Files) (*File, error) {
 		return &largest, nil
 	}
 	for _, file := range candidates {
-		if file.Size == largest.Size && file.Kind == "fs" {
+		if file.Kind == "fs" &&
+			(file.Size == largest.Size || (file.Size+util.EncryptionOverhead == largest.Size)) {
 			return &file, nil
 		}
 	}
@@ -214,6 +215,12 @@ func Read(files *Files) ([]byte, string, error) {
 		return nil, "", err
 	}
 
+	if util.IsEncryptedData(data) {
+		data, err = util.Decrypt(data)
+		if err != nil {
+			return nil, "", fmt.Errorf("Unable to decrypt `%s`: %v", path, err)
+		}
+	}
 	if util.IsGzipData(data) {
 		data, err = util.Gunzip(data)
 		if err != nil {
