@@ -81,8 +81,8 @@ func Decrypt(encrypted []byte) ([]byte, error) {
 	if len(encrypted) == 0 {
 		return encrypted, nil
 	}
-	if len(encrypted) < 2+encryptionSaltLen+12+aes.BlockSize {
-		return nil, errors.New("Insifficient ciphertext length")
+	if len(encrypted) < EncryptionOverhead+aes.BlockSize {
+		return nil, errors.New("Insufficient ciphertext length")
 	}
 	if !IsEncryptedData(encrypted) {
 		return nil, errors.New("Bad ciphertext marker")
