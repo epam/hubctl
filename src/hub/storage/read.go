@@ -237,7 +237,7 @@ func Read(files *Files) ([]byte, string, error) {
 func CheckAndRead(paths []string, kind string) ([]byte, string, error) {
 	files, errs := Check(paths, kind)
 	if len(errs) > 0 {
-		return nil, "", fmt.Errorf("Unable to check elaborate files: %s", util.Errors2(errs...))
+		return nil, "", fmt.Errorf("Unable to check %s files: %s", kind, util.Errors2(errs...))
 	}
 	return Read(files)
 }
