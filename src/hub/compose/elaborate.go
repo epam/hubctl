@@ -122,7 +122,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 
 	stackManifest := parseManifest(manifestFilename)
 
-	parametersManifests := parseParameters(parametersFilenames)
+	parametersManifests, parametersFilenamesRead := parseParameters(parametersFilenames)
 
 	stackBaseDir := util.StripDotDirs(filepath.Dir(manifestFilename))
 	componentsBaseDirCurrent := componentsBaseDir
@@ -179,7 +179,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 	manifestsParameters := [][]manifest.Parameter{
 		manifest.FlattenParameters(stackManifest.Parameters, fmt.Sprintf("%s [%s]", stackManifest.Meta.Name, manifestFilename)),
 	}
-	manifestsParameters = append(manifestsParameters, unwrapManifestsParameters(parametersManifests, parametersFilenames)...)
+	manifestsParameters = append(manifestsParameters, unwrapManifestsParameters(parametersManifests, parametersFilenamesRead)...)
 	checkParameters(manifestsParameters)
 
 	var elaborated manifest.Manifest
@@ -242,16 +242,19 @@ func parseManifest(manifestFilename string) *manifest.Manifest {
 	return stackManifest
 }
 
-func parseParameters(parametersFilenames []string) []*manifest.ParametersManifest {
+func parseParameters(parametersFilenames []string) ([]*manifest.ParametersManifest, []string) {
 	parametersManifests := make([]*manifest.ParametersManifest, 0, len(parametersFilenames))
+	parametersFilenamesRead := make([]string, 0, len(parametersFilenames))
 	for _, parametersFilename := range parametersFilenames {
-		parametersManifest, err := manifest.ParseParametersManifest(parametersFilename)
+		parametersManifest, parametersFilenameRead, err := manifest.ParseParametersManifest(
+			util.SplitPaths(parametersFilename))
 		if err != nil {
 			log.Fatalf("Unable to load parameters %s: %v", parametersFilename, err)
 		}
 		parametersManifests = append(parametersManifests, parametersManifest)
+		parametersFilenamesRead = append(parametersFilenamesRead, parametersFilenameRead)
 	}
-	return parametersManifests
+	return parametersManifests, parametersFilenamesRead
 }
 
 func scanParamsFiles(baseDir string) []string {

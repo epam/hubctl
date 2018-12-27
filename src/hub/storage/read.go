@@ -241,18 +241,3 @@ func CheckAndRead(paths []string, kind string) ([]byte, string, error) {
 	}
 	return Read(files)
 }
-
-func ReadFile(path, kind string) ([]byte, error) {
-	file, err := checkPath(path, kind)
-	if err != nil {
-		return nil, err
-	}
-	data, err := readFile(file)
-	if err != nil {
-		return nil, err
-	}
-	if config.Verbose {
-		log.Printf("Read `%s` %s file", path, kind)
-	}
-	return data, nil
-}

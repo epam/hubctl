@@ -45,10 +45,10 @@ func ParseManifest(manifestFilenames []string) (*Manifest, []Manifest, string, e
 	}
 }
 
-func ParseParametersManifest(manifestFilename string) (*ParametersManifest, error) {
-	yamlBytes, err := storage.ReadFile(manifestFilename, "parameters")
+func ParseParametersManifest(manifestFilenames []string) (*ParametersManifest, string, error) {
+	yamlBytes, manifestFilename, err := storage.CheckAndRead(manifestFilenames, "parameters")
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read %s: %v", manifestFilename, err)
+		return nil, manifestFilename, fmt.Errorf("Unable to read %v: %v", manifestFilenames, err)
 	}
 
 	yamlDocuments := bytes.Split(yamlBytes, []byte("\n---\n"))
@@ -60,16 +60,16 @@ func ParseParametersManifest(manifestFilename string) (*ParametersManifest, erro
 		var manifest ParametersManifest
 		err = yaml.Unmarshal(yamlDocument, &manifest)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse %s: %v", manifestFilename, err)
+			return nil, manifestFilename, fmt.Errorf("Unable to parse %s: %v", manifestFilename, err)
 		}
 		if len(yamlDocuments) > i+1 {
 			log.Printf("Parameters manifest `%s` contains more than one YAML document, only first is used",
 				manifestFilename)
 		}
-		return &manifest, nil
+		return &manifest, manifestFilename, nil
 	}
 
-	return nil, fmt.Errorf("No YAML documents found in %s", manifestFilename)
+	return nil, manifestFilename, fmt.Errorf("No YAML documents found in %s", manifestFilename)
 }
 
 func GetWellKnownParametersManifest() (*WellKnownParametersManifest, error) {
