@@ -94,7 +94,7 @@ func waitForFqdn(fqdn string, waitSeconds int) error {
 		}
 		if err == nil && len(addrs) > 0 {
 			addr := addrs[0]
-			if len(addr) >= 7 && addr != "127.0.0.1" {
+			if len(addr) >= 7 && addr != "127.0.0.1" && addr != "1.0.0.1" {
 				return nil
 			}
 		}
