@@ -190,6 +190,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 	elaborated.Meta = stackManifest.Meta
 	elaborated.Meta.FromStack = ""
 	if fromStack {
+		elaborated.Meta.Annotations = mergeAnnotations(fromStackManifest.Meta.Annotations, stackManifest.Meta.Annotations)
 		parentBaseDir := stackManifest.Meta.FromStack
 		parentComponentsBaseDir := componentsBaseDir
 		if parentComponentsBaseDir == "" {
@@ -532,6 +533,26 @@ func unwrapManifestsParameters(parametersManifests []*manifest.ParametersManifes
 	return parameters
 }
 
+func mergeAnnotations(parent, child map[string]string) map[string]string {
+	if len(parent) == 0 && len(child) == 0 {
+		return nil
+	}
+	if len(parent) == 0 && len(child) != 0 {
+		return child
+	}
+	if len(parent) != 0 && len(child) == 0 {
+		return parent
+	}
+	merged := make(map[string]string)
+	for k, v := range parent {
+		merged[k] = v
+	}
+	for k, v := range child {
+		merged[k] = v
+	}
+	return merged
+}
+
 var envWarningsEmited = make(map[string]struct{})
 
 func mergeParameters(parametersAssorti [][]manifest.Parameter,
@@ -642,7 +663,7 @@ func sortedParameters(kv map[string]manifest.Parameter) []manifest.Parameter {
 	return out
 }
 
-func mergeParameter(base manifest.Parameter, over manifest.Parameter, overrides map[string]string,
+func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 	enrichment bool) manifest.Parameter {
 
 	if base.Name != over.Name {

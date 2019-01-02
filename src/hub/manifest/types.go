@@ -15,10 +15,11 @@ type SourceLocation struct {
 
 type Metadata struct {
 	Name        string
-	Brief       string         `yaml:",omitempty"`
-	Description string         `yaml:",omitempty"`
-	Source      SourceLocation `yaml:",omitempty"`
-	FromStack   string         `yaml:"fromStack,omitempty"`
+	Brief       string            `yaml:",omitempty"`
+	Description string            `yaml:",omitempty"`
+	Source      SourceLocation    `yaml:",omitempty"`
+	FromStack   string            `yaml:"fromStack,omitempty"`
+	Annotations map[string]string `yaml:",omitempty"`
 }
 
 type PlatformMetadata struct {
@@ -26,9 +27,10 @@ type PlatformMetadata struct {
 }
 
 type ComponentRef struct {
-	Name    string
-	Source  SourceLocation `yaml:",omitempty"`
-	Depends []string       `yaml:",omitempty"`
+	Name        string
+	Source      SourceLocation    `yaml:",omitempty"`
+	Depends     []string          `yaml:",omitempty"`
+	Annotations map[string]string `yaml:",omitempty"`
 }
 
 type RequiresTuning struct {
