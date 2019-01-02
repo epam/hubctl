@@ -11,6 +11,10 @@ type Metadata struct {
 	Name string `yaml:",omitempty"`
 }
 
+type Lifecycle struct {
+	Order []string `yaml:",omitempty"`
+}
+
 type StateStep struct {
 	Timestamp       time.Time
 	Parameters      []parameters.LockedParameter `yaml:",omitempty"`
@@ -23,6 +27,7 @@ type StateManifest struct {
 	Kind            string
 	Timestamp       time.Time
 	Meta            Metadata                     `yaml:",omitempty"`
+	Lifecycle       Lifecycle                    `yaml:",omitempty"`
 	StackParameters []parameters.LockedParameter `yaml:"stackParameters,omitempty"`
 	CapturedOutputs []parameters.CapturedOutput  `yaml:"capturedOutputs,omitempty"`
 	StackOutputs    []parameters.ExpandedOutput  `yaml:"stackOutputs,omitempty"`

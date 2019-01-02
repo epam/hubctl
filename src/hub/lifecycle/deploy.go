@@ -150,6 +150,9 @@ func Execute(request *Request) {
 	stackParametersNoLinks := parameters.ParametersWithoutLinks(stackParameters)
 
 	order := stackManifest.Lifecycle.Order
+	if stateManifest != nil {
+		stateManifest.Lifecycle.Order = order
+	}
 
 	offsetGuessed := false
 	if isUndeploy {

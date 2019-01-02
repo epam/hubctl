@@ -30,7 +30,7 @@ type ExplainedState struct {
 	Components      map[string]ExplainedComponent `yaml:",omitempty" json:"components,omitempty"`
 }
 
-func Explain(elaborateManifests []string, stateFilenames []string, global bool, componentName string, rawOutputs bool,
+func Explain(elaborateManifests, stateFilenames []string, global bool, componentName string, rawOutputs bool,
 	format string /*text, kv, sh, json, yaml*/, color bool) {
 
 	if color && format == "text" {
@@ -43,18 +43,25 @@ func Explain(elaborateManifests []string, stateFilenames []string, global bool, 
 		config.Verbose = false
 	}
 
-	stackManifest, _, _, err := manifest.ParseManifest(elaborateManifests)
-	if err != nil {
-		log.Fatalf("Unable to parse: %v", err)
+	state := MustParseStateFiles(stateFilenames)
+	components := state.Lifecycle.Order
+
+	var stackManifest *manifest.Manifest
+	if len(elaborateManifests) > 0 {
+		var err error
+		stackManifest, _, _, err = manifest.ParseManifest(elaborateManifests)
+		if err != nil {
+			log.Fatalf("Unable to parse: %v", err)
+		}
+		components = stackManifest.Lifecycle.Order
 	}
 
-	state := MustParseStateFiles(stateFilenames)
-
-	components := stackManifest.Lifecycle.Order
 	var prevOutputs []parameters.CapturedOutput
 
 	if componentName != "" {
-		manifest.CheckComponentsExist(stackManifest.Components, componentName)
+		if stackManifest != nil {
+			manifest.CheckComponentsExist(stackManifest.Components, componentName)
+		}
 
 		for i, c := range components {
 			if c == componentName {

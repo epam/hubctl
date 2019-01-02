@@ -22,22 +22,27 @@ var (
 )
 
 var explainCmd = &cobra.Command{
-	Use:   "explain hub.yaml.elaborate hub.yaml.state[,s3://bucket/hub.yaml.state]",
+	Use:   "explain [hub.yaml.elaborate] hub.yaml.state[,s3://bucket/hub.yaml.state]",
 	Short: "Explain stack outputs, provides, and parameters evolution",
 	Long: `Display user-level stack outputs, history of parameters evolution during deployment,
-and which component provides what capability. Parameters history is read from state file.`,
+and component's capabilities. Parameters history is read from state file. Elaborate file is optional.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return explain(args)
 	},
 }
 
 func explain(args []string) error {
-	if len(args) != 2 {
-		return errors.New("Explain command has two arguments - path to Stack Elaborate file and to State file")
+	if len(args) != 1 && len(args) != 2 {
+		return errors.New("Explain command has two arguments - path to Stack Elaborate file (optional) and to State file")
 	}
 
-	elaborateManifests := util.SplitPaths(args[0])
-	stateManifests := util.SplitPaths(args[1])
+	elaborateManifests := []string{}
+	i := 0
+	if len(args) == 2 {
+		elaborateManifests = util.SplitPaths(args[0])
+		i = 1
+	}
+	stateManifests := util.SplitPaths(args[i])
 
 	format := "text"
 	if explainInKv {
