@@ -381,12 +381,24 @@ func mergeParameter(parameters LockedParameters, add LockedParameter) {
 	parameters[fqName] = add
 }
 
-func MergeParameters(parameters LockedParameters, componentParameters ...[]LockedParameter) LockedParameters {
+func MergeParameters(parameters LockedParameters, toMerge ...[]LockedParameter) LockedParameters {
 	merged := make(LockedParameters)
-	for k, v := range parameters {
-		merged[k] = v
+	if parameters != nil {
+		for k, v := range parameters {
+			merged[k] = v
+		}
 	}
-	for _, list := range componentParameters {
+	for _, list := range toMerge {
+		for _, p := range list {
+			mergeParameter(merged, p)
+		}
+	}
+	return merged
+}
+
+func ParametersFromList(toMerge ...[]LockedParameter) LockedParameters {
+	merged := make(LockedParameters)
+	for _, list := range toMerge {
 		for _, p := range list {
 			mergeParameter(merged, p)
 		}

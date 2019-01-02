@@ -3,10 +3,12 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
 
+	"hub/config"
 	"hub/lifecycle"
 	"hub/util"
 )
@@ -32,8 +34,9 @@ func render(args []string) error {
 
 	if elaborateManifest == "" {
 		elaborateManifest = os.Getenv(envVarNameElaborate)
-		if elaborateManifest == "" {
-			return fmt.Errorf("%s environment variable must be set to hub.yaml.elaborate filename(s)", envVarNameElaborate)
+		if elaborateManifest == "" && config.Debug {
+			log.Printf("%s environment variable should be set to hub.yaml.elaborate filename(s); using parameters locked in state file instead",
+				envVarNameElaborate)
 		}
 	}
 	if stateManifestExplicit == "" {
@@ -46,8 +49,9 @@ func render(args []string) error {
 	stateManifests := util.SplitPaths(stateManifestExplicit)
 	if componentName == "" {
 		componentName = os.Getenv(lifecycle.HubEnvVarNameComponentName)
-		if componentName == "" {
-			return fmt.Errorf("%s environment variable must be set to component name", lifecycle.HubEnvVarNameComponentName)
+		if componentName == "" && config.Debug {
+			log.Printf("%s environment variable should be set to component name; using stack-level parameters and outputs",
+				lifecycle.HubEnvVarNameComponentName)
 		}
 	}
 

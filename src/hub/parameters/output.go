@@ -10,10 +10,20 @@ import (
 	"hub/util"
 )
 
-func MergeOutputs(outputs CapturedOutputs, componentOutputs CapturedOutputs) {
-	for _, o := range componentOutputs {
+func MergeOutputs(outputs CapturedOutputs, toMerge CapturedOutputs) {
+	for _, o := range toMerge {
 		MergeOutput(outputs, o)
 	}
+}
+
+func OutputsFromList(toMerge ...[]CapturedOutput) CapturedOutputs {
+	outputs := make(CapturedOutputs)
+	for _, list := range toMerge {
+		for _, o := range list {
+			MergeOutput(outputs, o)
+		}
+	}
+	return outputs
 }
 
 func MergeOutput(outputs CapturedOutputs, add CapturedOutput) {
