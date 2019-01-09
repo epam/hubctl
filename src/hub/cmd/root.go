@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -28,6 +29,9 @@ Automation Hub is a lifecycle and stack composition tool:
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.Update()
+		if config.Debug {
+			log.Printf("Hub CLI %s %s\n", util.CliVersion, runtime.Version())
+		}
 	},
 
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
