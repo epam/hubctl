@@ -16,7 +16,6 @@ import (
 )
 
 var CurlyReplacement = regexp.MustCompile("\\${[a-zA-Z0-9_\\.\\|:/-]+?}")
-var mustacheReplacement = regexp.MustCompile("{{[a-zA-Z0-9_\\.\\|:/-]+?}}")
 
 func StripCurly(match string) string {
 	return match[2 : len(match)-1]
