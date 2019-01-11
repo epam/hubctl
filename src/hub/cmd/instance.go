@@ -32,7 +32,29 @@ the particular instance (specify Id or search by full domain name)`,
 var instanceCreateCmd = &cobra.Command{
 	Use:   "create < instance.json",
 	Short: "Create Stack Instance",
-	Long:  `Create Stack Instance by sending JSON via stdin`,
+	Long: `Create Stack Instance by sending JSON via stdin, for example:
+    {
+        "name": "kubernetes",
+        "template": "1",
+        "environment": "2",
+        "tags": [],
+        "parameters": [
+            {
+                "name": "dns.name",
+                "value": "kubernetes"
+            }, {
+                "name": "dns.baseDomain",
+                "value": "devops01.superhub.io"
+            }, {
+                "name": "component.postgresql.password",
+                "kind": "secret",
+                "value": {
+                    "kind": "password",
+                    "password": "qwerty123"
+                }
+            }
+        ]
+    }`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return createInstance(args)
 	},

@@ -78,7 +78,7 @@ func init() {
 
 	RootCmd.PersistentFlags().BoolVar(&config.Compressed, "compressed", true, "Write gzip compressed files")
 	RootCmd.PersistentFlags().StringVar(&config.EncryptionMode, "encrypted", "if-password-set",
-		"Write encrypted files if HUB_CRYPTO_PASSWORD is set. Also true / false")
+		"Write encrypted files if HUB_CRYPTO_PASSWORD is set. true / false")
 }
 
 // initConfig reads in config file and ENV variables if set.

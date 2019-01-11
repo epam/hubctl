@@ -55,9 +55,13 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 	}
 
 	for _, existing := range parameters {
-		if name == existing.Name && existing.Value != "" &&
-			(component == "" || existing.Component == component) {
-			log.Fatalf("Parameter `%s` already exist in %s `%s` and is not empty", name, entityKind, selector)
+		if existing.Value != "" && existing.Name == name &&
+			((existing.Component == "" && component == "") || existing.Component == component) {
+			qname := name
+			if component != "" {
+				qname = fmt.Sprintf("%s|%s", name, component)
+			}
+			log.Fatalf("Parameter `%s` already exist in %s `%s` and is not empty", qname, entityKind, selector)
 		}
 	}
 

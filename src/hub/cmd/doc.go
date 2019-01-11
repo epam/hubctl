@@ -20,7 +20,7 @@ var docCmd = &cobra.Command{
 
 func generateDoc(args []string) error {
 	if len(args) != 1 {
-		return errors.New("doc command one mandatory argument - path to directory to store generated Markdown files")
+		return errors.New("doc command has one mandatory argument - path to directory to store generated Markdown files")
 	}
 
 	dir := args[0]
