@@ -20,7 +20,7 @@ bin/$(OS)/gox:
 bin/$(OS)/go-bindata:
 	go get -u github.com/tmthrgd/go-bindata/...
 
-govendor-list:
+govendor-list: bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor list
 .PHONY: govendor-list
 
@@ -31,6 +31,10 @@ govendor: govendor-list
 govendor-add: govendor-list
 	@cd src/hub && $(GOBIN)/govendor add +e
 .PHONY: govendor-add
+
+govendor-update: bin/$(OS)/govendor
+	@cd src/hub && $(GOBIN)/govendor update +v
+.PHONY: govendor-update
 
 version:
 	@sed -e s/'\$$version'/"git $(shell git rev-parse HEAD | cut -c-7) built on $(shell date +"%Y.%m.%d %H:%M %Z")"/ < \
