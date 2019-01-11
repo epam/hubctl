@@ -124,9 +124,12 @@ func Execute(request *Request) {
 	// should we just go with the state values if we cannot lock all parameters properly?
 	stackParameters := parameters.LockParameters(
 		manifest.FlattenParameters(stackManifest.Parameters, chosenManifestFilename),
-		environment, extraExpansionValues,
-		request.Environment, request.StackInstance, request.Application,
-		isDeploy)
+		extraExpansionValues,
+		func(parameter *manifest.Parameter) error {
+			return AskParameter(parameter, environment,
+				request.Environment, request.StackInstance, request.Application,
+				isDeploy)
+		})
 	allOutputs := make(parameters.CapturedOutputs)
 	if stateManifest != nil {
 		checkStateMatch(stateManifest, stackManifest, stackParameters)
