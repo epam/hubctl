@@ -25,7 +25,7 @@ func Environments(selector string, showSecrets, showMyTeams,
 		fmt.Print("Environments:\n")
 		errors := make([]error, 0)
 		for _, env := range envs {
-			title := fmt.Sprintf("%s (%s)", env.Name, env.Id)
+			title := fmt.Sprintf("%s [%s]", env.Name, env.Id)
 			if env.Description != "" {
 				title = fmt.Sprintf("%s - %s", title, env.Description)
 			}
