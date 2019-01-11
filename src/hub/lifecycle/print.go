@@ -126,6 +126,5 @@ func printStackInstancePatch(patch api.StackInstancePatch) {
 	if len(patch.Provides) > 0 {
 		log.Print("Provides to API:")
 		util.PrintMap2(patch.Provides)
-
 	}
 }
