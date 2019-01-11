@@ -2,8 +2,6 @@ package parameters
 
 import (
 	"fmt"
-
-	"hub/manifest"
 )
 
 type LockedParameter struct {
@@ -41,10 +39,6 @@ func (p *LockedParameter) QName() string {
 
 func (o *CapturedOutput) QName() string {
 	return capturedOutputQualifiedName(o)
-}
-
-func manifestParameterQualifiedName(parameter *manifest.Parameter) string {
-	return parameterQualifiedName(parameter.Name, parameter.Component)
 }
 
 func lockedParameterQualifiedName(parameter *LockedParameter) string {

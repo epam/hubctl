@@ -52,17 +52,15 @@ func LockParameters(parameters []manifest.Parameter,
 	// create key-value map for parameter expansion
 	kv := make(map[string]string)
 	for _, extra := range extraValues {
-		fqName := manifestParameterQualifiedName(&extra)
-		kv[fqName] = extra.Value
+		kv[extra.QName()] = extra.Value
 	}
 	for _, parameter := range parameters {
-		fqName := manifestParameterQualifiedName(&parameter)
-		kv[fqName] = parameter.Value
+		kv[parameter.QName()] = parameter.Value
 	}
 	// expand, check for cycles
 	locked := make(LockedParameters)
 	for _, parameter := range parameters {
-		fqName := manifestParameterQualifiedName(&parameter)
+		fqName := parameter.QName()
 		if RequireExpansion(parameter.Value) && parameter.Kind != "link" {
 			errs = append(errs, ExpandParameter(&parameter, []string{}, kv)...)
 			kv[fqName] = parameter.Value
@@ -199,7 +197,7 @@ const maxExpansionDepth = 10
 func expandValue(parameter *manifest.Parameter, value string, componentDepends []string,
 	kv map[string]string, depth int) (string, []error) {
 
-	fqName := manifestParameterQualifiedName(parameter)
+	fqName := parameter.QName()
 	if depth >= maxExpansionDepth {
 		return "(loop)", []error{fmt.Errorf("Probably loop expanding parameter `%s` value `%s`, reached `%s` at depth %d",
 			fqName, parameter.Value, value, depth)}
@@ -211,7 +209,7 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 			substitution, exist := FindValue(variable, parameter.Component, componentDepends, kv)
 			if !exist {
 				errs = append(errs, fmt.Errorf("Parameter `%s` value `%s` refer to unknown substitution `%s` at depth %d",
-					manifestParameterQualifiedName(parameter), parameter.Value, variable, depth))
+					parameter.QName(), parameter.Value, variable, depth))
 				substitution = "(unknown)"
 			}
 			if config.Trace {

@@ -1,5 +1,7 @@
 package manifest
 
+import "fmt"
+
 type Git struct {
 	Remote   string
 	Ref      string `yaml:",omitempty"`
@@ -126,4 +128,15 @@ type ParametersBundle struct {
 type WellKnownParametersManifest struct {
 	Parameters []Parameter
 	Bundles    []ParametersBundle
+}
+
+func (p *Parameter) QName() string {
+	return parameterQualifiedName(p.Name, p.Component)
+}
+
+func parameterQualifiedName(name, component string) string {
+	if component != "" {
+		return fmt.Sprintf("%s|%s", name, component)
+	}
+	return name
 }
