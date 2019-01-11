@@ -376,7 +376,7 @@ NEXT_COMPONENT:
 
 	if request.SaveStackInstanceOutputs && request.StackInstance != "" && len(stackOutputs) > 0 {
 		patch := api.StackInstancePatch{
-			Outputs:  transformStackOutputsToApi(stackOutputs),
+			Outputs:  api.TransformStackOutputsToApi(stackOutputs),
 			Provides: noEnvironmentProvides(provides),
 		}
 		if config.Verbose {

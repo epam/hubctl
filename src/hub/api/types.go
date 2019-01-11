@@ -130,38 +130,38 @@ type PlatformRef struct {
 }
 
 type ComponentStatus struct {
-	Name    string
-	Status  string
-	Outputs map[string]string
+	Name    string            `json:"name"`
+	Status  string            `json:"status"`
+	Outputs map[string]string `json:"outputs,omitempty"`
 }
 
 type LifecyclePhase struct {
-	Phase  string
-	Status string
+	Phase  string `json:"phase"`
+	Status string `json:"status"`
 }
 
 type InflightOperation struct {
-	Operation   string
-	Description string
-	Status      string
-	Logs        string
-	Phases      []LifecyclePhase
+	Operation   string           `json:"operation"`
+	Status      string           `json:"status"`
+	Description string           `json:"description,omitempty"`
+	Logs        string           `json:"logs,omitempty"`
+	Phases      []LifecyclePhase `json:"phases,omitempty"`
 }
 
 type TemplateStatus struct {
-	Commit  string
-	Ref     string
-	Date    string
-	Author  string
-	Subject string
+	Commit  string `json:"commit,omitempty"`
+	Ref     string `json:"ref,omitempty"`
+	Date    string `json:"date,omitempty"`
+	Author  string `json:"author,omitempty"`
+	Subject string `json:"subject,omitempty"`
 }
 
 type StackInstanceStatus struct {
-	Status             string
-	Template           TemplateStatus
-	K8s                TemplateStatus
-	Components         []ComponentStatus
-	InflightOperations []InflightOperation
+	Status             string              `json:"status,omitempty"`
+	Template           *TemplateStatus     `json:"template,omitempty"`
+	K8s                *TemplateStatus     `json:"k8s,omitempty"`
+	Components         []ComponentStatus   `json:"components,omitempty"`
+	InflightOperations []InflightOperation `json:"inflightOperations,omitempty"`
 }
 
 type StackInstance struct {
@@ -199,6 +199,7 @@ type StackInstanceDeployResponse struct {
 }
 
 type StackInstancePatch struct {
+	Status   StackInstanceStatus `json:"status,omitempty"`
 	Outputs  []Output            `json:"outputs,omitempty"`
 	Provides map[string][]string `json:"provides,omitempty"`
 }

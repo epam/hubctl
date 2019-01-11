@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"hub/api"
+	"hub/util"
 )
 
 var (
@@ -76,6 +77,14 @@ var instanceUndeployCmd = &cobra.Command{
 	},
 }
 
+var instanceSyncCmd = &cobra.Command{
+	Use:   "sync <id | domain>",
+	Short: "Sync Stack Instance state from state file",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return syncInstance(args)
+	},
+}
+
 var instanceDeleteCmd = &cobra.Command{
 	Use:   "delete <id | domain>",
 	Short: "Delete Stack Instance by Id or full domain name",
@@ -136,6 +145,21 @@ func undeployInstance(args []string) error {
 	return nil
 }
 
+func syncInstance(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Sync Instance command has one mandatory argument - id or full domain name of the Instance")
+	}
+	if stateManifestExplicit == "" {
+		return errors.New("State file to sync from must be specified")
+	}
+
+	manifests := util.SplitPaths(stateManifestExplicit)
+
+	api.SyncStackInstance(args[0], manifests)
+
+	return nil
+}
+
 func deleteInstance(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Delete Instance command has one mandatory argument - id or full domain name of the Instance")
@@ -165,12 +189,15 @@ func init() {
 		"Wait for deployment and tail logs")
 	instanceUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	instanceSyncCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",
+		"Path to state files")
 	instanceKubeconfigCmd.Flags().StringVarP(&kubeconfigOutput, "output", "o", "",
 		"Set output filename (default to kubeconfig-DOMAIN.yaml)")
 	instanceCmd.AddCommand(instanceGetCmd)
 	instanceCmd.AddCommand(instanceCreateCmd)
 	instanceCmd.AddCommand(instanceDeployCmd)
 	instanceCmd.AddCommand(instanceUndeployCmd)
+	instanceCmd.AddCommand(instanceSyncCmd)
 	instanceCmd.AddCommand(instanceDeleteCmd)
 	instanceCmd.AddCommand(instanceKubeconfigCmd)
 	apiCmd.AddCommand(instanceCmd)

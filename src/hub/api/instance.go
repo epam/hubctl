@@ -104,7 +104,7 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 	if instance.Status.Status != "" {
 		fmt.Printf("\t\tStatus: %s\n", instance.Status.Status)
 	}
-	if instance.Status.Template.Commit != "" {
+	if instance.Status.Template != nil && instance.Status.Template.Commit != "" {
 		t := instance.Status.Template
 		commit := t.Commit
 		if len(commit) > 7 {
@@ -112,7 +112,7 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 		}
 		fmt.Printf("\t\tTemplate deployed: %s %s %s %s %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
 	}
-	if instance.Status.K8s.Commit != "" {
+	if instance.Status.K8s != nil && instance.Status.K8s.Commit != "" {
 		t := instance.Status.K8s
 		commit := t.Commit
 		if len(commit) > 7 {
