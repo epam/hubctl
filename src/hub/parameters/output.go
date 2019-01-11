@@ -102,7 +102,8 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 		}
 
 		if valueExist {
-			expanded = append(expanded, ExpandedOutput{Name: requestedOutput.Name, Value: value, Brief: requestedOutput.Brief})
+			expanded = append(expanded,
+				ExpandedOutput{Name: requestedOutput.Name, Value: value, Kind: requestedOutput.Kind, Brief: requestedOutput.Brief})
 		}
 	}
 
