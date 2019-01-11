@@ -7,8 +7,8 @@ import (
 )
 
 type Metadata struct {
-	Kind string `yaml:",omitempty"`
-	Name string `yaml:",omitempty"`
+	Kind string `yaml:",omitempty" json:"kind,omitempty"`
+	Name string `yaml:",omitempty" json:"name,omitempty"`
 }
 
 type Lifecycle struct {
