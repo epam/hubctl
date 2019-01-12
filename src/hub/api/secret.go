@@ -124,7 +124,7 @@ func formatSecret(s map[string]string) string {
 	str := ""
 	if kind, ok := s["kind"]; ok {
 		switch kind {
-		case "text", "password", "certificate", "sshKey", "privateKey":
+		case "text", "password", "certificate", "sshKey", "privateKey", "loginToken":
 			str = s[kind]
 		case "gitAccessToken":
 			str = s["loginToken"]
@@ -132,6 +132,8 @@ func formatSecret(s map[string]string) string {
 			str = fmt.Sprintf("%s/%s", s["username"], s["password"])
 		case "cloudAccessKeys":
 			str = fmt.Sprintf("%s:%s", s["accessKey"], s["secretKey"])
+		case "cloudAccount":
+			str = fmt.Sprintf("%s/%s", s["roleArn"], s["externalId"])
 		}
 	}
 	if str == "" {
