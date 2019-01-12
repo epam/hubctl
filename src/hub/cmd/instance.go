@@ -192,7 +192,7 @@ func init() {
 	instanceSyncCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",
 		"Path to state files")
 	instanceKubeconfigCmd.Flags().StringVarP(&kubeconfigOutput, "output", "o", "",
-		"Set output filename (default to kubeconfig-DOMAIN.yaml)")
+		"Set output filename, `-` for stdout (default to kubeconfig-<domain>.yaml)")
 	instanceCmd.AddCommand(instanceGetCmd)
 	instanceCmd.AddCommand(instanceCreateCmd)
 	instanceCmd.AddCommand(instanceDeployCmd)

@@ -441,26 +441,32 @@ func kubeconfigStackInstance(selector, filename string) error {
 	if filename == "" {
 		filename = fmt.Sprintf("kubeconfig-%s.yaml", instance.Domain)
 	}
-	info, _ := os.Stat(filename)
-	if info != nil {
-		if info.IsDir() {
-			filename = fmt.Sprintf("%s/kubeconfig", filename)
-		} else {
-			if !config.Force {
-				log.Fatalf("Kubeconfig `%s` exists, use --force / -f to overwrite", filename)
+	var file io.WriteCloser
+	if filename == "-" {
+		file = os.Stdout
+	} else {
+		info, _ := os.Stat(filename)
+		if info != nil {
+			if info.IsDir() {
+				filename = fmt.Sprintf("%s/kubeconfig", filename)
+			} else {
+				if !config.Force {
+					log.Fatalf("Kubeconfig `%s` exists, use --force / -f to overwrite", filename)
+				}
 			}
 		}
+		var err error
+		file, err = os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("Unable to create %s: %v", filename, err)
+		}
+		defer file.Close()
 	}
-	file, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("Unable to create %s: %v", filename, err)
-	}
-	defer file.Close()
 	written, err := file.Write(body)
 	if written != len(body) {
 		return fmt.Errorf("Unable to write %s: %v", filename, err)
 	}
-	if config.Verbose {
+	if config.Verbose && filename != "-" {
 		log.Printf("Wrote %s", filename)
 	}
 
