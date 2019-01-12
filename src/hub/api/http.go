@@ -169,6 +169,11 @@ func post2(client *http.Client, path string, req io.Reader, jsResp interface{}) 
 	return code, err
 }
 
+func patch2(client *http.Client, path string, req io.Reader, jsResp interface{}) (int, error) {
+	code, err, _ := doWithAuthorization(client, "PATCH", path, req, jsResp)
+	return code, err
+}
+
 var methodsWithJsonBody = []string{"POST", "PUT", "PATCH"}
 
 func doWithAuthorization(client *http.Client, method, path string, reqBody io.Reader, jsResp interface{}) (int, error, []byte) {

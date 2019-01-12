@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	instanceShowLogs bool
-	kubeconfigOutput string
+	instanceShowLogs     bool
+	instancePatchReplace bool
+	kubeconfigOutput     string
 )
 
 var instanceCmd = &cobra.Command{
@@ -45,7 +46,7 @@ var instanceCreateCmd = &cobra.Command{
                 "value": "kubernetes"
             }, {
                 "name": "dns.baseDomain",
-                "value": "devops01.superhub.io"
+                "value": "dev01.superhub.io"
             }, {
                 "name": "component.postgresql.password",
                 "kind": "secret",
@@ -58,6 +59,44 @@ var instanceCreateCmd = &cobra.Command{
     }`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return createInstance(args)
+	},
+}
+
+var instancePatchCmd = &cobra.Command{
+	Use:   "patch < instance-patch.json",
+	Short: "Patch Stack Instance",
+	Long: `Patch Stack Instance by sending JSON via stdin, for example:
+    {
+        "status": {
+            "status": "deployed",
+            "components": [],
+            "inflightOperations": []
+        },
+        "parameters": [
+            {
+                "name": "dns.name",
+                "value": "kubernetes"
+            }, {
+                "name": "component.postgresql.password",
+                "kind": "secret",
+                "value": {
+                    "kind": "password",
+                    "password": "qwerty123"
+                }
+            }
+        ],
+        "outputs": [
+            {
+                "name": "component.ingress.fqdn",
+                "value": "app.kubernetes.dev01.superhub.io"
+            }
+        ],
+        "provides": {
+            "kubernetes": ["stack-k8s-aws"]
+        }
+    }`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return patchInstance(args)
 	},
 }
 
@@ -125,6 +164,16 @@ func createInstance(args []string) error {
 	return nil
 }
 
+func patchInstance(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Patch Instance command has one mandatory argument - id or full domain name of the Instance")
+	}
+
+	api.RawPatchStackInstance(args[0], os.Stdin, instancePatchReplace)
+
+	return nil
+}
+
 func deployInstance(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Deploy Instance command has one mandatory argument - id or full domain name of the Instance")
@@ -185,6 +234,8 @@ func init() {
 		"Show secrets")
 	instanceGetCmd.Flags().BoolVarP(&instanceShowLogs, "logs", "l", false,
 		"Show logs")
+	instancePatchCmd.Flags().BoolVarP(&instancePatchReplace, "replace", "r", false,
+		"Replace patched fields, do not merge")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
@@ -195,6 +246,7 @@ func init() {
 		"Set output filename, `-` for stdout (default to kubeconfig-<domain>.yaml)")
 	instanceCmd.AddCommand(instanceGetCmd)
 	instanceCmd.AddCommand(instanceCreateCmd)
+	instanceCmd.AddCommand(instancePatchCmd)
 	instanceCmd.AddCommand(instanceDeployCmd)
 	instanceCmd.AddCommand(instanceUndeployCmd)
 	instanceCmd.AddCommand(instanceSyncCmd)

@@ -492,3 +492,41 @@ func PatchStackInstance(selector string, change StackInstancePatch) (*StackInsta
 	}
 	return &jsResp, nil
 }
+
+func RawPatchStackInstance(selector string, body io.Reader, replace bool) {
+	stackInstance, err := rawPatchStackInstance(selector, body, replace)
+	if err != nil {
+		log.Fatalf("Unable to patch Hub Service Stack Instance: %v", err)
+	}
+	errors := formatStackInstanceEntity(stackInstance, false, false, make([]error, 0))
+	if len(errors) > 0 {
+		fmt.Print("Errors encountered formatting response:\n")
+		for _, err := range errors {
+			fmt.Printf("\t%v\n", err)
+		}
+	}
+}
+
+func rawPatchStackInstance(selector string, body io.Reader, replace bool) (*StackInstance, error) {
+	instance, err := stackInstanceBy(selector)
+	if err != nil {
+		return nil, err
+	}
+	if instance == nil {
+		return nil, error404
+	}
+	maybeReplace := ""
+	if replace {
+		maybeReplace = "?replace=1"
+	}
+	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), maybeReplace)
+	var jsResp StackInstance
+	code, err := patch2(hubApi, path, body, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP patching Hub Service Stack Instance, expected 200 HTTP", code)
+	}
+	return &jsResp, nil
+}
