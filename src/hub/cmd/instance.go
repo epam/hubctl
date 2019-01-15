@@ -179,7 +179,10 @@ func deployInstance(args []string) error {
 		return errors.New("Deploy Instance command has one mandatory argument - id or full domain name of the Instance")
 	}
 
-	api.DeployStackInstance(args[0], waitAndTailDeployLogs)
+	if dryRun {
+		waitAndTailDeployLogs = false
+	}
+	api.DeployStackInstance(args[0], waitAndTailDeployLogs, dryRun)
 
 	return nil
 }
@@ -238,6 +241,8 @@ func init() {
 		"Replace patched fields, do not merge")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	instanceDeployCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
+		"Save parameters and envrc to Template's Git but do not start the deployment")
 	instanceUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceSyncCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",

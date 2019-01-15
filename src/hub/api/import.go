@@ -49,14 +49,14 @@ var importConfigs = map[string]ImportConfig{
 }
 
 func ImportKubernetes(kind, name, environment, template string,
-	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs bool,
+	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
 	pems io.Reader,
 	nativeEndpoint, nativeClusterName, ingressIp string) {
 
 	err := errors.New("Not implemented")
 	if importConfig, exist := importConfigs[kind]; exist {
 		err = importK8s(importConfig, kind, name, environment, template,
-			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs,
+			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
 			pems,
 			nativeEndpoint, nativeClusterName, ingressIp)
 	}
@@ -66,7 +66,7 @@ func ImportKubernetes(kind, name, environment, template string,
 }
 
 func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templateSelector string,
-	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs bool,
+	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
 	pems io.Reader,
 	nativeEndpoint, nativeClusterName, ingressIp string) error {
 
@@ -263,7 +263,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		}
 	}
 
-	err = commandStackInstance(instance.Id, "deploy", waitAndTailDeployLogs)
+	err = commandStackInstance(instance.Id, "deploy", waitAndTailDeployLogs, dryRun)
 	if err != nil {
 		return fmt.Errorf("Unable to deploy adapter Stack Instance: %v", err)
 	}

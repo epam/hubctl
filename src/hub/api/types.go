@@ -141,11 +141,13 @@ type LifecyclePhase struct {
 }
 
 type InflightOperation struct {
-	Operation   string           `json:"operation"`
-	Status      string           `json:"status"`
-	Description string           `json:"description,omitempty"`
-	Logs        string           `json:"logs,omitempty"`
-	Phases      []LifecyclePhase `json:"phases,omitempty"`
+	Id          string                 `json:"id"`
+	Operation   string                 `json:"operation"`
+	Status      string                 `json:"status"`
+	Options     map[string]interface{} `json:"options,omitempty"`
+	Description string                 `json:"description,omitempty"`
+	Logs        string                 `json:"logs,omitempty"`
+	Phases      []LifecyclePhase       `json:"phases,omitempty"`
 }
 
 type TemplateStatus struct {

@@ -19,7 +19,7 @@ var (
 	stateManifest         string
 	stateManifestExplicit string
 	environmentOverrides  string
-	testVerb              bool
+	dryRun                bool
 	osEnvironmentMode     string
 	pipeOutputInRealtime  bool
 	outputFiles           string

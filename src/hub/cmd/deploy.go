@@ -107,7 +107,7 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 	setOsEnvForNestedCli(manifests, stateManifests, componentsBaseDir)
 
 	request := &lifecycle.Request{
-		Verb:                     maybeTestVerb(verb, testVerb),
+		Verb:                     maybeTestVerb(verb, dryRun),
 		ManifestFilenames:        manifests,
 		StateFilenames:           stateManifests,
 		LoadFinalState:           loadFinalState,
@@ -164,7 +164,7 @@ func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 		"Path to component sources base directory (default to manifest dir)")
 	cmd.Flags().BoolVarP(&pipeOutputInRealtime, "pipe", "", true,
 		"Pipe sub-commands output to console in real-time")
-	cmd.Flags().BoolVarP(&testVerb, "dry", "y", false,
+	cmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
 		fmt.Sprintf("Invoke %[1]s-test verb instead of %[1]s", verb))
 	cmd.Flags().BoolVarP(&strictParameters, "strict-parameters", "", true,
 		"Put only hub-component.yaml declared parameters into component scope")

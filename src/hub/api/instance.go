@@ -300,10 +300,20 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 		logs = fmt.Sprintf("%sLogs:\n%s\t%s\n",
 			ident, ident, strings.Join(strings.Split(op.Logs, "\n"), "\n"+ident+"\t"))
 	}
-	return fmt.Sprintf("%sOperation: %s - %s (%s)\n%sPhases:\n%s\t%s\n%s",
-		ident, op.Operation, op.Status, op.Description,
-		ident, ident, formatLifecyclePhases(op.Phases, ident),
-		logs)
+	options := ""
+	if len(op.Options) > 0 {
+		options = fmt.Sprintf(" %v", op.Options)
+	}
+	description := ""
+	if op.Description != "" {
+		description = fmt.Sprintf(" (%s)", op.Description)
+	}
+	phases := ""
+	if len(op.Phases) > 0 {
+		phases = fmt.Sprintf("%sPhases:\n%s\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident))
+	}
+	return fmt.Sprintf("%sOperation: %s - %s%s%s %s\n%s%s",
+		ident, op.Operation, op.Status, description, options, op.Id, phases, logs)
 }
 
 func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
@@ -340,21 +350,21 @@ func createStackInstance(body io.Reader) (*StackInstance, error) {
 	return &jsResp, nil
 }
 
-func DeployStackInstance(selector string, waitAndTailDeployLogs bool) {
-	err := commandStackInstance(selector, "deploy", waitAndTailDeployLogs)
+func DeployStackInstance(selector string, waitAndTailDeployLogs, dryRun bool) {
+	err := commandStackInstance(selector, "deploy", waitAndTailDeployLogs, dryRun)
 	if err != nil {
 		log.Fatalf("Unable to deploy Hub Service Stack Instance: %v", err)
 	}
 }
 
 func UndeployStackInstance(selector string, waitAndTailDeployLogs bool) {
-	err := commandStackInstance(selector, "undeploy", waitAndTailDeployLogs)
+	err := commandStackInstance(selector, "undeploy", waitAndTailDeployLogs, false)
 	if err != nil {
 		log.Fatalf("Unable to undeploy Hub Service Stack Instance: %v", err)
 	}
 }
 
-func commandStackInstance(selector, verb string, waitAndTailDeployLogs bool) error {
+func commandStackInstance(selector, verb string, waitAndTailDeployLogs, dryRun bool) error {
 	instance, err := stackInstanceBy(selector)
 	if err != nil {
 		return err
@@ -362,8 +372,12 @@ func commandStackInstance(selector, verb string, waitAndTailDeployLogs bool) err
 	if instance == nil {
 		return error404
 	}
+	maybeDryRun := ""
+	if dryRun {
+		maybeDryRun = "?dryRun=1"
+	}
 	var jsResp StackInstanceDeployResponse
-	path := fmt.Sprintf("%s/%s/%s", stackInstancesResource, url.PathEscape(instance.Id), verb)
+	path := fmt.Sprintf("%s/%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), verb, maybeDryRun)
 	code, err := post2(hubApi, path, nil, &jsResp)
 	if err != nil {
 		return err

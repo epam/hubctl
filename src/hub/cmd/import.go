@@ -100,10 +100,14 @@ func importKubernetes(args []string) error {
 	// 	return fmt.Errorf("If --template is specified then omit --create-new-template")
 	// }
 
+	if dryRun {
+		waitAndTailDeployLogs = false
+	}
+
 	config.AggWarnings = false // confusing UIX otherwise
 
 	api.ImportKubernetes(kind, name, environmentSelector, templateSelector,
-		autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs,
+		autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
 		os.Stdin,
 		nativeEndpoint, eksClusterName, metalIngressIp)
 
@@ -131,5 +135,7 @@ func init() {
 		"Do not reuse existing template, always create fresh one")
 	importCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	importCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
+		"Save parameters and envrc to Template's Git but do not start the import")
 	apiCmd.AddCommand(importCmd)
 }
