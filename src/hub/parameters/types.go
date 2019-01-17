@@ -49,14 +49,14 @@ func capturedOutputQualifiedName(output *CapturedOutput) string {
 	return OutputQualifiedName(output.Name, output.Component)
 }
 
-func parameterQualifiedName(name string, component string) string {
+func parameterQualifiedName(name, component string) string {
 	if component != "" {
 		return fmt.Sprintf("%s|%s", name, component)
 	}
 	return name
 }
 
-func OutputQualifiedName(name string, component string) string {
+func OutputQualifiedName(name, component string) string {
 	if component != "" {
 		return fmt.Sprintf("%s:%s", component, name)
 	}
