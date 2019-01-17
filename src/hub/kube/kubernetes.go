@@ -130,12 +130,12 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 			filename := apiKey[len(kubernetesFileRefPrefix):]
 			content = captureFile(filename)
 			// replace file:// with actual content
-			// TODO suppress `Output current value does not match new value` warning
 			parameters.MergeOutput(outputs,
 				parameters.CapturedOutput{
 					Component: componentName,
 					Name:      KubernetesApiKeysOutputBase + k,
 					Value:     content,
+					Kind:      "secret",
 				})
 		}
 	}

@@ -20,6 +20,7 @@ type CapturedOutput struct {
 	Component string `yaml:",omitempty" json:"component,omitempty"`
 	Name      string `json:"name"`
 	Value     string `json:"value"`
+	Kind      string `yaml:",omitempty" json:"kind,omitempty"`
 }
 
 type LockedParameters map[string]LockedParameter

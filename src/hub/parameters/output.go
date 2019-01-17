@@ -29,7 +29,10 @@ func OutputsFromList(toMerge ...[]CapturedOutput) CapturedOutputs {
 func MergeOutput(outputs CapturedOutputs, add CapturedOutput) {
 	qName := add.QName()
 	if config.Verbose {
-		if current, exists := outputs[qName]; exists && current.Value != add.Value && current.Value != "" {
+		if current, exists := outputs[qName]; exists && current.Value != add.Value && current.Value != "" &&
+			// suppress warning if plain value overwritten by secret
+			!(current.Kind == "" && strings.HasPrefix(add.Kind, "secret")) {
+
 			log.Printf("Output `%s` current value `%s` overridden by new value `%s`",
 				qName, util.Wrap(current.Value), util.Wrap(add.Value))
 		}
@@ -48,6 +51,7 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 
 	for _, requestedOutput := range requestedOutputs {
 		var value string
+		kind := requestedOutput.Kind
 		valueExist := false
 		// plain output from specific component
 		plainOutputRequested := strings.Contains(requestedOutput.Name, ":")
@@ -68,6 +72,17 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 				if !debugPrinted {
 					PrintCapturedOutputs(outputs)
 					debugPrinted = true
+				}
+			}
+			// propagate output (secret) kind
+			if exist && kind == "" {
+				for _, o := range outputs {
+					if o.QName() == requestedOutput.Name {
+						if o.Kind != "" {
+							kind = o.Kind
+							break
+						}
+					}
 				}
 			}
 			valueExist = exist
@@ -103,7 +118,7 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 
 		if valueExist {
 			expanded = append(expanded,
-				ExpandedOutput{Name: requestedOutput.Name, Value: value, Kind: requestedOutput.Kind, Brief: requestedOutput.Brief})
+				ExpandedOutput{Name: requestedOutput.Name, Value: value, Kind: kind, Brief: requestedOutput.Brief})
 		}
 	}
 

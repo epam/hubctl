@@ -131,7 +131,7 @@ func Explain(elaborateManifests, stateFilenames []string, global bool, component
 					for _, parameter := range step.Parameters {
 						comp.Parameters[parameter.Name] = parameter.Value
 					}
-					comp.Outputs = diffOutputs(step.CapturedOutputs, prevOutputs)
+					comp.Outputs = DiffOutputs(step.CapturedOutputs, prevOutputs)
 					prevOutputs = step.CapturedOutputs
 					if rawOutputs {
 						for _, output := range step.RawOutputs {
@@ -209,16 +209,20 @@ func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 		_, exist := keys[qName]
 		if !exist {
 			over, overExist := keys[c.Name]
+			kind := ""
+			if c.Kind != "" {
+				kind = fmt.Sprintf("[%s] ", c.Kind)
+			}
 			if !overExist {
-				fmt.Printf("\t%s => %s\n", c.Name, util.Wrap(c.Value))
+				fmt.Printf("\t%s%s => %s\n", kind, c.Name, util.Wrap(c.Value))
 			} else if c.Value != over {
-				fmt.Printf("\t%s => %s (was: %s)\n", c.Name, util.Wrap(c.Value), util.Wrap(over))
+				fmt.Printf("\t%s%s => %s (was: %s)\n", kind, c.Name, util.Wrap(c.Value), util.Wrap(over))
 			}
 		}
 	}
 }
 
-func diffOutputs(curr, prev []parameters.CapturedOutput) map[string]string {
+func DiffOutputs(curr, prev []parameters.CapturedOutput) map[string]string {
 	keys := make(map[string]string)
 	for _, p := range prev {
 		keys[p.QName()] = p.Value
@@ -249,7 +253,11 @@ func printStackOutputs(expanded []parameters.ExpandedOutput) {
 			if expandedOutput.Brief != "" {
 				brief = fmt.Sprintf("[%s] ", expandedOutput.Brief)
 			}
-			fmt.Printf("\t%s%s = %s\n", brief, expandedOutput.Name, expandedOutput.Value)
+			kind := ""
+			if expandedOutput.Kind != "" {
+				kind = fmt.Sprintf("[%s] ", expandedOutput.Kind)
+			}
+			fmt.Printf("\t%s%s%s = %s\n", brief, kind, expandedOutput.Name, expandedOutput.Value)
 		}
 	}
 }
