@@ -198,16 +198,20 @@ func undeployInstance(args []string) error {
 }
 
 func syncInstance(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Sync Instance command has one mandatory argument - id or full domain name of the Instance")
+	if len(args) != 1 && len(args) != 2 {
+		return errors.New("Sync Instance command has one mandatory argument - id or full domain name of the Instance, and optionally Instance status")
 	}
-	if stateManifestExplicit == "" {
-		return errors.New("State file to sync from must be specified")
+	status := ""
+	if len(args) == 2 {
+		status = args[1]
+	}
+	if stateManifestExplicit == "" && status == "" {
+		return errors.New("Either status or state file to sync must be specified")
 	}
 
 	manifests := util.SplitPaths(stateManifestExplicit)
 
-	api.SyncStackInstance(args[0], manifests)
+	api.SyncStackInstance(args[0], status, manifests)
 
 	return nil
 }

@@ -495,7 +495,7 @@ func PatchStackInstance(selector string, change StackInstancePatch) (*StackInsta
 	if instance == nil {
 		return nil, error404
 	}
-	path := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(instance.Id))
+	path := fmt.Sprintf("%s/%s?replace=1", stackInstancesResource, url.PathEscape(instance.Id))
 	var jsResp StackInstance
 	code, err := patch(hubApi, path, &change, &jsResp)
 	if err != nil {
