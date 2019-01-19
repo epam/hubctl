@@ -30,7 +30,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	}
 
 	patch := StackInstancePatch{
-		Status:   StackInstanceStatus{Status: status, Components: components},
+		Status:   &StackInstanceStatus{Status: status, Components: components},
 		Outputs:  outputs,
 		Provides: provides,
 	}
