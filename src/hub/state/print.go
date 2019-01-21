@@ -8,9 +8,9 @@ import (
 	"hub/util"
 )
 
-func printStateComponents(m map[string]StateStep) {
+func printStateComponents(m map[string]*StateStep) {
 	keys := make([]string, 0, len(m))
-	for key, _ := range m {
+	for key := range m {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)

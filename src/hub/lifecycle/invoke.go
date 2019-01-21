@@ -30,7 +30,7 @@ func Invoke(request *Request) {
 
 	stateFiles, errs := storage.Check(request.StateFilenames, "state")
 	if len(errs) > 0 {
-		maybeFatalf("Unable to check state file: %v", util.Errors2(errs...))
+		util.MaybeFatalf("Unable to check state file: %v", util.Errors2(errs...))
 	}
 
 	if config.Verbose {
@@ -56,7 +56,7 @@ func Invoke(request *Request) {
 		request.Component, component.Depends, stackManifest.Lifecycle.Order, false,
 		stackParameters, outputs, nil)
 	if err != nil {
-		maybeFatalf("Unable to load component `%s` state: %v",
+		util.MaybeFatalf("Unable to load component `%s` state: %v",
 			request.Component, err)
 	}
 	// we should probably ask mergeState() to load true component parameters
@@ -66,7 +66,7 @@ func Invoke(request *Request) {
 		manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
 		additionalEnvironment)
 	if len(errs) > 0 {
-		maybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
+		util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 			componentName, util.Errors("\n\t", errs...))
 	}
 	// always --strict-parameters
@@ -103,13 +103,13 @@ func Invoke(request *Request) {
 		stdoutMsg := formatStdout("stdout", stdout)
 		stderrMsg := formatStdout("stderr", stderr)
 		if err != nil {
-			maybeFatalf("%s%sFailed to %s %s: %v", stdoutMsg, stderrMsg, request.Verb, request.Component, err)
+			util.MaybeFatalf("%s%sFailed to %s %s: %v", stdoutMsg, stderrMsg, request.Verb, request.Component, err)
 		} else {
 			log.Printf("%s%s", stdoutMsg, stderrMsg)
 		}
 	}
 	if request.PipeOutputInRealtime && err != nil {
-		maybeFatalf("Failed to %s %s: %v", request.Verb, request.Component, err)
+		util.MaybeFatalf("Failed to %s %s: %v", request.Verb, request.Component, err)
 	}
 }
 

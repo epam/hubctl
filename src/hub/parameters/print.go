@@ -37,6 +37,9 @@ func PrintLockedParameters(parameters LockedParameters) {
 }
 
 func RawOutputsToList(outputs RawOutputs) []RawOutput {
+	if len(outputs) == 0 {
+		return []RawOutput{}
+	}
 	keys := make([]string, 0, len(outputs))
 	for name := range outputs {
 		keys = append(keys, name)

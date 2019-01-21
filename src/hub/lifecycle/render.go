@@ -72,7 +72,7 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 			componentName, component.Depends, stackManifest.Lifecycle.Order, false,
 			stackParameters, outputs, nil)
 		if err != nil {
-			maybeFatalf("Failed to read %v state files to load component `%s` state: %v",
+			util.MaybeFatalf("Failed to read %v state files to load component `%s` state: %v",
 				stateFilenames, componentName, err)
 		}
 		expandedComponentParameters, errs := parameters.ExpandParameters(componentName, component.Depends,
@@ -80,7 +80,7 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
 			nil)
 		if len(errs) > 0 {
-			maybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
+			util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 				componentName, util.Errors("\n\t", errs...))
 		}
 		params = parameters.MergeParameters(stackParameters, expandedComponentParameters, additionalParameters)
@@ -124,7 +124,7 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 	ref := &manifest.ComponentRef{Name: componentName}
 	errs = processTemplates(ref, &templateSetup, params, outputs, dir)
 	if len(errs) > 0 {
-		maybeFatalf("Failed to process `%s` templates:\n\t%s",
+		util.MaybeFatalf("Failed to process `%s` templates:\n\t%s",
 			componentName, util.Errors("\n\t", errs...))
 	}
 }

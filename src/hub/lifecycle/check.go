@@ -109,7 +109,7 @@ func checkVerbs(componentName string, availableVerbs []string, verb string) {
 	if len(availableVerbs) > 0 {
 		available = strings.Join(availableVerbs, ", ")
 	}
-	maybeFatalf("Verb `%s` is not supported by component `%s`, available verbs: %s",
+	util.MaybeFatalf("Verb `%s` is not supported by component `%s`, available verbs: %s",
 		verb, componentName, available)
 }
 

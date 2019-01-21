@@ -90,14 +90,14 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 
 	stateFiles, errs := storage.Check(request.StateFilenames, "state")
 	if len(errs) > 0 {
-		maybeFatalf("Unable to check state files: %v", util.Errors2(errs...))
+		util.MaybeFatalf("Unable to check state files: %v", util.Errors2(errs...))
 	}
 
 	var bundleFiles *storage.Files
 	if len(bundles) > 0 {
 		checked, errs := storage.Check(bundles, "backup bundle")
 		if len(errs) > 0 {
-			maybeFatalf("Unable to check backup bundle files: %v", util.Errors2(errs...))
+			util.MaybeFatalf("Unable to check backup bundle files: %v", util.Errors2(errs...))
 		}
 		bundleFiles = checked
 	}
@@ -108,7 +108,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 
 	parsedState, err := state.ParseState(stateFiles)
 	if err != nil {
-		maybeFatalf("Unable to load state %v: %v", request.StateFilenames, err)
+		util.MaybeFatalf("Unable to load state %v: %v", request.StateFilenames, err)
 	}
 
 	if config.Verbose {
@@ -146,7 +146,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
 			nil)
 		if len(errs) > 0 {
-			maybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
+			util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 				componentName, util.Errors("\n\t", errs...))
 		}
 		componentParameters := make(parameters.LockedParameters)

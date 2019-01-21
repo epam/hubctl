@@ -73,7 +73,7 @@ func Execute(request *Request) {
 
 	stateFiles, errs := storage.Check(request.StateFilenames, "state")
 	if len(errs) > 0 {
-		maybeFatalf("Unable to check state files: %s", util.Errors2(errs...))
+		util.MaybeFatalf("Unable to check state files: %s", util.Errors2(errs...))
 	}
 	storage.EnsureNoLockFiles(stateFiles)
 
@@ -90,7 +90,7 @@ func Execute(request *Request) {
 				if comps == "" {
 					comps = strings.Join(request.Components, ", ")
 				}
-				maybeFatalf("Component `%s` is specified but failed to read %v state file(s): %v",
+				util.MaybeFatalf("Component `%s` is specified but failed to read %v state file(s): %v",
 					comps, request.StateFilenames, err)
 			}
 		}
@@ -283,7 +283,7 @@ NEXT_COMPONENT:
 		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters,
 			dir, osEnv, request.PipeOutputInRealtime)
 
-		var rawOutputs parameters.RawOutputs = nil
+		var rawOutputs parameters.RawOutputs
 		if err != nil {
 			maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 				fmt.Sprintf("Component `%s` failed to %s: %v", componentName, request.Verb, err))
@@ -397,10 +397,6 @@ NEXT_COMPONENT:
 	if config.Verbose {
 		printEndBlurb(request, stackManifest)
 	}
-}
-
-func maybeFatalf(format string, v ...interface{}) {
-	util.MaybeFatalf(format, v...)
 }
 
 func maybeFatalIfMandatory(lifecycle *manifest.Lifecycle, componentName string, msg string) {
