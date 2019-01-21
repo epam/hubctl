@@ -17,6 +17,8 @@ type Lifecycle struct {
 
 type StateStep struct {
 	Timestamp       time.Time
+	Status          string                       `yaml:",omitempty"`
+	Message         string                       `yaml:",omitempty"`
 	Parameters      []parameters.LockedParameter `yaml:",omitempty"`
 	RawOutputs      []parameters.RawOutput       `yaml:"rawOutputs,omitempty"`
 	CapturedOutputs []parameters.CapturedOutput  `yaml:"capturedOutputs,omitempty"`
@@ -26,6 +28,8 @@ type StateManifest struct {
 	Version         int
 	Kind            string
 	Timestamp       time.Time
+	Status          string                       `yaml:",omitempty"`
+	Message         string                       `yaml:",omitempty"`
 	Meta            Metadata                     `yaml:",omitempty"`
 	Lifecycle       Lifecycle                    `yaml:",omitempty"`
 	StackParameters []parameters.LockedParameter `yaml:"stackParameters,omitempty"`
