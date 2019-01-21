@@ -262,10 +262,12 @@ NEXT_COMPONENT:
 			componentParameters = allParameters
 		}
 
-		if !prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires) {
-			// prepareComponentRequires() will exit on unsatisfied mandatory requirement
-			// TODO print what requirements are missing
-			log.Printf("Skip %s due to unsatisfied optional requirements", componentName)
+		if optionalNotProvided, err := prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires); len(optionalNotProvided) > 0 || err != nil {
+			if err != nil {
+				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName, fmt.Sprintf("%v", err))
+				continue
+			}
+			log.Printf("Skip %s due to unsatisfied optional requirements %v", componentName, optionalNotProvided)
 			// there will be a gap in state file but `deploy -c` will be able to find some state from
 			// a preceding component
 			continue

@@ -17,10 +17,11 @@ import (
 const providedByEnv = "*environment*"
 
 func prepareComponentRequires(provided map[string][]string, componentManifest *manifest.Manifest,
-	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs, maybeOptional map[string][]string) bool {
+	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs,
+	maybeOptional map[string][]string) ([]string, error) {
 
 	setups := make([]util.Tuple2, 0, len(componentManifest.Requires))
-	allProvided := true
+	optionalNotProvided := make([]string, 0)
 
 	componentName := manifest.ComponentQualifiedNameFromMeta(&componentManifest.Meta)
 	for _, req := range componentManifest.Requires {
@@ -29,20 +30,15 @@ func prepareComponentRequires(provided map[string][]string, componentManifest *m
 			if optionalFor, exist := maybeOptional[req]; exist &&
 				(util.Contains(optionalFor, componentName) || util.Contains(optionalFor, "*")) {
 
-				allProvided = false
+				optionalNotProvided = append(optionalNotProvided, req)
 				if config.Verbose {
 					log.Printf("Optional requirement `%s` is not provided", req)
 				}
 				continue
 			}
-			log.Printf("Component `%s` requires `%s` but only following provides are currently known:",
-				componentName, strings.Join(componentManifest.Requires, ", "))
-			util.PrintDeps(provided)
-			if config.Force {
-				continue
-			} else {
-				os.Exit(1)
-			}
+			err := fmt.Errorf("Component `%s` requires `%s` but only following provides are currently known:\n%s",
+				componentName, strings.Join(componentManifest.Requires, ", "), util.SprintDeps(provided))
+			return optionalNotProvided, err
 		}
 		if config.Debug && len(by) == 1 {
 			log.Printf("Requirement `%s` provided by `%s`", req, by[0])
@@ -56,12 +52,12 @@ func prepareComponentRequires(provided map[string][]string, componentManifest *m
 		setups = append(setups, util.Tuple2{req, provider})
 	}
 
-	if allProvided {
+	if len(optionalNotProvided) == 0 {
 		for _, setup := range setups {
 			setupRequirement(setup.S1, setup.S2, parameters, outputs)
 		}
 	}
-	return allProvided
+	return optionalNotProvided, nil
 }
 
 func setupRequirement(requirement string, provider string,
