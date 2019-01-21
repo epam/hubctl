@@ -12,9 +12,6 @@ import (
 )
 
 func SyncStackInstance(selector, status string, stateFilenames []string) {
-	if status == "" {
-		status = "deployed"
-	}
 	var st *state.StateManifest
 	if len(stateFilenames) > 0 {
 		st = state.MustParseStateFiles(stateFilenames)
@@ -24,6 +21,9 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	var components []ComponentStatus
 	var provides map[string][]string
 	if st != nil {
+		if status == "" {
+			status = st.Status
+		}
 		outputs = TransformStackOutputsToApi(appendKubernetesKeys(st.StackOutputs, st.Components))
 		components = transformComponentsToApi(st.Lifecycle.Order, st.Components)
 		provides = st.Provides
@@ -56,8 +56,7 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 			noSecretOutputs := filterOutSecretOutputs(component.CapturedOutputs)
 			outputs := state.DiffOutputs(noSecretOutputs, prevOutputs)
 			prevOutputs = noSecretOutputs
-			status := "deployed" // TODO state file write component status
-			components = append(components, ComponentStatus{Name: name, Status: status, Outputs: outputs})
+			components = append(components, ComponentStatus{Name: name, Status: component.Status, Outputs: outputs})
 		}
 	}
 	return components
