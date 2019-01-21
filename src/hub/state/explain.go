@@ -20,6 +20,8 @@ import (
 
 type ExplainedComponent struct {
 	Timestamp  time.Time         `yaml:",omitempty" json:"timestamp,omitempty"`
+	Status     string            `yaml:",omitempty" json:"status,omitempty"`
+	Message    string            `yaml:",omitempty" json:"message,omitempty"`
 	Parameters map[string]string `yaml:",omitempty" json:"parameters,omitempty"`
 	Outputs    map[string]string `yaml:",omitempty" json:"outputs,omitempty"`
 	RawOutputs map[string]string `yaml:"rawOutputs,omitempty" json:"rawOutputs,omitempty"`
@@ -28,6 +30,8 @@ type ExplainedComponent struct {
 type ExplainedState struct {
 	Meta            Metadata                      `yaml:",omitempty" json:"meta,omitempty"`
 	Timestamp       time.Time                     `yaml:",omitempty" json:"timestamp,omitempty"`
+	Status          string                        `yaml:",omitempty" json:"status,omitempty"`
+	Message         string                        `yaml:",omitempty" json:"message,omitempty"`
 	StackParameters map[string]string             `yaml:"stackParameters,omitempty" json:"stackParameters,omitempty"`
 	StackOutputs    map[string]string             `yaml:"stackOutputs,omitempty" json:"stackOutputs,omitempty"`
 	Provides        map[string][]string           `yaml:",omitempty" json:"provides,omitempty"`
@@ -86,6 +90,10 @@ func Explain(elaborateManifests, stateFilenames []string, global bool, component
 			fmt.Printf("Kind: %s\n", state.Meta.Kind)
 			fmt.Printf("Name: %s\n", state.Meta.Name)
 			fmt.Printf("Timestamp: %v\n", state.Timestamp)
+			fmt.Printf("Status: %s\n", state.Status)
+			if state.Message != "" {
+				fmt.Printf("Message: %s\n", state.Message)
+			}
 			fmt.Print(headColor("Stack parameters:\n"))
 			printLockedParameters(state.StackParameters)
 			printStackOutputs(state.StackOutputs)
@@ -105,6 +113,8 @@ func Explain(elaborateManifests, stateFilenames []string, global bool, component
 		explained := ExplainedState{
 			Meta:            state.Meta,
 			Timestamp:       state.Timestamp,
+			Status:          state.Status,
+			Message:         state.Message,
 			StackParameters: make(map[string]string),
 			StackOutputs:    make(map[string]string),
 			Components:      make(map[string]ExplainedComponent),
@@ -125,6 +135,8 @@ func Explain(elaborateManifests, stateFilenames []string, global bool, component
 				if step, exist := state.Components[component]; exist {
 					comp := ExplainedComponent{
 						Timestamp:  step.Timestamp,
+						Status:     step.Status,
+						Message:    step.Message,
 						Parameters: make(map[string]string),
 						RawOutputs: make(map[string]string),
 					}
@@ -171,8 +183,12 @@ var headColor = func(str string) string {
 	return str
 }
 
-func printComponenentState(step StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
+func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
 	fmt.Printf("-- Timestamp: %v\n", step.Timestamp)
+	fmt.Printf("-- Status: %v\n", step.Status)
+	if step.Message != "" {
+		fmt.Printf("-- Message: %v\n", step.Message)
+	}
 	fmt.Print("-- Parameters:\n")
 	printLockedParameters(step.Parameters)
 	if rawOutputs && len(step.RawOutputs) > 0 {
