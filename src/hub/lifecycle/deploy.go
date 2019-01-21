@@ -122,7 +122,7 @@ func Execute(request *Request) {
 
 	// TODO state file has user-level parameters for undeploy operation
 	// should we just go with the state values if we cannot lock all parameters properly?
-	stackParameters := parameters.LockParameters(
+	stackParameters, errs := parameters.LockParameters(
 		manifest.FlattenParameters(stackManifest.Parameters, chosenManifestFilename),
 		extraExpansionValues,
 		func(parameter *manifest.Parameter) error {
@@ -130,6 +130,9 @@ func Execute(request *Request) {
 				request.Environment, request.StackInstance, request.Application,
 				isDeploy)
 		})
+	if len(errs) > 0 {
+		log.Fatalf("Failed to lock stack parameters:\n\t%s", util.Errors("\n\t", errs...))
+	}
 	allOutputs := make(parameters.CapturedOutputs)
 	if stateManifest != nil {
 		checkStateMatch(stateManifest, stackManifest, stackParameters)

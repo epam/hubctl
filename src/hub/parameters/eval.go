@@ -19,7 +19,7 @@ func StripCurly(match string) string {
 
 func LockParameters(parameters []manifest.Parameter,
 	extraValues []manifest.Parameter,
-	ask func(*manifest.Parameter) error) LockedParameters {
+	ask func(*manifest.Parameter) error) (LockedParameters, []error) {
 
 	for _, parameter := range parameters {
 		if parameter.Default != "" && parameter.Kind != "user" {
@@ -66,10 +66,7 @@ func LockParameters(parameters []manifest.Parameter,
 		log.Print("Parameters locked:")
 		PrintLockedParameters(locked)
 	}
-	if len(errs) > 0 {
-		log.Fatalf("Failed to lock stack parameters:\n\t%s", util.Errors("\n\t", errs...))
-	}
-	return locked
+	return locked, errs
 }
 
 func ParametersWithoutLinks(parameters LockedParameters) LockedParameters {
