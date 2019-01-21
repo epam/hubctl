@@ -48,7 +48,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	}
 }
 
-func transformComponentsToApi(order []string, stateComponents map[string]state.StateStep) []ComponentStatus {
+func transformComponentsToApi(order []string, stateComponents map[string]*state.StateStep) []ComponentStatus {
 	components := make([]ComponentStatus, 0, len(stateComponents))
 	var prevOutputs []parameters.CapturedOutput
 	for _, name := range order {
@@ -85,7 +85,7 @@ func filterOutSecretOutputs(outputs []parameters.CapturedOutput) []parameters.Ca
 	return filtered
 }
 
-func appendKubernetesKeys(outputs []parameters.ExpandedOutput, components map[string]state.StateStep) []parameters.ExpandedOutput {
+func appendKubernetesKeys(outputs []parameters.ExpandedOutput, components map[string]*state.StateStep) []parameters.ExpandedOutput {
 	// make sure Kubernetes keys are added to stack outputs if not already there
 	for _, providerName := range kube.KubernetesDefaultProviders {
 		if provider, exist := components[providerName]; exist {

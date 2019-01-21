@@ -41,7 +41,7 @@ func findState(state *state.StateManifest, providers []string) (*state.StateStep
 	for _, provider := range providers {
 		providerState, exist := state.Components[provider]
 		if exist {
-			return &providerState, provider
+			return providerState, provider
 		}
 	}
 	return nil, ""

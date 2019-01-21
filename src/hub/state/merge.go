@@ -61,7 +61,7 @@ func chooseStateOutputsToMerge(state *StateManifest, componentName string, order
 
 	componentStateName := ""
 	componentStateExist := false
-	var componentState StateStep
+	var componentState *StateStep
 	if state.Components != nil {
 		if componentName == "" && len(outputsToMerge) == 0 {
 			componentName = order[len(order)-1] // if global state is empty then start search with the last component
@@ -170,7 +170,7 @@ func mergeStateOutputs(outputs parameters.CapturedOutputs, state []parameters.Ca
 }
 
 func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depends []string, mergedTimestamp time.Time,
-	components map[string]StateStep) {
+	components map[string]*StateStep) {
 
 	for _, dependencyName := range depends {
 		if dependency, exist := components[dependencyName]; exist && dependency.Timestamp.After(mergedTimestamp) {

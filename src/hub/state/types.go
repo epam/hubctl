@@ -32,7 +32,7 @@ type StateManifest struct {
 	CapturedOutputs []parameters.CapturedOutput  `yaml:"capturedOutputs,omitempty"`
 	StackOutputs    []parameters.ExpandedOutput  `yaml:"stackOutputs,omitempty"`
 	Provides        map[string][]string          `yaml:",omitempty"`
-	Components      map[string]StateStep         `yaml:",omitempty"`
+	Components      map[string]*StateStep        `yaml:",omitempty"`
 }
 
 type ComponentBackup struct {
