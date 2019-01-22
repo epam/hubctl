@@ -130,7 +130,7 @@ func maybeInitState(manifest *StateManifest) *StateManifest {
 func maybeInitComponentState(manifest *StateManifest, componentName string) *StateStep {
 	componentState, exist := manifest.Components[componentName]
 	if !exist {
-		componentState := &StateStep{}
+		componentState = &StateStep{}
 		manifest.Components[componentName] = componentState
 	}
 	return componentState
