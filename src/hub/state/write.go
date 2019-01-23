@@ -77,7 +77,7 @@ func UpdateStatus(manifest *StateManifest,
 			componentState.Message = componentMessage
 			if config.Debug {
 				log.Printf("State component `%s` status: %s", componentName, componentStatus)
-				if componentMessage != "" {
+				if componentMessage != "" && config.Trace {
 					log.Printf("State component `%s` message: %s", componentName, componentMessage)
 				}
 			}
@@ -91,7 +91,7 @@ func UpdateStatus(manifest *StateManifest,
 			manifest.Message = message
 			if config.Debug {
 				log.Printf("State stack status: %s", stackStatus)
-				if message != "" {
+				if message != "" && config.Trace {
 					log.Printf("State stack message: %s", message)
 				}
 			}
