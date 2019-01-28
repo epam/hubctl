@@ -13,8 +13,18 @@ import (
 
 func SyncStackInstance(selector, status string, stateFilenames []string) {
 	var st *state.StateManifest
+	var s3StatePaths []string
+	var componentsEnabled []string
 	if len(stateFilenames) > 0 {
 		st = state.MustParseStateFiles(stateFilenames)
+
+		componentsEnabled = st.Lifecycle.Order
+
+		for _, filename := range stateFilenames {
+			if strings.HasPrefix(filename, "s3://") {
+				s3StatePaths = append(s3StatePaths, filename)
+			}
+		}
 	}
 
 	var outputs []Output
@@ -30,9 +40,11 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	}
 
 	patch := StackInstancePatch{
-		Status:   &StackInstanceStatus{Status: status, Components: components},
-		Outputs:  outputs,
-		Provides: provides,
+		ComponentsEnabled: componentsEnabled,
+		StateFiles:        s3StatePaths,
+		Status:            &StackInstanceStatus{Status: status, Components: components},
+		Outputs:           outputs,
+		Provides:          provides,
 	}
 	if config.Verbose {
 		log.Print("Syncing instance state to Control Plane")

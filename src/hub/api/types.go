@@ -201,9 +201,11 @@ type StackInstanceDeployResponse struct {
 }
 
 type StackInstancePatch struct {
-	Status   *StackInstanceStatus `json:"status,omitempty"`
-	Outputs  []Output             `json:"outputs,omitempty"`
-	Provides map[string][]string  `json:"provides,omitempty"`
+	ComponentsEnabled []string             `json:"componentsEnabled,omitempty"`
+	StateFiles        []string             `json:"stateFiles,omitempty"`
+	Status            *StackInstanceStatus `json:"status,omitempty"`
+	Outputs           []Output             `json:"outputs,omitempty"`
+	Provides          map[string][]string  `json:"provides,omitempty"`
 }
 
 type Application struct {
