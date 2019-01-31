@@ -75,6 +75,11 @@ fmt:
 		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
 .PHONY: fmt
 
+vet:
+	@cd src && go tool vet -shadow hub/api hub/aws hub/cmd hub/compose hub/config hub/git hub/initialize hub/kube \
+		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
+.PHONY: vet
+
 # go get -u github.com/hhatto/gocloc/cmd/gocloc
 loc:
 	@gocloc src/hub --not-match-d='src/hub/(vendor|bindata)'

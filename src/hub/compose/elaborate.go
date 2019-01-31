@@ -724,8 +724,7 @@ func connectRequires(parentStackName string, parentStackProvides []string,
 				log.Printf("`%s` already provides `%s`, but component `%s` also provides `%s`",
 					strings.Join(who, ", "), prov, name, prov)
 			}
-			who := append(who, name)
-			provides[prov] = who
+			provides[prov] = append(who, name)
 		}
 	}
 
@@ -743,8 +742,7 @@ func connectRequires(parentStackName string, parentStackProvides []string,
 		if !exist {
 			requires[req] = []string{name}
 		} else {
-			who := append(who, name)
-			requires[req] = who
+			requires[req] = append(who, name)
 		}
 	}
 
@@ -778,7 +776,7 @@ func connectRequires(parentStackName string, parentStackProvides []string,
 		util.PrintDeps(requires)
 	}
 	keys := make([]string, 0, len(requires))
-	for k, _ := range requires {
+	for k := range requires {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -827,8 +825,7 @@ func mergeProvides(parentStackName string, parentProvides []string,
 				log.Printf("`%s` already provides `%s`, but component `%s` also provides `%s`",
 					strings.Join(who, ", "), prov, name, prov)
 			}
-			who := append(who, name)
-			provides[prov] = who
+			provides[prov] = append(who, name)
 		}
 	}
 

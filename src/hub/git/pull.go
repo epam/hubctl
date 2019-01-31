@@ -190,7 +190,7 @@ func emptyDir(dir string) bool {
 	}
 	if !dirInfo.IsDir() {
 		if config.Force {
-			err := os.Remove(dir)
+			err = os.Remove(dir)
 			if err != nil {
 				log.Fatalf("Unable to force remove `%s`: %v", dir, err)
 			}

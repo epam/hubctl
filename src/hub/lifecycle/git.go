@@ -18,7 +18,7 @@ func gitStatus(dir string, calculateStatus bool) (map[string]string, error) {
 	dir = abs
 	for {
 		gitDir := filepath.Join(dir, ".git")
-		_, err := os.Stat(gitDir)
+		_, err = os.Stat(gitDir)
 		if err != nil {
 			if util.NoSuchFile(err) {
 				parent := filepath.Dir(dir)
