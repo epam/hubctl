@@ -51,7 +51,7 @@ func login(args []string) error {
 }
 
 func init() {
-	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "Hub username")
-	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "Hub password")
+	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "SuperHub username")
+	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "SuperHub password")
 	RootCmd.AddCommand(loginCmd)
 }

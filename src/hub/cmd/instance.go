@@ -63,7 +63,7 @@ var instanceCreateCmd = &cobra.Command{
 }
 
 var instancePatchCmd = &cobra.Command{
-	Use:   "patch < instance-patch.json",
+	Use:   "patch <id | domain> < instance-patch.json",
 	Short: "Patch Stack Instance",
 	Long: `Patch Stack Instance by sending JSON via stdin, for example:
     {
