@@ -35,9 +35,9 @@ func AskParameter(parameter *manifest.Parameter,
 	qName := parameter.QName()
 
 	if hubEnvironment != "" || hubStackInstance != "" || hubApplication != "" {
-		found, v, err := api.GetParameterOrMaybeCreatePassword(hubEnvironment, hubStackInstance, hubApplication,
+		found, v, errs := api.GetParameterOrMaybeCreatePassword(hubEnvironment, hubStackInstance, hubApplication,
 			parameter.Name, parameter.Component, isDeploy)
-		if err != nil {
+		if len(errs) > 0 {
 			where := make([]string, 0, 3)
 			if hubEnvironment != "" {
 				where = append(where, fmt.Sprintf("environment `%s`", hubEnvironment))
@@ -48,9 +48,10 @@ func AskParameter(parameter *manifest.Parameter,
 			if hubApplication != "" {
 				where = append(where, fmt.Sprintf("application `%s`", hubApplication))
 			}
-			util.Warn("Error query parameter `%s` in %s: %v",
-				qName, strings.Join(where, ", "), err)
-		} else if found && v != "" {
+			util.Warn("Error query parameter `%s` in %s:\n\t%s",
+				qName, strings.Join(where, ", "), util.Errors("\n\t", errs...))
+		}
+		if found && v != "" {
 			parameter.Value = v
 			return
 		}

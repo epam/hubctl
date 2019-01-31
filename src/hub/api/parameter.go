@@ -13,7 +13,11 @@ import (
 )
 
 func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
-	name, component string, create bool) (bool, string, error) {
+	name, component string, create bool) (bool, string, []error) {
+
+	found := false
+	var value string
+	var errors []error
 
 	applicationEnvironmentIds := make([]string, 0)
 	stackInstanceEnvironmentId := ""
@@ -21,68 +25,59 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 	if application != "" {
 		app, err := cachedApplicationBy(application)
 		if err != nil {
-			return false, "", err
-		}
-		for _, env := range app.Environments {
-			applicationEnvironmentIds = append(applicationEnvironmentIds, env.Id)
-		}
-		resource := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(app.Id))
-		found, value, err := getParameter(resource, app.Parameters, name, component)
-		if err != nil {
-			return false, "", err
-		}
-		if found {
-			return true, value, nil
+			errors = append(errors, err)
+		} else {
+			for _, env := range app.Environments {
+				applicationEnvironmentIds = append(applicationEnvironmentIds, env.Id)
+			}
+			resource := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(app.Id))
+			found, value, err = getParameter(resource, app.Parameters, name, component)
+			if err != nil {
+				errors = append(errors, err)
+			}
 		}
 	}
-	if stackInstance != "" {
+	if !found && stackInstance != "" {
 		instance, err := cachedStackInstanceBy(stackInstance)
 		if err != nil {
-			return false, "", err
-		}
-		stackInstanceEnvironmentId = instance.Environment.Id
-		resource := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(instance.Id))
-		found, value, err := getParameter(resource, instance.Parameters, name, component)
-		if err != nil {
-			return false, "", err
-		}
-		if found {
-			return true, value, nil
+			errors = append(errors, err)
+		} else {
+			stackInstanceEnvironmentId = instance.Environment.Id
+			resource := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(instance.Id))
+			found, value, err = getParameter(resource, instance.Parameters, name, component)
+			if err != nil {
+				errors = append(errors, err)
+			}
 		}
 	}
-	if environment != "" {
+	if !found && environment != "" {
 		env, err := cachedEnvironmentBy(environment)
 		if err != nil {
-			return false, "", err
-		}
-
-		if stackInstanceEnvironmentId != "" && stackInstanceEnvironmentId != env.Id {
-			util.WarnOnce("Environment `%s` (%s) doesn't match Stack Instance Environment `%s`",
-				env.Id, env.Name, stackInstanceEnvironmentId)
-		}
-		if len(applicationEnvironmentIds) > 0 && !util.Contains(applicationEnvironmentIds, env.Id) {
-			util.WarnOnce("Environment `%s` (%s) doesn't match Application Environments %v",
-				env.Id, env.Name, applicationEnvironmentIds)
-		}
-
-		resource := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(env.Id))
-		found, value, err := getParameter(resource, env.Parameters, name, component)
-		if err != nil {
-			return false, "", err
-		}
-		if found {
-			return true, value, nil
-		}
-
-		if create && looksLikePassword(name) {
-			value, err := createPasswordParameter(environment, env.Id, name, component)
-			if err != nil {
-				return false, "", err
+			errors = append(errors, err)
+		} else {
+			if stackInstanceEnvironmentId != "" && stackInstanceEnvironmentId != env.Id {
+				util.WarnOnce("Environment `%s` (%s) doesn't match Stack Instance Environment `%s`",
+					env.Id, env.Name, stackInstanceEnvironmentId)
 			}
-			return true, value, nil
+			if len(applicationEnvironmentIds) > 0 && !util.Contains(applicationEnvironmentIds, env.Id) {
+				util.WarnOnce("Environment `%s` (%s) doesn't match Application Environments %v",
+					env.Id, env.Name, applicationEnvironmentIds)
+			}
+
+			resource := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(env.Id))
+			found, value, err = getParameter(resource, env.Parameters, name, component)
+			if err != nil {
+				errors = append(errors, err)
+			}
+			if !found && create && looksLikePassword(name) {
+				value, err = createPasswordParameter(environment, env.Id, name, component)
+				if err != nil {
+					errors = append(errors, err)
+				}
+			}
 		}
 	}
-	return false, "", nil
+	return found, value, errors
 }
 
 func looksLikePassword(name string) bool {
