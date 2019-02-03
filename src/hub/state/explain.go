@@ -233,6 +233,8 @@ func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 				fmt.Printf("\t%s%s => %s\n", kind, c.Name, util.Wrap(c.Value))
 			} else if c.Value != over {
 				fmt.Printf("\t%s%s => %s (was: %s)\n", kind, c.Name, util.Wrap(c.Value), util.Wrap(over))
+			} else {
+				fmt.Printf("\t%s%s => %s\n", kind, qName, util.Wrap(c.Value))
 			}
 		}
 	}
