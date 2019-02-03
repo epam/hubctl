@@ -199,11 +199,9 @@ func ExpandParameters(componentName string, componentDepends []string,
 	componentParameters []manifest.Parameter, environment map[string]string) ([]LockedParameter, []error) {
 
 	kv := ParametersAndOutputsKV(parameters, outputs)
-	kv["component.name"] = componentName // TODO deprecate
 	kv["hub.componentName"] = componentName
 	// expand, check for cycles
 	expanded := make([]LockedParameter, 0, len(componentParameters)+3)
-	expanded = append(expanded, LockedParameter{Name: "component.name", Value: componentName})
 	expanded = append(expanded, LockedParameter{Name: "hub.componentName", Value: componentName})
 	errs := make([]error, 0)
 	for _, parameter := range componentParameters {
@@ -268,7 +266,7 @@ func mergeParameter(parameters LockedParameters, add LockedParameter) {
 	fqName := lockedParameterQualifiedName(&add)
 	current, exists := parameters[fqName]
 	if exists {
-		if current.Value != add.Value && current.Value != "" && fqName != "component.name" {
+		if current.Value != add.Value && current.Value != "" {
 			util.Warn("Parameter `%s` current value `%s` does not match new value `%s`",
 				fqName, current.Value, add.Value)
 		}
