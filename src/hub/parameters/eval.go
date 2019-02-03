@@ -113,6 +113,9 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 	expandedValue := CurlyReplacement.ReplaceAllStringFunc(value,
 		func(variable string) string {
 			variable = StripCurly(variable)
+			// TODO review: expansion search path is set to parameter's `component:`
+			// but in hub-component.yaml it may lead to the path being set to an
+			// unexpected qualifier or not being set at all
 			substitution, exist := FindValue(variable, parameter.Component, componentDepends, kv)
 			if !exist {
 				errs = append(errs, fmt.Errorf("Parameter `%s` value `%s` refer to unknown substitution `%s` at depth %d",
