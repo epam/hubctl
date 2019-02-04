@@ -720,7 +720,7 @@ func connectRequires(parentStackName string, parentStackProvides []string,
 		if !exist {
 			provides[prov] = []string{name}
 		} else {
-			if !strings.HasPrefix(who[0], "*") || len(who) > 1 {
+			if config.Trace && (!strings.HasPrefix(who[0], "*") || len(who) > 1) {
 				log.Printf("`%s` already provides `%s`, but component `%s` also provides `%s`",
 					strings.Join(who, ", "), prov, name, prov)
 			}
@@ -821,7 +821,7 @@ func mergeProvides(parentStackName string, parentProvides []string,
 		if !exist {
 			provides[prov] = []string{name}
 		} else {
-			if !strings.HasPrefix(who[0], "*") || len(who) > 1 {
+			if config.Trace && (!strings.HasPrefix(who[0], "*") || len(who) > 1) {
 				log.Printf("`%s` already provides `%s`, but component `%s` also provides `%s`",
 					strings.Join(who, ", "), prov, name, prov)
 			}
@@ -851,7 +851,7 @@ func mergeProvides(parentStackName string, parentProvides []string,
 		util.PrintDeps(provides)
 	}
 	keys := make([]string, 0, len(provides))
-	for k, _ := range provides {
+	for k := range provides {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

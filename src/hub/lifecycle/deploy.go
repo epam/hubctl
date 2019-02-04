@@ -882,8 +882,10 @@ func mergeProvides(provides map[string][]string, componentName string, component
 		if !exist {
 			who = []string{componentName}
 		} else if !util.Contains(who, componentName) { // check because of re-deploy
-			util.Warn("`%s` already provides `%s`, but component `%s` also provides `%s`",
-				strings.Join(who, ", "), prov, componentName, prov)
+			if config.Debug {
+				log.Printf("`%s` already provides `%s`, but component `%s` also provides `%s`",
+					strings.Join(who, ", "), prov, componentName, prov)
+			}
 			who = append(who, componentName)
 		}
 		provides[prov] = who
