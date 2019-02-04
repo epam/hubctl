@@ -130,6 +130,21 @@ func checkLifecycleRequires(components []manifest.ComponentRef, requires manifes
 	}
 }
 
+func checkComponentsDepends(components []manifest.ComponentRef, order []string) {
+	for _, component := range components {
+		if len(component.Depends) > 0 && !util.ContainsAll(order, component.Depends) {
+			var missing []string
+			for _, dep := range component.Depends {
+				if !util.Contains(order, dep) {
+					missing = append(missing, dep)
+				}
+			}
+			log.Fatalf("Component `%s` `depends: %v` does not match component list",
+				manifest.ComponentQualifiedNameFromRef(&component), missing)
+		}
+	}
+}
+
 func checkStateMatch(state *state.StateManifest, elaborate *manifest.Manifest, stackParameters parameters.LockedParameters) {
 	errs := make([]error, 0)
 

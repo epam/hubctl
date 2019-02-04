@@ -62,6 +62,7 @@ func Execute(request *Request) {
 	checkLifecycleOrder(components, stackManifest.Lifecycle)
 	checkLifecycleVerbs(components, componentsManifests, stackManifest.Lifecycle.Verbs, stackBaseDir, componentsBaseDir)
 	checkLifecycleRequires(components, stackManifest.Lifecycle.Requires)
+	checkComponentsDepends(components, stackManifest.Lifecycle.Order)
 	manifest.CheckComponentsExist(components, append(request.Components, request.OffsetComponent, request.LimitComponent)...)
 	optionalRequires := parseRequiresTunning(stackManifest.Lifecycle.Requires)
 	provides := checkRequires(stackManifest.Requires, optionalRequires)
