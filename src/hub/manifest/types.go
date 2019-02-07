@@ -118,6 +118,7 @@ type Manifest struct {
 
 type ParametersManifest struct {
 	Parameters []Parameter
+	Outputs    []Output
 }
 
 type ParametersBundle struct {

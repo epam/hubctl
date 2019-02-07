@@ -208,6 +208,10 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 		elaborated.Outputs = stackManifest.Outputs
 		elaborated.Platform.Provides = stackManifest.Platform.Provides
 	}
+	parametersManifestsOutputs := unwrapManifestsOutputs(parametersManifests)
+	if len(parametersManifestsOutputs) > 0 {
+		elaborated.Outputs = mergeOutputs(elaborated.Outputs, parametersManifestsOutputs)
+	}
 	if isApplication {
 		elaborated.Templates = stackManifest.Templates
 	}
@@ -531,6 +535,14 @@ func unwrapManifestsParameters(parametersManifests []*manifest.ParametersManifes
 		parameters = append(parameters, manifest.FlattenParameters(parametersManifest.Parameters, parametersFilenames[i]))
 	}
 	return parameters
+}
+
+func unwrapManifestsOutputs(parametersManifests []*manifest.ParametersManifest) []manifest.Output {
+	outputs := make([]manifest.Output, 0)
+	for _, parametersManifest := range parametersManifests {
+		outputs = append(outputs, parametersManifest.Outputs...)
+	}
+	return outputs
 }
 
 func mergeAnnotations(parent, child map[string]string) map[string]string {
