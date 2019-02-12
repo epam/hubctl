@@ -17,7 +17,7 @@ import (
 func ParseManifest(manifestFilenames []string) (*Manifest, []Manifest, string, error) {
 	yamlBytes, manifestFilename, err := storage.CheckAndRead(manifestFilenames, "manifest")
 	if err != nil {
-		return nil, nil, manifestFilename, fmt.Errorf("Unable to read manifest: %v", err)
+		return nil, nil, manifestFilename, fmt.Errorf("Unable to read %v manifest: %v", manifestFilenames, err)
 	}
 
 	yamlDocuments := bytes.Split(yamlBytes, []byte("\n---\n"))
