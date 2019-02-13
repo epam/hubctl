@@ -25,6 +25,7 @@ type Parameter struct {
 	From      string      `json:"from,omitempty"`
 	Component string      `json:"component,omitempty"`
 	Origin    string      `json:"origin,omitempty"`
+	Messenger string      `json:"messenger,omitempty"`
 }
 
 type Secret struct {
@@ -202,6 +203,7 @@ type StackInstanceDeployResponse struct {
 
 type StackInstancePatch struct {
 	ComponentsEnabled []string             `json:"componentsEnabled,omitempty"`
+	Parameters        []Parameter          `json:"parameters,omitempty"`
 	StateFiles        []string             `json:"stateFiles,omitempty"`
 	Status            *StackInstanceStatus `json:"status,omitempty"`
 	Outputs           []Output             `json:"outputs,omitempty"`

@@ -231,9 +231,12 @@ func formatParameter(resource string, param Parameter, showSecret bool) (string,
 	if !isCopy {
 		value, err = formatParameterValue(resource, param.Kind, param.Value, showSecret)
 	}
-	origin := ""
-	if param.Origin != "" {
-		origin = fmt.Sprintf(" *%s*", param.Origin)
+	additional := ""
+	if param.Origin != "" || param.Messenger != "" {
+		if param.Origin != "" {
+			additional = fmt.Sprintf("/%s", param.Origin)
+		}
+		additional = fmt.Sprintf(" *%s%s*", param.Messenger, additional)
 	}
 	title := fmt.Sprintf("%7s %s:", param.Kind, parameterQName(param))
 	if strings.Contains(value, "\n") {
@@ -241,9 +244,9 @@ func formatParameter(resource string, param Parameter, showSecret bool) (string,
 		if strings.HasSuffix(value, "\n") {
 			maybeNl = ""
 		}
-		return fmt.Sprintf("%s ~~%s %s%s~~", title, origin, value, maybeNl), err
+		return fmt.Sprintf("%s ~~%s %s%s~~", title, additional, value, maybeNl), err
 	} else {
-		return fmt.Sprintf("%s %v%s", title, value, origin), err
+		return fmt.Sprintf("%s %v%s", title, value, additional), err
 	}
 }
 
