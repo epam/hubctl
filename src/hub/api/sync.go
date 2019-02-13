@@ -27,6 +27,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		}
 	}
 
+	var params []Parameter
 	var outputs []Output
 	var components []ComponentStatus
 	var provides map[string][]string
@@ -34,12 +35,14 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		if status == "" {
 			status = st.Status
 		}
+		params = transformStackParametersToApi(st.StackParameters)
 		outputs = TransformStackOutputsToApi(appendKubernetesKeys(st.StackOutputs, st.Components))
 		components = transformComponentsToApi(st.Lifecycle.Order, st.Components)
 		provides = st.Provides
 	}
 
 	patch := StackInstancePatch{
+		Parameters:        params,
 		ComponentsEnabled: componentsEnabled,
 		StateFiles:        s3StatePaths,
 		Status:            &StackInstanceStatus{Status: status, Components: components},
@@ -58,6 +61,72 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		config.AggWarnings = false
 		util.Warn("%s", util.Errors2(errs...))
 	}
+}
+
+func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []Parameter {
+	kv := make(map[string][]parameters.LockedParameter)
+	// group parameters by plain name
+	for _, p := range lockedParams {
+		if strings.HasPrefix(p.Name, "hub.") || p.Value == "" {
+			// TODO how to preserve user supplied hub.deploymentId?
+			// what about empty: allow?
+			continue
+		}
+		if list, exist := kv[p.Name]; exist {
+			kv[p.Name] = append(list, p)
+		} else {
+			kv[p.Name] = []parameters.LockedParameter{p}
+		}
+	}
+	out := make([]Parameter, 0, len(lockedParams))
+	kubeSecretOutputs := kube.RequiredKubernetesKeysParameters()
+	for _, params := range kv {
+		// find value of parameter without component: qualifier
+		var wildcardValue string
+		var wildcardExist bool
+		for _, p := range params {
+			if p.Component == "" {
+				wildcardExist = true
+				wildcardValue = p.Value
+				break
+			}
+		}
+		uniqParams := params
+		if wildcardExist {
+			// if parameter without component: qualifier exist, then
+			// erase all parameters with component: qualifier having same value as wildcard
+			uniqParams = uniqParams[:0]
+			for _, p := range params {
+				if p.Component == "" || p.Value != wildcardValue {
+					uniqParams = append(uniqParams, p)
+				}
+			}
+		}
+		// transform into API representation
+		for _, p := range uniqParams {
+			var value interface{}
+			kind := ""
+			if util.LooksLikeSecret(p.Name) || util.Contains(kubeSecretOutputs, p.Name) {
+				secretKind := guessSecretKind("", p.Name)
+				value = map[string]string{
+					"kind":     secretKind,
+					secretKind: p.Value,
+				}
+				kind = "secret"
+			} else {
+				value = p.Value
+			}
+
+			out = append(out, Parameter{
+				Name:      p.Name,
+				Component: p.Component,
+				Kind:      kind,
+				Value:     value,
+				Messenger: "cli",
+			})
+		}
+	}
+	return out
 }
 
 func transformComponentsToApi(order []string, stateComponents map[string]*state.StateStep) []ComponentStatus {
