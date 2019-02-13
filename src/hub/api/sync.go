@@ -127,8 +127,8 @@ func TransformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Outp
 	for _, o := range stackOutputs {
 		name := o.Name
 		component := ""
-		if strings.Contains(o.Name, ":") {
-			parts := strings.SplitN(o.Name, ":", 2)
+		if strings.Contains(name, ":") {
+			parts := strings.SplitN(name, ":", 2)
 			if len(parts) > 1 {
 				component = parts[0]
 				name = parts[1]
@@ -137,8 +137,8 @@ func TransformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Outp
 
 		var value interface{}
 		kind := ""
-		if strings.HasPrefix(o.Kind, "secret") || util.Contains(kubeSecretOutputs, name) {
-			secretKind := guessOutputSecretKind(o.Kind, name)
+		if strings.HasPrefix(o.Kind, "secret") || util.LooksLikeSecret(name) || util.Contains(kubeSecretOutputs, name) {
+			secretKind := guessSecretKind(o.Kind, name)
 			value = map[string]string{
 				"kind":     secretKind,
 				secretKind: o.Value,
@@ -160,7 +160,7 @@ func TransformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Outp
 	return outputs
 }
 
-func guessOutputSecretKind(outputKind, name string) string {
+func guessSecretKind(outputKind, name string) string {
 	if strings.Contains(outputKind, "/") {
 		parts := strings.SplitN(outputKind, "/", 2)
 		if len(parts) > 1 && parts[1] != "" {

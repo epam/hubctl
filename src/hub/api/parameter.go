@@ -12,7 +12,7 @@ import (
 	"hub/util"
 )
 
-func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
+func GetParameterOrMaybeCreateSecret(environment, stackInstance, application,
 	name, component string, create bool) (bool, string, []error) {
 
 	found := false
@@ -69,8 +69,8 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 			if err != nil {
 				errors = append(errors, err)
 			}
-			if !found && create && looksLikePassword(name) {
-				value, err = createPasswordParameter(environment, env.Id, name, component)
+			if !found && create && util.LooksLikeSecret(name) {
+				value, err = createSecretParameter(environment, env.Id, name, component)
 				if err != nil {
 					errors = append(errors, err)
 				}
@@ -78,15 +78,6 @@ func GetParameterOrMaybeCreatePassword(environment, stackInstance, application,
 		}
 	}
 	return found, value, errors
-}
-
-func looksLikePassword(name string) bool {
-	i := strings.Index(name, "|")
-	if i > 0 {
-		name = name[0:i]
-	}
-	return strings.HasSuffix(name, ".password") ||
-		strings.HasSuffix(name, "Password")
 }
 
 func getParameter(resource string, parameters []Parameter, name, component string) (bool, string, error) {
@@ -186,7 +177,7 @@ func getParameter(resource string, parameters []Parameter, name, component strin
 	return false, "", nil
 }
 
-func createPasswordParameter(environment, environmentId, name, component string) (string, error) {
+func createSecretParameter(environment, environmentId, name, component string) (string, error) {
 	kind := "password"
 	value, err := util.RandomString(8)
 	if err != nil {

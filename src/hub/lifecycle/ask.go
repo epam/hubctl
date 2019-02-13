@@ -35,7 +35,7 @@ func AskParameter(parameter *manifest.Parameter,
 	qName := parameter.QName()
 
 	if hubEnvironment != "" || hubStackInstance != "" || hubApplication != "" {
-		found, v, errs := api.GetParameterOrMaybeCreatePassword(hubEnvironment, hubStackInstance, hubApplication,
+		found, v, errs := api.GetParameterOrMaybeCreateSecret(hubEnvironment, hubStackInstance, hubApplication,
 			parameter.Name, parameter.Component, isDeploy)
 		if len(errs) > 0 {
 			where := make([]string, 0, 3)
