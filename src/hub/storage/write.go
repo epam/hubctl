@@ -48,7 +48,7 @@ func Write(data []byte, files *Files) []error {
 	errs := make([]error, 0)
 
 	for _, file := range files.Files {
-		failedToWrite := false
+		nErrs := len(errs)
 		switch file.Kind {
 		case "s3":
 			err := aws.WriteS3(file.Path, bytes.NewReader(encryptedData))
@@ -56,7 +56,6 @@ func Write(data []byte, files *Files) []error {
 				msg := fmt.Sprintf("Unable to write `%s` %s file: %v", file.Path, files.Kind, err)
 				if aws.IsSlowDown(err) && (len(files.Files) > 1 || config.Force) {
 					util.Warn("%s", msg)
-					failedToWrite = true
 				} else {
 					errs = append(errs, errors.New(msg))
 				}
@@ -65,7 +64,9 @@ func Write(data []byte, files *Files) []error {
 		case "fs":
 			out, err := os.Create(file.Path)
 			if err != nil {
-				log.Fatalf("Unable to open `%s` %s file for write: %v", file.Path, files.Kind, err)
+				err = fmt.Errorf("Unable to open `%s` %s file for write: %v", file.Path, files.Kind, err)
+				errs = append(errs, err)
+				continue
 			}
 			wrote, err := out.Write(data)
 			err2 := out.Close()
@@ -79,7 +80,7 @@ func Write(data []byte, files *Files) []error {
 			}
 		}
 
-		if config.Verbose && !failedToWrite {
+		if config.Verbose && nErrs == len(errs) {
 			log.Printf("Wrote %s `%s`", files.Kind, file.Path)
 		}
 	}

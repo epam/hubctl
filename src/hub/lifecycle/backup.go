@@ -236,7 +236,10 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		log.Fatalf("Unable to marshal backup bundle into %s: %v", format, err)
 	}
 	if bundleFiles != nil {
-		storage.Write(bytes, bundleFiles)
+		errs := storage.Write(bytes, bundleFiles)
+		if len(errs) > 0 {
+			log.Fatalf("Unable to write backup bundle: %s", util.Errors2(errs...))
+		}
 	} else {
 		os.Stdout.Write([]byte(fmt.Sprintf("--- %s\n", format)))
 		os.Stdout.Write(bytes)
