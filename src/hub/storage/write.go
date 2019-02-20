@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -51,7 +50,7 @@ func Write(data []byte, files *Files) []error {
 		nErrs := len(errs)
 		switch file.Kind {
 		case "s3":
-			err := aws.WriteS3(file.Path, bytes.NewReader(encryptedData))
+			err := aws.WriteS3(file.Path, encryptedData)
 			if err != nil {
 				msg := fmt.Sprintf("Unable to write `%s` %s file: %v", file.Path, files.Kind, err)
 				if aws.IsSlowDown(err) && (len(files.Files) > 1 || config.Force) {

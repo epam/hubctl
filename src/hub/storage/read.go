@@ -81,8 +81,8 @@ func Check(paths []string, kind string) (*Files, []error) {
 			if config.Debug {
 				log.Printf("Checking `%s` %s file...", file.Path, kind)
 			}
-			head, err := aws.StatS3(file.Path)
-			_, errLock := aws.StatS3(lockPath)
+			size, modTime, err := aws.StatS3(file.Path)
+			_, _, errLock := aws.StatS3(lockPath)
 			if err != nil {
 				if util.NoSuchFile(err) {
 					file.Exist = false
@@ -93,8 +93,8 @@ func Check(paths []string, kind string) (*Files, []error) {
 				}
 			} else {
 				file.Exist = true
-				file.ModTime = *head.LastModified
-				file.Size = *head.ContentLength
+				file.ModTime = modTime
+				file.Size = size
 				file.Locked = errLock == nil
 				filesChecked = append(filesChecked, file)
 			}

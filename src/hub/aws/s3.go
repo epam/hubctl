@@ -1,12 +1,13 @@
 package aws
 
 import (
+	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	awsaws "github.com/aws/aws-sdk-go/aws"
 	awss3 "github.com/aws/aws-sdk-go/service/s3"
@@ -63,14 +64,14 @@ func awsS3(region string) (*awss3.S3, error) {
 	return s3, nil
 }
 
-func StatS3(s3path string) (*awss3.HeadObjectOutput, error) {
+func StatS3(s3path string) (int64, time.Time, error) {
 	location, err := url.Parse(s3path)
 	if err != nil {
-		return nil, err
+		return 0, time.Time{}, err
 	}
 	s3, err := awsBucketS3(location.Host)
 	if err != nil {
-		return nil, err
+		return 0, time.Time{}, err
 	}
 	head, err := s3.HeadObject(
 		&awss3.HeadObjectInput{
@@ -79,11 +80,11 @@ func StatS3(s3path string) (*awss3.HeadObjectOutput, error) {
 		})
 	if err != nil {
 		if IsNotFound(err) {
-			return nil, os.ErrNotExist
+			return 0, time.Time{}, os.ErrNotExist
 		}
-		return nil, fmt.Errorf("Failed to HEAD S3 object `%s`: %v\n\t%s", s3path, err, optionsHelp)
+		return 0, time.Time{}, fmt.Errorf("Failed to HEAD S3 object `%s`: %v\n\t%s", s3path, err, optionsHelp)
 	}
-	return head, nil
+	return *head.ContentLength, *head.LastModified, nil
 }
 
 func ReadS3(s3path string) ([]byte, error) {
@@ -111,7 +112,7 @@ func ReadS3(s3path string) ([]byte, error) {
 	return data, nil
 }
 
-func WriteS3(s3path string, body io.Reader) error {
+func WriteS3(s3path string, body []byte) error {
 	location, err := url.Parse(s3path)
 	if err != nil {
 		return err
@@ -122,7 +123,7 @@ func WriteS3(s3path string, body io.Reader) error {
 	}
 	_, err = s3.PutObject(
 		&awss3.PutObjectInput{
-			Body:   awsaws.ReadSeekCloser(body),
+			Body:   awsaws.ReadSeekCloser(bytes.NewReader(body)),
 			Bucket: &location.Host,
 			Key:    &location.Path,
 		})
