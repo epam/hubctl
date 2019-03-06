@@ -173,7 +173,8 @@ func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depen
 	components map[string]*StateStep) {
 
 	for _, dependencyName := range depends {
-		if dependency, exist := components[dependencyName]; exist && dependency.Timestamp.After(mergedTimestamp) {
+		// TODO review: always load outputs from dependencies?
+		if dependency, exist := components[dependencyName]; exist /* && dependency.Timestamp.After(mergedTimestamp) */ {
 			if config.Verbose {
 				log.Printf("Additionally, loading state after component `%s` due to `depends` declaration", dependencyName)
 			}
