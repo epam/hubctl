@@ -300,6 +300,10 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 		logs = fmt.Sprintf("%sLogs:\n%s\t%s\n",
 			ident, ident, strings.Join(strings.Split(op.Logs, "\n"), "\n"+ident+"\t"))
 	}
+	initiator := ""
+	if op.Initiator != "" {
+		initiator = fmt.Sprintf(" by %s", op.Initiator)
+	}
 	options := ""
 	if len(op.Options) > 0 {
 		options = fmt.Sprintf(" %v", op.Options)
@@ -312,8 +316,8 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	if len(op.Phases) > 0 {
 		phases = fmt.Sprintf("%sPhases:\n%s\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident))
 	}
-	return fmt.Sprintf("%sOperation: %s - %s%s%s %s\n%s%s",
-		ident, op.Operation, op.Status, description, options, op.Id, phases, logs)
+	return fmt.Sprintf("%sOperation: %s - %s %v%s%s%s %s\n%s%s",
+		ident, op.Operation, op.Status, op.Timestamp, initiator, description, options, op.Id, phases, logs)
 }
 
 func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {

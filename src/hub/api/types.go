@@ -1,5 +1,7 @@
 package api
 
+import "time"
+
 type CloudAccount struct {
 	Id               string
 	Name             string
@@ -144,9 +146,11 @@ type LifecyclePhase struct {
 type InflightOperation struct {
 	Id          string                 `json:"id"`
 	Operation   string                 `json:"operation"`
-	Status      string                 `json:"status"`
+	Timestamp   time.Time              `json:"timestamp"`
+	Status      string                 `json:"status,omitempty"`
 	Options     map[string]interface{} `json:"options,omitempty"`
 	Description string                 `json:"description,omitempty"`
+	Initiator   string                 `json:"initiator,omitempty"`
 	Logs        string                 `json:"logs,omitempty"`
 	Phases      []LifecyclePhase       `json:"phases,omitempty"`
 }

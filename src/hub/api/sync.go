@@ -31,6 +31,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	var outputs []Output
 	var components []ComponentStatus
 	var provides map[string][]string
+	var ops []InflightOperation
 	if st != nil {
 		if status == "" {
 			status = st.Status
@@ -38,6 +39,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		params = transformStackParametersToApi(st.StackParameters)
 		outputs = TransformStackOutputsToApi(appendKubernetesKeys(st.StackOutputs, st.Components))
 		components = transformComponentsToApi(st.Lifecycle.Order, st.Components)
+		ops = transformOperationsToApi(st.Operations)
 		provides = st.Provides
 	}
 
@@ -45,7 +47,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		Parameters:        params,
 		ComponentsEnabled: componentsEnabled,
 		StateFiles:        s3StatePaths,
-		Status:            &StackInstanceStatus{Status: status, Components: components},
+		Status:            &StackInstanceStatus{Status: status, Components: components, InflightOperations: ops},
 		Outputs:           outputs,
 		Provides:          provides,
 	}
@@ -246,4 +248,25 @@ func guessSecretKind(outputKind, name string) string {
 		kind = "password"
 	}
 	return kind
+}
+
+func transformOperationsToApi(ops []state.Operation) []InflightOperation {
+	apiOps := make([]InflightOperation, 0, len(ops))
+	for _, op := range ops {
+		phases := make([]LifecyclePhase, 0, len(op.Phases))
+		for _, phase := range op.Phases {
+			phases = append(phases, LifecyclePhase{Phase: phase.Phase, Status: phase.Status})
+		}
+		apiOps = append(apiOps, InflightOperation{
+			Id:          op.Id,
+			Operation:   op.Operation,
+			Timestamp:   op.Timestamp,
+			Status:      op.Status,
+			Description: op.Description,
+			Initiator:   op.Initiatior,
+			Logs:        op.Logs,
+			Phases:      phases,
+		})
+	}
+	return apiOps
 }

@@ -24,6 +24,22 @@ type StateStep struct {
 	CapturedOutputs []parameters.CapturedOutput  `yaml:"capturedOutputs,omitempty"`
 }
 
+type LifecyclePhase struct {
+	Phase  string `yaml:",omitempty"`
+	Status string `yaml:",omitempty"`
+}
+
+type Operation struct {
+	Id          string
+	Operation   string
+	Timestamp   time.Time
+	Status      string           `yaml:",omitempty"`
+	Description string           `yaml:",omitempty"`
+	Initiatior  string           `yaml:",omitempty"`
+	Logs        string           `yaml:",omitempty"`
+	Phases      []LifecyclePhase `yaml:",omitempty"`
+}
+
 type StateManifest struct {
 	Version         int
 	Kind            string
@@ -37,6 +53,7 @@ type StateManifest struct {
 	StackOutputs    []parameters.ExpandedOutput  `yaml:"stackOutputs,omitempty"`
 	Provides        map[string][]string          `yaml:",omitempty"`
 	Components      map[string]*StateStep        `yaml:",omitempty"`
+	Operations      []Operation                  `yaml:",omitempty"`
 }
 
 type ComponentBackup struct {
