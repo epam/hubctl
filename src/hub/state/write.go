@@ -13,7 +13,76 @@ import (
 	"hub/util"
 )
 
-const statusUpdateDurationThreshold = time.Duration(10 * time.Second)
+const (
+	stateUpdateSettleInterval = time.Duration(2 * time.Second)
+)
+
+func InitWriter(stateFiles *storage.Files) func(interface{}) {
+	ch := make(chan interface{}, 2)
+	done := make(chan struct{})
+	ticker := time.NewTicker(1 * time.Second)
+	go writer(ch, done, ticker.C, stateFiles)
+	update := func(v interface{}) {
+		ch <- v
+		if cmd, ok := v.(string); ok && cmd == "done" {
+			ticker.Stop()
+		}
+	}
+	util.AtDone(func() <-chan struct{} {
+		update("done")
+		return done
+	})
+	return update
+}
+
+func writer(ch <-chan interface{}, done chan<- struct{}, ticker <-chan time.Time, files *storage.Files) {
+	pending := false
+	var updated time.Time
+	var state *StateManifest
+
+	maybeWrite := func() {
+		if pending && state != nil {
+			WriteState(state, files)
+			pending = false
+		}
+	}
+
+	atExit := func() {
+		done <- struct{}{}
+	}
+	defer atExit()
+
+	for {
+		select {
+		case m := <-ch:
+			switch v := m.(type) {
+			case string:
+				switch v {
+				case "sync":
+					maybeWrite()
+				case "done":
+					maybeWrite()
+					return
+				default:
+					log.Fatalf("Unknown command `%s` received by state writer", v)
+				}
+
+			case *StateManifest:
+				state = v
+				pending = true
+				updated = time.Now()
+
+			default:
+				log.Fatalf("Unknown type received by state writer: %+v", m)
+			}
+
+		case now := <-ticker:
+			if updated.Add(stateUpdateSettleInterval).Before(now) {
+				maybeWrite()
+			}
+		}
+	}
+}
 
 func UpdateState(manifest *StateManifest,
 	componentName, componentStatus, stackStatus string,
@@ -62,44 +131,39 @@ func UpdateState(manifest *StateManifest,
 	return manifest
 }
 
-func UpdateStatus(manifest *StateManifest,
-	componentName, componentStatus, componentMessage, stackStatus, message string) (*StateManifest, bool) {
-
+func UpdateStackStatus(manifest *StateManifest, status, message string) *StateManifest {
 	now := time.Now()
-	write := false
-
 	manifest = maybeInitState(manifest)
-	if componentName != "" && componentStatus != "" {
-		componentState := maybeInitComponentState(manifest, componentName)
-		if componentState.Status != componentStatus || componentState.Message != componentMessage || now.After(componentState.Timestamp.Add(statusUpdateDurationThreshold)) {
-			componentState.Timestamp = now
-			componentState.Status = componentStatus
-			componentState.Message = componentMessage
-			if config.Debug {
-				log.Printf("State component `%s` status: %s", componentName, componentStatus)
-				if componentMessage != "" && config.Trace {
-					log.Printf("State component `%s` message: %s", componentName, componentMessage)
-				}
+	if status != "" {
+		manifest.Timestamp = now
+		manifest.Status = status
+		manifest.Message = message
+		if config.Debug {
+			log.Printf("State stack status: %s", status)
+			if message != "" && config.Trace {
+				log.Printf("State stack message: %s", message)
 			}
-			write = true
 		}
 	}
-	if stackStatus != "" {
-		if manifest.Status != stackStatus || manifest.Message != message || now.After(manifest.Timestamp.Add(statusUpdateDurationThreshold)) {
-			manifest.Timestamp = now
-			manifest.Status = stackStatus
-			manifest.Message = message
-			if config.Debug {
-				log.Printf("State stack status: %s", stackStatus)
-				if message != "" && config.Trace {
-					log.Printf("State stack message: %s", message)
-				}
-			}
-			write = true
-		}
-	}
+	return manifest
+}
 
-	return manifest, write
+func UpdateComponentStatus(manifest *StateManifest, name, status, message string) *StateManifest {
+	now := time.Now()
+	manifest = maybeInitState(manifest)
+	if name != "" && status != "" {
+		componentState := maybeInitComponentState(manifest, name)
+		componentState.Timestamp = now
+		componentState.Status = status
+		componentState.Message = message
+		if config.Debug {
+			log.Printf("State component `%s` status: %s", name, status)
+			if message != "" && config.Trace {
+				log.Printf("State component `%s` message: %s", name, message)
+			}
+		}
+	}
+	return manifest
 }
 
 func WriteState(manifest *StateManifest, stateFiles *storage.Files) {

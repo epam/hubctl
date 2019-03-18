@@ -78,23 +78,29 @@ func Execute(request *Request) {
 	}
 	storage.EnsureNoLockFiles(stateFiles)
 
+	defer util.Done()
+
 	var stateManifest *state.StateManifest
-	if isStateFile && (isUndeploy || isSomeComponents) { // skip state file at start of full deploy
-		var err error
-		stateManifest, err = state.ParseState(stateFiles)
-		if err != nil {
-			if err != os.ErrNotExist {
-				log.Fatalf("Failed to read %v state files: %v", request.StateFilenames, err)
-			}
-			if isSomeComponents {
-				comps := request.OffsetComponent
-				if comps == "" {
-					comps = strings.Join(request.Components, ", ")
+	var stateUpdater func(interface{})
+	if isStateFile {
+		if isUndeploy || isSomeComponents { // skip state file at start of full deploy
+			var err error
+			stateManifest, err = state.ParseState(stateFiles)
+			if err != nil {
+				if err != os.ErrNotExist {
+					log.Fatalf("Failed to read %v state files: %v", request.StateFilenames, err)
 				}
-				util.MaybeFatalf("Component `%s` is specified but failed to read %v state file(s): %v",
-					comps, request.StateFilenames, err)
+				if isSomeComponents {
+					comps := request.OffsetComponent
+					if comps == "" {
+						comps = strings.Join(request.Components, ", ")
+					}
+					util.MaybeFatalf("Component `%s` is specified but failed to read %v state file(s): %v",
+						comps, request.StateFilenames, err)
+				}
 			}
 		}
+		stateUpdater = state.InitWriter(stateFiles)
 	}
 
 	deploymentIdParameterName := "hub.deploymentId"
@@ -220,21 +226,14 @@ NEXT_COMPONENT:
 				allOutputs)
 		}
 
-		var writeStateComponentFailed func(string, bool)
+		var updateStateComponentFailed func(string, bool)
 		if isStateFile {
-			writeStateComponentFailed = func(msg string, final bool) {
-				stackStatus := "incomplete"
-				stackMessage := msg
-				if config.Force || optionalComponent(&stackManifest.Lifecycle, componentName) {
-					stackStatus = ""
-					stackMessage = ""
+			updateStateComponentFailed = func(msg string, final bool) {
+				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, "error", msg)
+				if !config.Force && !optionalComponent(&stackManifest.Lifecycle, componentName) {
+					stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", msg)
 				}
-				var write bool
-				stateManifest, write = state.UpdateStatus(stateManifest,
-					componentName, "error", msg, stackStatus, stackMessage)
-				if final && write {
-					state.WriteState(stateManifest, stateFiles)
-				}
+				stateUpdater(stateManifest)
 			}
 		}
 
@@ -249,7 +248,7 @@ NEXT_COMPONENT:
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 					fmt.Sprintf("Component `%s` failed to %s: depends on failed optional component `%s`",
 						componentName, request.Verb, strings.Join(failed, ", ")),
-					writeStateComponentFailed)
+					updateStateComponentFailed)
 				failedComponents = append(failedComponents, componentName)
 				continue NEXT_COMPONENT
 			}
@@ -272,7 +271,7 @@ NEXT_COMPONENT:
 			maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 				fmt.Sprintf("Component `%s` parameters expansion failed:\n\t%s",
 					componentName, util.Errors("\n\t", expansionErrs...)),
-				writeStateComponentFailed)
+				updateStateComponentFailed)
 			failedComponents = append(failedComponents, componentName)
 			continue NEXT_COMPONENT
 		}
@@ -286,7 +285,7 @@ NEXT_COMPONENT:
 
 		if optionalNotProvided, err := prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires); len(optionalNotProvided) > 0 || err != nil {
 			if err != nil {
-				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName, fmt.Sprintf("%v", err), writeStateComponentFailed)
+				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName, fmt.Sprintf("%v", err), updateStateComponentFailed)
 				continue NEXT_COMPONENT
 			}
 			log.Printf("Skip %s due to unsatisfied optional requirements %v", componentName, optionalNotProvided)
@@ -297,7 +296,6 @@ NEXT_COMPONENT:
 
 		if isStateFile {
 			status := fmt.Sprintf("%sing", request.Verb)
-			write := true
 			if isDeploy {
 				stateManifest = state.UpdateState(stateManifest,
 					componentName, status, status,
@@ -306,12 +304,10 @@ NEXT_COMPONENT:
 					noEnvironmentProvides(provides),
 					false)
 			} else {
-				stateManifest, write = state.UpdateStatus(stateManifest,
-					componentName, status, "", status, "")
+				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, status, "")
+				stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			}
-			if write {
-				state.WriteState(stateManifest, stateFiles)
-			}
+			stateUpdater(stateManifest)
 		}
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
@@ -322,7 +318,7 @@ NEXT_COMPONENT:
 		if err != nil {
 			maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 				fmt.Sprintf("Component `%s` failed to %s: %v", componentName, request.Verb, err),
-				writeStateComponentFailed)
+				updateStateComponentFailed)
 			failedComponents = append(failedComponents, componentName)
 		} else if isDeploy {
 			var componentOutputs parameters.CapturedOutputs
@@ -336,7 +332,7 @@ NEXT_COMPONENT:
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 					fmt.Sprintf("Component `%s` outputs capture failed:\n\t%s",
 						componentName, util.Errors("\n\t", errs...)),
-					writeStateComponentFailed)
+					updateStateComponentFailed)
 				failedComponents = append(failedComponents, componentName)
 			}
 			if len(componentOutputs) > 0 &&
@@ -385,7 +381,7 @@ NEXT_COMPONENT:
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 					fmt.Sprintf("Component `%s` ready condition failed: %v", componentName, err),
-					writeStateComponentFailed)
+					updateStateComponentFailed)
 				failedComponents = append(failedComponents, componentName)
 			}
 		}
@@ -396,31 +392,33 @@ NEXT_COMPONENT:
 
 		if isStateFile {
 			if !util.Contains(failedComponents, componentName) {
-				stateManifest, _ = state.UpdateStatus(stateManifest,
-					componentName, fmt.Sprintf("%sed", request.Verb), "", "", "")
+				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, fmt.Sprintf("%sed", request.Verb), "")
+				stateUpdater(stateManifest)
 			}
-			state.WriteState(stateManifest, stateFiles)
 		}
 	}
 
-	finalStateWritten := false
+	stackReadyConditionFailed := false
 	if isDeploy {
 		err := waitForReadyConditions(stackManifest.Lifecycle.ReadyConditions, stackParameters, allOutputs)
 		if err != nil {
 			message := fmt.Sprintf("Stack ready condition failed: %v", err)
 			if isStateFile {
-				stateManifest, _ = state.UpdateStatus(stateManifest,
-					"", "", "", "incomplete", message)
-				state.WriteState(stateManifest, stateFiles)
-				finalStateWritten = true
+				stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", message)
+				stateUpdater(stateManifest)
 			}
 			util.MaybeFatalf("%s", message)
+			stackReadyConditionFailed = true
 		}
 	}
-	if !finalStateWritten && isStateFile {
-		status, message := calculateStackStatus(stackManifest, stateManifest)
-		state.UpdateStatus(stateManifest, "", "", "", status, message)
-		state.WriteState(stateManifest, stateFiles)
+
+	if isStateFile {
+		if !stackReadyConditionFailed {
+			status, message := calculateStackStatus(stackManifest, stateManifest)
+			stateManifest = state.UpdateStackStatus(stateManifest, status, message)
+			stateUpdater(stateManifest)
+		}
+		stateUpdater("sync")
 	}
 
 	var stackOutputs []parameters.ExpandedOutput

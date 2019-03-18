@@ -74,30 +74,6 @@ func PrintAllWarnings() {
 	io.WriteString(os.Stderr, "\n")
 }
 
-func MaybeFatalf(format string, v ...interface{}) {
-	if config.Force {
-		Warn(format, v...)
-	} else {
-		log.Fatalf(format, v...)
-	}
-}
-
-func MaybeFatalf2(cleanup func(string, bool), format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
-	if config.Force {
-		Warn("%s", msg)
-		if cleanup != nil {
-			cleanup(msg, false)
-		}
-	} else {
-		log.Print(msg)
-		if cleanup != nil {
-			cleanup(msg, true)
-		}
-		os.Exit(1)
-	}
-}
-
 func Errors(sep string, maybeErrors ...error) string {
 	if sep == "" {
 		sep = ", "
