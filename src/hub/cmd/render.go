@@ -55,6 +55,8 @@ func render(args []string) error {
 		}
 	}
 
+	config.AggWarnings = false
+
 	lifecycle.Render(manifests, stateManifests, componentName,
 		templateKind, additionalParameters, args)
 
