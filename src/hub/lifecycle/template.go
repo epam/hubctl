@@ -298,6 +298,11 @@ func processTemplate(template TemplateRef, componentName string, componentDepend
 			if !exist {
 				errs = append(errs, fmt.Errorf("Template `%s` refer to unknown substitution `%s`", template.Filename, variable))
 				substitution = "(unknown)"
+			} else {
+				if parameters.RequireExpansion(substitution) {
+					util.WarnOnce("Template `%s` substitution `%s` refer to a value `%s` that is not expanded",
+						template.Filename, variable, substitution)
+				}
 			}
 			if config.Trace {
 				log.Printf("--- %s | %s => %s", variable, componentName, substitution)
