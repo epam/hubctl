@@ -223,7 +223,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 
 	if depth == 0 && util.ContainsAny(elaborated.Requires, []string{"kubernetes", "kubectl"}) {
 		// TODO distinguish EKS/etc. by kubernetes.flavor and setup appropriately
-		parameters = append(parameters, manifest.ParameterWrap(kube.RequiredKubernetesParameters()))
+		parameters = append(parameters, manifest.ParameterWrap(kube.KubernetesParameters))
 	}
 	parameters = append(parameters, manifestsParameters...)
 	elaborated.Parameters = mergeParameters(parameters, overrides, wellKnown,

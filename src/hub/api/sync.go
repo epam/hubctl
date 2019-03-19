@@ -37,7 +37,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 			status = st.Status
 		}
 		params = transformStackParametersToApi(st.StackParameters)
-		outputs = TransformStackOutputsToApi(appendKubernetesKeys(st.StackOutputs, st.Components))
+		outputs = TransformStackOutputsToApi(appendKubernetesOutputs(st.StackOutputs, st.Components))
 		components = transformComponentsToApi(st.Lifecycle.Order, st.Components)
 		ops = transformOperationsToApi(st.Operations)
 		provides = st.Provides
@@ -81,7 +81,6 @@ func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []
 		}
 	}
 	out := make([]Parameter, 0, len(lockedParams))
-	kubeSecretOutputs := kube.RequiredKubernetesKeysParameters()
 	for _, params := range kv {
 		// find value of parameter without component: qualifier
 		var wildcardValue string
@@ -108,7 +107,7 @@ func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []
 		for _, p := range uniqParams {
 			var value interface{}
 			kind := ""
-			if util.LooksLikeSecret(p.Name) || util.Contains(kubeSecretOutputs, p.Name) {
+			if util.LooksLikeSecret(p.Name) || util.Contains(kube.KubernetesSecretParameters, p.Name) {
 				secretKind := guessSecretKind("", p.Name)
 				value = map[string]string{
 					"kind":     secretKind,
@@ -167,12 +166,12 @@ func filterOutSecretOutputs(outputs []parameters.CapturedOutput) []parameters.Ca
 	return filtered
 }
 
-func appendKubernetesKeys(outputs []parameters.ExpandedOutput, components map[string]*state.StateStep) []parameters.ExpandedOutput {
+func appendKubernetesOutputs(outputs []parameters.ExpandedOutput, components map[string]*state.StateStep) []parameters.ExpandedOutput {
 	// make sure Kubernetes keys are added to stack outputs if not already there
 	for _, providerName := range kube.KubernetesDefaultProviders {
 		if provider, exist := components[providerName]; exist {
 		next_output:
-			for _, outputName := range kube.RequiredKubernetesKeysParameters() {
+			for _, outputName := range kube.KubernetesParameters {
 				outputQName := parameters.OutputQualifiedName(outputName, providerName)
 				for _, stackOutput := range outputs {
 					if stackOutput.Name == outputName ||
@@ -194,7 +193,6 @@ func appendKubernetesKeys(outputs []parameters.ExpandedOutput, components map[st
 
 func TransformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Output {
 	outputs := make([]Output, 0, len(stackOutputs))
-	kubeSecretOutputs := kube.RequiredKubernetesKeysParameters()
 	for _, o := range stackOutputs {
 		name := o.Name
 		component := ""
@@ -208,7 +206,9 @@ func TransformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Outp
 
 		var value interface{}
 		kind := ""
-		if strings.HasPrefix(o.Kind, "secret") || util.LooksLikeSecret(name) || util.Contains(kubeSecretOutputs, name) {
+		if strings.HasPrefix(o.Kind, "secret") || util.LooksLikeSecret(name) ||
+			util.Contains(kube.KubernetesSecretParameters, name) {
+
 			secretKind := guessSecretKind(o.Kind, name)
 			value = map[string]string{
 				"kind":     secretKind,

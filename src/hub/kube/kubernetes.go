@@ -17,36 +17,33 @@ import (
 )
 
 const (
-	kubernetesDomainOutput      = "dns.domain"
-	kubernetesFlavorOutput      = "kubernetes.flavor"
-	kubernetesApiEndpoint       = "kubernetes.api.endpoint"
-	KubernetesApiKeysOutputBase = "kubernetes.api."
-	kubernetesEksClusterOutput  = "kubernetes.eks.cluster"
-	kubernetesFileRefPrefix     = "file:"
+	kubernetesDomainOutput        = "dns.domain"
+	kubernetesFlavorOutput        = "kubernetes.flavor"
+	kubernetesApiEndpointOutput   = "kubernetes.api.endpoint"
+	kubernetesApiTokenOutput      = "kubernetes.api.token"
+	kubernetesApiCaCertOutput     = "kubernetes.api.caCert"
+	kubernetesApiClientCertOutput = "kubernetes.api.clientCert"
+	kubernetesApiClientKeyOutput  = "kubernetes.api.clientKey"
+	kubernetesEksClusterOutput    = "kubernetes.eks.cluster"
+	kubernetesFileRefPrefix       = "file:"
 )
 
 var (
 	KubernetesDefaultProviders = []string{
-		"kubernetes", "stack-k8s-aws", "stack-k8s-eks", "k8s-aws", "k8s-eks", "k8s-gke", "k8s-metal"}
-	kubernetesApiKeysOutputs = []string{"caCert", "clientCert", "clientKey"}
+		"kubernetes", "stack-k8s-aws", "stack-k8s-eks", "k8s-aws", "k8s-eks", "k8s-gke", "k8s-metal", "k8s-openshift", "k8s-aks"}
 	kubernetesApiKeysFileSuf = map[string]string{
-		"caCert":     "-ca.pem",
-		"clientCert": "-client.pem",
-		"clientKey":  "-client-key.pem",
+		kubernetesApiCaCertOutput:     "-ca.pem",
+		kubernetesApiClientCertOutput: "-client.pem",
+		kubernetesApiClientKeyOutput:  "-client-key.pem",
 	}
+	KubernetesParameters = []string{kubernetesDomainOutput, kubernetesFlavorOutput, kubernetesApiEndpointOutput,
+		kubernetesApiTokenOutput, kubernetesApiCaCertOutput, kubernetesApiClientCertOutput, kubernetesApiClientKeyOutput,
+		kubernetesEksClusterOutput}
+	KubernetesKeysParameters = []string{
+		kubernetesApiCaCertOutput, kubernetesApiClientCertOutput, kubernetesApiClientKeyOutput}
+	KubernetesSecretParameters = []string{
+		kubernetesApiTokenOutput, kubernetesApiCaCertOutput, kubernetesApiClientCertOutput, kubernetesApiClientKeyOutput}
 )
-
-func RequiredKubernetesParameters() []string {
-	return append(RequiredKubernetesKeysParameters(), kubernetesApiEndpoint)
-}
-
-func RequiredKubernetesKeysParameters() []string {
-	params := make([]string, 0, len(kubernetesApiKeysOutputs)+1)
-	for _, name := range kubernetesApiKeysOutputs {
-		params = append(params, KubernetesApiKeysOutputBase+name)
-	}
-	return params
-}
 
 func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, componentsBaseDir string,
 	componentOutputs parameters.CapturedOutputs) parameters.CapturedOutputs {
@@ -59,81 +56,68 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 		flavor = o.Value
 	}
 
+	domainQName := parameters.OutputQualifiedName(kubernetesDomainOutput, componentName)
+	if _, exists := componentOutputs[domainQName]; !exists {
+		util.Warn("Component `%s` declared to provide Kubernetes but no `%s` output found", componentName, domainQName)
+		if len(componentOutputs) > 0 {
+			log.Print("Outputs:")
+			parameters.PrintCapturedOutputs(componentOutputs)
+		}
+		return outputs
+	}
+
 	kubernetesApiKeysFiles := make(map[string]string)
-	for _, outputSuf := range kubernetesApiKeysOutputs {
-		outputName := parameters.OutputQualifiedName(KubernetesApiKeysOutputBase+outputSuf, componentName)
-		output, exists := componentOutputs[outputName]
+	for _, outputName := range KubernetesKeysParameters {
+		outputQName := parameters.OutputQualifiedName(outputName, componentName)
+		output, exists := componentOutputs[outputQName]
 		if !exists {
 			continue
 		}
-		kubernetesApiKeysFiles[outputSuf] = output.Value
+		kubernetesApiKeysFiles[outputName] = output.Value
 	}
 
-	if len(kubernetesApiKeysFiles) != len(kubernetesApiKeysOutputs) {
-		if flavor == "eks" {
-			caQName := parameters.OutputQualifiedName(KubernetesApiKeysOutputBase+"caCert", componentName)
-			_, exists := componentOutputs[caQName]
-			if !exists {
-				log.Printf("Component `%s` declared to provide EKS Kubernetes but no `%s` output found", componentName, caQName)
-				if len(componentOutputs) > 0 {
-					log.Print("Outputs:")
-					parameters.PrintCapturedOutputs(componentOutputs)
-				}
-				return outputs
+	switch flavor {
+	case "k8s-aws":
+		if len(kubernetesApiKeysFiles) != len(KubernetesKeysParameters) {
+			util.Warn("Component `%s` declared to provide Kubernetes but some key/certs output(s) are missing", componentName)
+			if config.Debug && len(kubernetesApiKeysFiles) > 0 {
+				log.Print("Required key/certs outputs found:")
+				util.PrintMap(kubernetesApiKeysFiles)
 			}
-		} else {
-			if config.Verbose {
-				log.Printf("Component `%s` declared to provide Kubernetes but some key/certs output(s) are missing",
-					componentName)
-				if config.Debug && len(kubernetesApiKeysFiles) > 0 {
-					log.Print("Outputs found:")
-					util.PrintMap(kubernetesApiKeysFiles)
-				}
-			}
+		}
 
-			domainQName := parameters.OutputQualifiedName(kubernetesDomainOutput, componentName)
-			domain, exists := componentOutputs[domainQName]
-			if !exists {
-				log.Printf("Component `%s` declared to provide Kubernetes but no `%s` output found", componentName, domainQName)
-				if len(componentOutputs) > 0 {
-					log.Print("Outputs:")
-					parameters.PrintCapturedOutputs(componentOutputs)
-				}
-				return outputs
+	case "eks":
+		caQName := parameters.OutputQualifiedName(kubernetesApiCaCertOutput, componentName)
+		_, exists := componentOutputs[caQName]
+		if !exists {
+			util.Warn("Component `%s` declared to provide EKS Kubernetes but no `%s` output found", componentName, caQName)
+			if config.Debug && len(componentOutputs) > 0 {
+				log.Print("Outputs:")
+				parameters.PrintCapturedOutputs(componentOutputs)
 			}
+		}
 
-			dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-			dir = filepath.Join(dir, filepath.FromSlash(fmt.Sprintf(".terraform/%s/.terraform/", domain.Value)))
-			_, err := os.Stat(dir)
-			if err != nil {
-				if !util.NoSuchFile(err) {
-					util.MaybeFatalf("Unable to capture Kubernetes key and cert files from `%s`: %v", dir, err)
-				} else {
-					if config.Verbose {
-						log.Printf("Kubernetes keys output directory `%s` not found: %v; skipping key and cert files capture",
-							dir, err)
-					}
-				}
-				return outputs
-			}
-
-			filenameBase := filepath.Join(dir, kubernetesFileRefPrefix+strings.Replace(domain.Value, ".", "-", -1))
-			for k, suf := range kubernetesApiKeysFileSuf {
-				kubernetesApiKeysFiles[k] = filenameBase + suf
+	case "openshift":
+		tokenQName := parameters.OutputQualifiedName(kubernetesApiTokenOutput, componentName)
+		_, exists := componentOutputs[tokenQName]
+		if !exists {
+			util.Warn("Component `%s` declared to provide OpenShift Kubernetes but no `%s` output found", componentName, tokenQName)
+			if config.Debug && len(componentOutputs) > 0 {
+				log.Print("Outputs:")
+				parameters.PrintCapturedOutputs(componentOutputs)
 			}
 		}
 	}
 
-	for k, apiKey := range kubernetesApiKeysFiles {
-		content := apiKey
+	for key, apiKey := range kubernetesApiKeysFiles {
 		if strings.HasPrefix(apiKey, kubernetesFileRefPrefix) {
 			filename := apiKey[len(kubernetesFileRefPrefix):]
-			content = captureFile(filename)
+			content := captureFile(filename)
 			// replace file:// with actual content
 			parameters.MergeOutput(outputs,
 				parameters.CapturedOutput{
 					Component: componentName,
-					Name:      KubernetesApiKeysOutputBase + k,
+					Name:      key,
 					Value:     content,
 					Kind:      "secret",
 				})
@@ -168,8 +152,12 @@ func SetupKubernetes(params parameters.LockedParameters,
 	}
 
 	eksClusterName := ""
-	if flavor == "eks" {
+	bearerToken := ""
+	switch flavor {
+	case "eks":
 		eksClusterName = mustOutput(params, outputs, provider, kubernetesEksClusterOutput)
+	case "openshift":
+		bearerToken = mustOutput(params, outputs, provider, kubernetesApiTokenOutput)
 	}
 
 	configFilename, err := kubeconfigFilename()
@@ -199,7 +187,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 		if !overwrite {
 			// check CA cert match to
 			// catch Kubeconfig leftovers from previous deployment to the same domain name
-			if ca, exist := mayOutput(params, outputs, provider, KubernetesApiKeysOutputBase+"caCert"); exist && ca != "" {
+			if ca, exist := mayOutput(params, outputs, provider, kubernetesApiCaCertOutput); exist && ca != "" {
 				warnClusterCaCertMismatch(configFilename, context, ca)
 			}
 			return
@@ -223,31 +211,53 @@ func SetupKubernetes(params parameters.LockedParameters,
 	}
 
 	filenameBase := filepath.Join(filepath.Dir(configFilename), strings.Replace(domain, ".", "-", -1))
+	caCertFile := filenameBase + kubernetesApiKeysFileSuf[kubernetesApiCaCertOutput]
+	clientCertFile := filenameBase + kubernetesApiKeysFileSuf[kubernetesApiClientCertOutput]
+	clientKeyFile := filenameBase + kubernetesApiKeysFileSuf[kubernetesApiClientKeyOutput]
 
-	caCert := filenameBase + "-ca.pem"
-	clientCert := filenameBase + "-client.pem"
-	clientKey := filenameBase + "-client-key.pem"
-	writeFile(caCert, mustOutput(params, outputs, provider, KubernetesApiKeysOutputBase+"caCert"))
+	var caCert string
+	caCertExist := true
+	if flavor != "openshift" {
+		caCert = mustOutput(params, outputs, provider, kubernetesApiCaCertOutput)
+	} else {
+		caCert, caCertExist = mayOutput(params, outputs, provider, kubernetesApiCaCertOutput)
+	}
+	if caCertExist {
+		writeFile(caCertFile, caCert)
+	}
 	if flavor != "eks" {
-		writeFile(clientCert, mustOutput(params, outputs, provider, KubernetesApiKeysOutputBase+"clientCert"))
-		writeFile(clientKey, mustOutput(params, outputs, provider, KubernetesApiKeysOutputBase+"clientKey"))
+		writeFile(clientCertFile,
+			mustOutput(params, outputs, provider, kubernetesApiClientCertOutput))
+		writeFile(clientKeyFile,
+			mustOutput(params, outputs, provider, kubernetesApiClientKeyOutput))
 	}
 
 	apiEndpoint := domain
-	if endpoint, exist := mayOutput(params, outputs, provider, kubernetesApiEndpoint); exist && endpoint != "" {
+	if endpoint, exist := mayOutput(params, outputs, provider, kubernetesApiEndpointOutput); exist && endpoint != "" {
 		apiEndpoint = endpoint
 	}
 
-	mustExec(kubectl, "config", "set-cluster", domain,
-		"--embed-certs=true",
-		"--server=https://"+apiEndpoint,
-		"--certificate-authority="+caCert)
+	clusterArgs := []string{"config", "set-cluster", domain, "--server=https://" + apiEndpoint}
+	if caCertExist {
+		clusterArgs = append(clusterArgs, "--embed-certs=true", "--certificate-authority="+caCertFile)
+	}
+	mustExec(kubectl, clusterArgs...)
 	user := ""
-	if flavor == "eks" {
+	switch flavor {
+	case "k8s-aws":
+		user = "admin@" + domain
+		mustExec(kubectl, "config", "set-credentials", user,
+			"--embed-certs=true",
+			"--client-key="+clientKeyFile,
+			"--client-certificate="+clientCertFile)
+
+	case "eks":
 		user = "eks-" + eksClusterName
 		addHeptioUser(configFilename, user, eksClusterName)
 		// Pending issue
-		// Add cli support to "exec" auth plugin https://github.com/kubernetes/kubernetes/issues/64751
+		// Add cli support to "exec" auth plugin
+		// https://github.com/kubernetes/kubernetes/issues/64751
+		// https://github.com/kubernetes/kubernetes/pull/73230
 		/*
 			mustExec(kubectl, "config", "set-credentials", user,
 				"--exec-command=heptio-authenticator-aws",
@@ -255,12 +265,11 @@ func SetupKubernetes(params parameters.LockedParameters,
 				"--exec-arg=-i",
 				"--exec-arg="+eksClusterName)
 		*/
-	} else {
-		user = "admin@" + domain
+
+	case "openshift":
+		user = "openshift-" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
-			"--embed-certs=true",
-			"--client-key="+clientKey,
-			"--client-certificate="+clientCert)
+			"--token="+bearerToken)
 	}
 	mustExec(kubectl, "config", "set-context", context,
 		"--cluster="+domain,
