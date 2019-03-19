@@ -212,6 +212,15 @@ func ContainsAll(list []string, values []string) bool {
 	return true
 }
 
+func ContainsAny(list []string, values []string) bool {
+	for _, v := range values {
+		if Contains(list, v) {
+			return true
+		}
+	}
+	return false
+}
+
 func Equal(list []string, list2 []string) bool {
 	return reflect.DeepEqual(list, list2)
 }

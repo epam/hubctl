@@ -221,7 +221,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 	elaborated.Provides = mergeProvides(fromStackName, fromStackManifest.Provides,
 		stackManifest.Provides, componentsManifests)
 
-	if depth == 0 && util.Contains(elaborated.Requires, "kubernetes") {
+	if depth == 0 && util.ContainsAny(elaborated.Requires, []string{"kubernetes", "kubectl"}) {
 		// TODO distinguish EKS/etc. by kubernetes.flavor and setup appropriately
 		parameters = append(parameters, manifest.ParameterWrap(kube.RequiredKubernetesParameters()))
 	}
@@ -761,6 +761,9 @@ func connectRequires(parentStackName string, parentStackProvides []string,
 	parentStack := fmt.Sprintf("*%s*", parentStackName)
 	for _, parentProvide := range parentStackProvides {
 		addProv(parentStack, parentProvide)
+		if parentProvide == "kubernetes" {
+			addProv(parentStack, "kubectl")
+		}
 	}
 
 	stack := "*stack*"
@@ -780,6 +783,9 @@ func connectRequires(parentStackName string, parentStackProvides []string,
 		}
 		for _, prov := range component.Provides {
 			addProv(name, prov)
+			if prov == "kubernetes" {
+				addProv(name, "kubectl")
+			}
 		}
 	}
 
