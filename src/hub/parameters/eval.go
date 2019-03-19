@@ -246,12 +246,12 @@ func ExpandParameters(componentName string, componentDepends []string,
 		expanded = append(expanded, LockedParameter{Name: parameter.Name, Value: parameter.Value, Env: parameter.Env})
 		kv[parameter.Name] = parameter.Value
 	}
-	if config.Debug && len(expanded) > 1 {
+	if config.Trace && len(expanded) > 1 {
 		log.Print("Parameters expanded:")
 		PrintLockedParametersList(expanded)
 	}
 	if len(errs) > 0 && !config.Force {
-		if !config.Debug {
+		if !config.Trace {
 			log.Print("Parameters expanded:")
 			PrintLockedParametersList(expanded)
 		}
