@@ -907,53 +907,68 @@ func mergeOrder(parent, child []string) []string {
 		}
 	}
 
+	if config.Trace {
+		log.Printf("Lifecycle order overrides to parent indices: %v", overridesToParent)
+		log.Printf("Lifecycle order overrides from child indices: %v", overridesFromChild)
+	}
+
 	order := make([]string, 0, len(parent)+len(child))
 	if len(overridesFromChild) == 0 {
 		order = append(order, parent...)
 		order = append(order, child...)
-	} else {
-		relative := func(indices []int) {
-			prev := 0
-			for i, index := range indices {
-				indices[i] = index - prev - i
-				prev = index
-			}
-		}
+		return order
+	}
 
-		relative(overridesToParent)
-		relative(overridesFromChild)
-
-		parentBlocks := make([][]string, 0, len(child))
-		for _, cutAt := range overridesToParent {
-			parentBlocks = append(parentBlocks, parent[:cutAt])
-			if cutAt == len(parent)-1 {
-				parent = []string{}
-			} else {
-				parent = parent[cutAt+1:]
-			}
-		}
-		parentBlocks = append(parentBlocks, parent)
-
-		childBlocks := make([][]string, 0, len(child))
-		for _, cutAt := range overridesFromChild {
-			childBlocks = append(childBlocks, child[:cutAt+1])
-			if cutAt == len(child) {
-				child = []string{}
-			} else {
-				child = child[cutAt+1:]
-			}
-		}
-		childBlocks = append(childBlocks, child)
-
-		if config.Trace {
-			log.Printf("Lifecycle order overrides:\n\tparent: %v\n\tchild: %v", parentBlocks, childBlocks)
-		}
-
-		for i, parentBlock := range parentBlocks {
-			order = append(order, parentBlock...)
-			order = append(order, childBlocks[i]...)
+	relative := func(indices []int) {
+		prev := 0
+		off := 0
+		for i, index := range indices {
+			indices[i] = index - prev - off
+			prev = index
+			off = 1
 		}
 	}
+
+	relative(overridesToParent)
+	relative(overridesFromChild)
+	if config.Trace {
+		log.Printf("Lifecycle order overrides to parent relative indices: %v", overridesToParent)
+		log.Printf("Lifecycle order overrides from child relative indices: %v", overridesFromChild)
+	}
+
+	parentBlocks := make([][]string, 0, len(child))
+	for _, cutAt := range overridesToParent {
+		parentBlocks = append(parentBlocks, parent[:cutAt])
+		if cutAt == len(parent)-1 {
+			parent = []string{}
+		} else {
+			parent = parent[cutAt+1:]
+		}
+	}
+	parentBlocks = append(parentBlocks, parent)
+	if config.Trace {
+		log.Printf("Lifecycle order overrides parent blocks: %v", parentBlocks)
+	}
+
+	childBlocks := make([][]string, 0, len(child))
+	for _, cutAt := range overridesFromChild {
+		childBlocks = append(childBlocks, child[:cutAt+1])
+		if cutAt == len(child) {
+			child = []string{}
+		} else {
+			child = child[cutAt+1:]
+		}
+	}
+	childBlocks = append(childBlocks, child)
+	if config.Trace {
+		log.Printf("Lifecycle order overrides child blocks: %v", childBlocks)
+	}
+
+	for i := range parentBlocks {
+		order = append(order, parentBlocks[i]...)
+		order = append(order, childBlocks[i]...)
+	}
+
 	return order
 }
 
