@@ -79,7 +79,11 @@ func CapturedOutputsToList(outputs CapturedOutputs) []CapturedOutput {
 
 func PrintCapturedOutputsList(outputs []CapturedOutput) {
 	for _, output := range outputs {
-		log.Printf("\t%s:%s => `%s`", output.Component, output.Name, util.Wrap(output.Value))
+		kind := ""
+		if output.Kind != "" {
+			kind = fmt.Sprintf("[%s] ", output.Kind)
+		}
+		log.Printf("\t%s%s:%s => `%s`", kind, output.Component, output.Name, util.Wrap(output.Value))
 	}
 }
 
