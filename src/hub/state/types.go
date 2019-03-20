@@ -29,15 +29,16 @@ type LifecyclePhase struct {
 	Status string `yaml:",omitempty"`
 }
 
-type Operation struct {
+type LifecycleOperation struct {
 	Id          string
 	Operation   string
 	Timestamp   time.Time
-	Status      string           `yaml:",omitempty"`
-	Description string           `yaml:",omitempty"`
-	Initiatior  string           `yaml:",omitempty"`
-	Logs        string           `yaml:",omitempty"`
-	Phases      []LifecyclePhase `yaml:",omitempty"`
+	Status      string                 `yaml:",omitempty"`
+	Options     map[string]interface{} `yaml:",omitempty"`
+	Description string                 `yaml:",omitempty"`
+	Initiator   string                 `yaml:",omitempty"`
+	Logs        string                 `yaml:",omitempty"`
+	Phases      []LifecyclePhase       `yaml:",omitempty"`
 }
 
 type StateManifest struct {
@@ -53,7 +54,7 @@ type StateManifest struct {
 	StackOutputs    []parameters.ExpandedOutput  `yaml:"stackOutputs,omitempty"`
 	Provides        map[string][]string          `yaml:",omitempty"`
 	Components      map[string]*StateStep        `yaml:",omitempty"`
-	Operations      []Operation                  `yaml:",omitempty"`
+	Operations      []LifecycleOperation         `yaml:",omitempty"`
 }
 
 type ComponentBackup struct {

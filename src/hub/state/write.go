@@ -2,6 +2,7 @@ package state
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -162,6 +163,74 @@ func UpdateComponentStatus(manifest *StateManifest, name, status, message string
 				log.Printf("State component `%s` message: %s", name, message)
 			}
 		}
+	}
+	return manifest
+}
+
+func UpdateOperation(manifest *StateManifest, id, operation, status string, options map[string]interface{}) *StateManifest {
+	found := -1
+	ops := manifest.Operations
+	for i, op := range ops {
+		if op.Id == id {
+			found = i
+			break
+		}
+	}
+	op := LifecycleOperation{
+		Id:        id,
+		Operation: operation,
+		Timestamp: time.Now(),
+		Status:    status,
+		Options:   options,
+		Initiator: os.Getenv("USER"),
+	}
+	if found >= 0 {
+		if op.Options == nil {
+			op.Options = ops[found].Options
+		}
+		op.Phases = ops[found].Phases
+		ops[found] = op
+	} else {
+		manifest.Operations = append(ops, op)
+	}
+	if config.Debug {
+		log.Printf("State lifecycle operation `%s` status: %s", op.Operation, op.Status)
+	}
+	return manifest
+}
+
+func UpdatePhase(manifest *StateManifest, opId, name, status string) *StateManifest {
+	foundOp := -1
+	ops := manifest.Operations
+	for i, op := range ops {
+		if op.Id == opId {
+			foundOp = i
+			break
+		}
+	}
+	if foundOp == -1 {
+		util.Warn("Internal state error: asked to update lifecycle phase `%s - %s` but no lifecycle operation with id `%s` found",
+			name, status, opId)
+		return manifest
+	}
+	op := ops[foundOp]
+
+	foundPhase := -1
+	phases := op.Phases
+	for i, phase := range phases {
+		if phase.Phase == name {
+			foundPhase = i
+			break
+		}
+	}
+	phase := LifecyclePhase{Phase: name, Status: status}
+	if foundPhase >= 0 {
+		phases[foundPhase] = phase
+	} else {
+		manifest.Operations[foundOp].Phases = append(phases, phase)
+	}
+	if config.Debug {
+		log.Printf("State lifecycle phase `%s` status: %s", phase.Phase, phase.Status)
 	}
 	return manifest
 }

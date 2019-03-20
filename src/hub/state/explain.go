@@ -38,7 +38,7 @@ type ExplainedState struct {
 	Components      map[string]ExplainedComponent `yaml:",omitempty" json:"components,omitempty"`
 }
 
-func Explain(elaborateManifests, stateFilenames []string, global bool, componentName string, rawOutputs bool,
+func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, componentName string, rawOutputs bool,
 	format string /*text, kv, sh, json, yaml*/, color bool) {
 
 	if color && format == "text" {
@@ -51,8 +51,17 @@ func Explain(elaborateManifests, stateFilenames []string, global bool, component
 		config.Verbose = false
 	}
 
+	if opLog && format != "text" {
+		log.Fatal("Lifecycle operations log can only be explained in text format")
+	}
+
 	state := MustParseStateFiles(stateFilenames)
 	components := state.Lifecycle.Order
+
+	if opLog {
+		printOpLog(state)
+		return
+	}
 
 	var stackManifest *manifest.Manifest
 	if len(elaborateManifests) > 0 {
@@ -293,4 +302,50 @@ func printProvides(deps map[string][]string) {
 			fmt.Printf("\t%s => %s\n", name, strings.Join(deps[name], ", "))
 		}
 	}
+}
+
+func printOpLog(st *StateManifest) {
+	ops := st.Operations
+	if len(ops) == 0 {
+		fmt.Print("No operations log")
+	}
+	fmt.Print("Operations:\n")
+	for _, op := range ops {
+		fmt.Print(formatOperation(op, true))
+	}
+}
+
+func formatOperation(op LifecycleOperation, showLogs bool) string {
+	ident := "\t"
+	logs := ""
+	if showLogs && op.Logs != "" {
+		logs = fmt.Sprintf("%sLogs:\n%s\t%s\n",
+			ident, ident, strings.Join(strings.Split(op.Logs, "\n"), "\n"+ident+"\t"))
+	}
+	initiator := ""
+	if op.Initiator != "" {
+		initiator = fmt.Sprintf(" by %s", op.Initiator)
+	}
+	options := ""
+	if len(op.Options) > 0 {
+		options = fmt.Sprintf(" %v", op.Options)
+	}
+	description := ""
+	if op.Description != "" {
+		description = fmt.Sprintf(" (%s)", op.Description)
+	}
+	phases := ""
+	if len(op.Phases) > 0 {
+		phases = fmt.Sprintf("%sPhases:\n%s\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident))
+	}
+	return fmt.Sprintf("%sOperation: %s - %s %v%s%s%s %s\n%s%s",
+		ident, op.Operation, op.Status, op.Timestamp, initiator, description, options, op.Id, phases, logs)
+}
+
+func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
+	str := make([]string, 0, len(phases))
+	for _, phase := range phases {
+		str = append(str, fmt.Sprintf("%s - %s", phase.Phase, phase.Status))
+	}
+	return strings.Join(str, "\n"+ident+"\t")
 }

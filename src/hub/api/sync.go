@@ -250,7 +250,7 @@ func guessSecretKind(outputKind, name string) string {
 	return kind
 }
 
-func transformOperationsToApi(ops []state.Operation) []InflightOperation {
+func transformOperationsToApi(ops []state.LifecycleOperation) []InflightOperation {
 	apiOps := make([]InflightOperation, 0, len(ops))
 	for _, op := range ops {
 		phases := make([]LifecyclePhase, 0, len(op.Phases))
@@ -263,7 +263,7 @@ func transformOperationsToApi(ops []state.Operation) []InflightOperation {
 			Timestamp:   op.Timestamp,
 			Status:      op.Status,
 			Description: op.Description,
-			Initiator:   op.Initiatior,
+			Initiator:   op.Initiator,
 			Logs:        op.Logs,
 			Phases:      phases,
 		})

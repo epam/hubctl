@@ -14,6 +14,7 @@ import (
 var (
 	explainGlobal bool
 	explainRaw    bool
+	explainOpLog  bool
 	explainInKv   bool
 	explainInSh   bool
 	explainInJson bool
@@ -55,7 +56,7 @@ func explain(args []string) error {
 		format = "yaml"
 	}
 
-	state.Explain(elaborateManifests, stateManifests, explainGlobal, componentName, explainRaw, format, explainColor)
+	state.Explain(elaborateManifests, stateManifests, explainOpLog, explainGlobal, componentName, explainRaw, format, explainColor)
 
 	return nil
 }
@@ -67,6 +68,8 @@ func init() {
 		"Component to explain")
 	explainCmd.Flags().BoolVarP(&explainRaw, "raw-outputs", "r", false,
 		"Display raw component outputs")
+	explainCmd.Flags().BoolVarP(&explainOpLog, "op-log", "l", false,
+		"Display operations log (only)")
 	explainCmd.Flags().BoolVarP(&explainInKv, "kv", "", false,
 		"key=value output")
 	explainCmd.Flags().BoolVarP(&explainInSh, "sh", "", false,

@@ -82,6 +82,7 @@ func Execute(request *Request) {
 
 	var stateManifest *state.StateManifest
 	var stateUpdater func(interface{})
+	var operationLogId string
 	if isStateFile {
 		if isUndeploy || isSomeComponents { // skip state file at start of full deploy
 			var err error
@@ -101,6 +102,12 @@ func Execute(request *Request) {
 			}
 		}
 		stateUpdater = state.InitWriter(stateFiles)
+
+		u, err := uuid.NewV4()
+		if err != nil {
+			log.Fatalf("Unable to generate operation Id v4 UUID: %v", err)
+		}
+		operationLogId = u.String()
 	}
 
 	deploymentIdParameterName := "hub.deploymentId"
@@ -199,6 +206,11 @@ func Execute(request *Request) {
 
 	failedComponents := make([]string, 0)
 
+	// TODO handle ^C interrupt to update op log and stack status
+	// or expiry by time and set to `interrupted`
+	stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "in-progress",
+		map[string]interface{}{"args": os.Args})
+
 NEXT_COMPONENT:
 	for componentIndex, componentName := range order {
 		if (len(request.Components) > 0 && !util.Contains(request.Components, componentName)) ||
@@ -230,8 +242,12 @@ NEXT_COMPONENT:
 		if isStateFile {
 			updateStateComponentFailed = func(msg string, final bool) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, "error", msg)
+				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "error")
 				if !config.Force && !optionalComponent(&stackManifest.Lifecycle, componentName) {
 					stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", msg)
+				}
+				if final {
+					stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "error", nil)
 				}
 				stateUpdater(stateManifest)
 			}
@@ -307,6 +323,7 @@ NEXT_COMPONENT:
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, status, "")
 				stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			}
+			stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "in-progress")
 			stateUpdater(stateManifest)
 		}
 
@@ -393,6 +410,7 @@ NEXT_COMPONENT:
 		if isStateFile {
 			if !util.Contains(failedComponents, componentName) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, fmt.Sprintf("%sed", request.Verb), "")
+				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "success")
 				stateUpdater(stateManifest)
 			}
 		}
@@ -405,6 +423,7 @@ NEXT_COMPONENT:
 			message := fmt.Sprintf("Stack ready condition failed: %v", err)
 			if isStateFile {
 				stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", message)
+				stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "error", nil)
 				stateUpdater(stateManifest)
 			}
 			util.MaybeFatalf("%s", message)
@@ -416,6 +435,7 @@ NEXT_COMPONENT:
 		if !stackReadyConditionFailed {
 			status, message := calculateStackStatus(stackManifest, stateManifest)
 			stateManifest = state.UpdateStackStatus(stateManifest, status, message)
+			stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "success", nil)
 			stateUpdater(stateManifest)
 		}
 		stateUpdater("sync")
