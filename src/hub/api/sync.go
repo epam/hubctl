@@ -52,7 +52,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		Provides:          provides,
 	}
 	if config.Verbose {
-		log.Print("Syncing instance state to Control Plane")
+		log.Print("Syncing instance state to SuperHub")
 	}
 	patched, err := PatchStackInstance(selector, patch)
 	if err != nil {

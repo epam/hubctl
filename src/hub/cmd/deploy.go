@@ -176,11 +176,11 @@ func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 
 func initCommonApiFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&hubEnvironment, "hub-environment", "", "",
-		"The Id or Name of Control Plane Environment to obtain deployment parameters from")
+		"The Id or Name of SuperHub Environment to obtain deployment parameters from")
 	cmd.Flags().StringVarP(&hubStackInstance, "hub-stack-instance", "", "",
-		"The Id or Domain of Control Plane Stack Instance to obtain deployment parameters from")
+		"The Id or Domain of SuperHub Stack Instance to obtain deployment parameters from")
 	cmd.Flags().StringVarP(&hubApplication, "hub-application", "", "",
-		"The Id or Domain of Control Plane Application to obtain deployment parameters from")
+		"The Id or Domain of SuperHub Application to obtain deployment parameters from")
 }
 
 func init() {
@@ -190,6 +190,6 @@ func init() {
 	deployCmd.Flags().BoolVarP(&gitOutputsStatus, "git-outputs-status", "", false,
 		"Produce hub.components.<component-name>.git.clean = {clean, dirty} which is expensive to calculate")
 	deployCmd.Flags().BoolVarP(&hubSaveStackInstanceOutputs, "hub-save-stack-instance-outputs", "", false,
-		"Send Stack Instance outputs and provides to Control Plane (--hub-stack-instance must be set)")
+		"Send Stack Instance outputs and provides to SuperHub (--hub-stack-instance must be set)")
 	RootCmd.AddCommand(deployCmd)
 }

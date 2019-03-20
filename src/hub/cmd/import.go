@@ -29,7 +29,7 @@ var (
 var importCmd = &cobra.Command{
 	Use:   "import <k8s-aws | eks | metal> <name or FQDN> -e <id | environment name> [-m <id | template name>] < keys.pem",
 	Short: "Import Kubernetes cluster",
-	Long: `Import Kubernetes cluster into Control Plane to become Platform Stack.
+	Long: `Import Kubernetes cluster into SuperHub to become Platform Stack.
 Currently supported cluster types are:
 - k8s-aws - AgileStacks Kubernetes on AWS (stack-k8s-aws)
 - eks - AWS EKS

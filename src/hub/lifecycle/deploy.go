@@ -464,14 +464,14 @@ NEXT_COMPONENT:
 			Provides: noEnvironmentProvides(provides),
 		}
 		if config.Verbose {
-			log.Print("Sending stack outputs to Control Plane")
+			log.Print("Sending stack outputs to SuperHub")
 			if config.Trace {
 				printStackInstancePatch(patch)
 			}
 		}
 		_, err := api.PatchStackInstance(request.StackInstance, patch)
 		if err != nil {
-			util.Warn("Unable to send stack outputs to Control Plane: %v", err)
+			util.Warn("Unable to send stack outputs to SuperHub: %v", err)
 		}
 	}
 

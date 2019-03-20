@@ -6,7 +6,7 @@ import (
 
 var apiCmd = &cobra.Command{
 	Use:   "api ...",
-	Short: "Use remote Automation Hub API to access Control Plane",
+	Short: "Use remote Automation Hub API to access SuperHub",
 }
 
 func init() {
