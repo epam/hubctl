@@ -101,6 +101,9 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 			}
 		}
 		params = parameters.ParametersFromList(stateParameters)
+		if len(additionalParameters) > 0 {
+			params = parameters.MergeParameters(params, additionalParameters)
+		}
 		outputs = parameters.OutputsFromList(stateOutputs)
 	}
 
