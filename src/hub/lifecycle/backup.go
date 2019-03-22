@@ -24,6 +24,8 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		log.Fatal("Backup without state file(s) is not implemented; try --state")
 	}
 
+	verb := maybeTestVerb(request.Verb, request.DryRun)
+
 	if len(bundles) == 0 && config.Verbose && !config.Debug {
 		config.Verbose = false
 		config.AggWarnings = false
@@ -68,18 +70,18 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	for _, componentName := range order {
 		component := findComponentRef(components, componentName)
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		impl := probeImplementation(dir, request.Verb)
+		impl := probeImplementation(dir, verb)
 		if impl {
 			implementsBackup = append(implementsBackup, manifest.ComponentQualifiedNameFromRef(component))
 		}
 	}
 	if len(request.Components) == 0 && len(implementsBackup) == 0 {
-		log.Fatalf("No component implements `%s` verb", request.Verb)
+		log.Fatalf("No component implements `%s` verb", verb)
 	}
 	if len(request.Components) > 0 && len(request.Components) != len(implementsBackup) {
 		for _, comp := range request.Components {
 			if !util.Contains(implementsBackup, comp) {
-				log.Printf("Component `%s` does not implement `%s` verb", comp, request.Verb)
+				log.Printf("Component `%s` does not implement `%s` verb", comp, verb)
 			}
 		}
 		os.Exit(1)
@@ -112,7 +114,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	}
 
 	if config.Verbose {
-		log.Printf("%s %v", strings.Title(request.Verb), implementsBackup)
+		log.Printf("%s %v", strings.Title(verb), implementsBackup)
 	}
 
 	bundle := state.BackupManifest{
@@ -124,7 +126,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 
 	for componentIndex, componentName := range implementsBackup {
 		if config.Verbose {
-			log.Printf("%s ***%s*** (%d/%d)", request.Verb, componentName, componentIndex+1, len(implementsBackup))
+			log.Printf("%s ***%s*** (%d/%d)", verb, componentName, componentIndex+1, len(implementsBackup))
 		}
 
 		component := findComponentRef(components, componentName)
@@ -163,10 +165,10 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		prepareComponentRequires(provides, componentManifest, stackParameters, allOutputs, optionalRequires)
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters,
+		stdout, _, err := delegate(verb, component, componentManifest, componentParameters,
 			dir, osEnv, request.PipeOutputInRealtime)
 
-		var rawOutputs parameters.RawOutputs = nil
+		var rawOutputs parameters.RawOutputs
 		if len(stdout) > 0 {
 			rawOutputs = parseTextOutput(stdout)
 		}
@@ -175,14 +177,14 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 			if err == nil {
 				err = errors.New("no outputs emited by the component")
 			}
-			log.Printf("Component `%s` failed to %s: %v", componentName, request.Verb, err)
+			log.Printf("Component `%s` failed to %s: %v", componentName, verb, err)
 			failedComponents = append(failedComponents, componentName)
 			if !allowPartial {
 				break
 			}
 		} else {
 			status = "success"
-			log.Printf("Component `%s` completed %s", componentName, request.Verb)
+			log.Printf("Component `%s` completed %s", componentName, verb)
 		}
 		kind, exist := rawOutputs["kind"]
 		if !exist || kind == "" {
@@ -214,7 +216,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	}
 
 	if len(failedComponents) > 0 {
-		log.Printf("Component(s) failed to %s: %v", request.Verb, failedComponents)
+		log.Printf("Component(s) failed to %s: %v", verb, failedComponents)
 		if allowPartial && len(failedComponents) < len(implementsBackup) {
 			bundle.Status = "partial"
 		} else {

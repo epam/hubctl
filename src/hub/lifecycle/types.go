@@ -2,6 +2,7 @@ package lifecycle
 
 type Request struct {
 	Verb                     string
+	DryRun                   bool
 	ManifestFilenames        []string
 	StateFilenames           []string
 	LoadFinalState           bool

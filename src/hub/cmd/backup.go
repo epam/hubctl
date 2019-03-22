@@ -62,7 +62,8 @@ func backupCreate(args []string) error {
 	setOsEnvForNestedCli(manifests, stateManifests, componentsBaseDir)
 
 	request := &lifecycle.Request{
-		Verb:                 maybeTestVerb("backup", dryRun),
+		Verb:                 "backup",
+		DryRun:               dryRun,
 		ManifestFilenames:    manifests,
 		StateFilenames:       stateManifests,
 		Components:           components,

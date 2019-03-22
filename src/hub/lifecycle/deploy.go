@@ -223,7 +223,8 @@ NEXT_COMPONENT:
 		}
 
 		if config.Verbose {
-			log.Printf("%s ***%s*** (%d/%d)", request.Verb, componentName, componentIndex+1, len(components))
+			log.Printf("%s ***%s*** (%d/%d)", maybeTestVerb(request.Verb, request.DryRun),
+				componentName, componentIndex+1, len(components))
 		}
 
 		component := findComponentRef(components, componentName)
@@ -328,7 +329,8 @@ NEXT_COMPONENT:
 		}
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, err := delegate(request.Verb, component, componentManifest, componentParameters,
+		stdout, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
+			component, componentManifest, componentParameters,
 			dir, osEnv, request.PipeOutputInRealtime)
 
 		var rawOutputs parameters.RawOutputs
@@ -549,6 +551,13 @@ func findComponentManifest(component *manifest.ComponentRef, componentsManifests
 		}
 	}
 	return nil
+}
+
+func maybeTestVerb(verb string, test bool) string {
+	if test {
+		return verb + "-test"
+	}
+	return verb
 }
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,

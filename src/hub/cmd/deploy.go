@@ -73,13 +73,6 @@ func statePreferLocalFile(filenames []string) string {
 	return filenames[0]
 }
 
-func maybeTestVerb(verb string, test bool) string {
-	if test {
-		return verb + "-test"
-	}
-	return verb
-}
-
 func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 	if len(args) != 1 {
 		mirrorArgs := ""
@@ -107,7 +100,8 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 	setOsEnvForNestedCli(manifests, stateManifests, componentsBaseDir)
 
 	request := &lifecycle.Request{
-		Verb:                     maybeTestVerb(verb, dryRun),
+		Verb:                     verb,
+		DryRun:                   dryRun,
 		ManifestFilenames:        manifests,
 		StateFilenames:           stateManifests,
 		LoadFinalState:           loadFinalState,
