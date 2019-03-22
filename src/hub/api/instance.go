@@ -310,7 +310,7 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	}
 	options := ""
 	if len(op.Options) > 0 {
-		options = fmt.Sprintf(" %v", op.Options)
+		options = fmt.Sprintf("%sOptions: %v\n", ident, op.Options)
 	}
 	description := ""
 	if op.Description != "" {
@@ -320,8 +320,8 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	if len(op.Phases) > 0 {
 		phases = fmt.Sprintf("%sPhases:\n%s\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident))
 	}
-	return fmt.Sprintf("%sOperation: %s - %s %v%s%s%s %s\n%s%s",
-		ident, op.Operation, op.Status, op.Timestamp, initiator, description, options, op.Id, phases, logs)
+	return fmt.Sprintf("%sOperation: %s - %s %v%s%s %s\n%s%s%s",
+		ident, op.Operation, op.Status, op.Timestamp, initiator, description, op.Id, options, phases, logs)
 }
 
 func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
