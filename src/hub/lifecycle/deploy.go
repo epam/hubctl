@@ -329,12 +329,14 @@ NEXT_COMPONENT:
 		}
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
+		stdout, stderr, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
 			component, componentManifest, componentParameters,
 			dir, osEnv, request.PipeOutputInRealtime)
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
+			stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
+				fmt.Sprintf("%v%s", err, formatStdoutStderr(stdout, stderr)))
 			maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 				fmt.Sprintf("Component `%s` failed to %s: %v", componentName, request.Verb, err),
 				updateStateComponentFailed)
@@ -562,7 +564,7 @@ func maybeTestVerb(verb string, test bool) string {
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
 	componentParameters parameters.LockedParameters,
-	dir string, osEnv []string, pipeOutputInRealtime bool) (string, error) {
+	dir string, osEnv []string, pipeOutputInRealtime bool) ([]byte, []byte, error) {
 
 	if config.Debug && len(componentParameters) > 0 {
 		log.Print("Component parameters:")
@@ -572,7 +574,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
 	errs := processTemplates(component, &componentManifest.Templates, componentParameters, nil, dir)
 	if len(errs) > 0 {
-		return "", fmt.Errorf("Failed to process templates:\n\t%s", util.Errors("\n\t", errs...))
+		return nil, nil, fmt.Errorf("Failed to process templates:\n\t%s", util.Errors("\n\t", errs...))
 	}
 
 	processEnv := parametersInEnv(componentName, componentParameters)
@@ -582,9 +584,9 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 			if config.Verbose {
 				log.Printf("Skip `%s`: %v", componentName, err)
 			}
-			return "", nil
+			return nil, nil, nil
 		}
-		return "", err
+		return nil, nil, err
 	}
 	impl.Env = mergeOsEnviron(osEnv, processEnv)
 	if config.Debug && len(processEnv) > 0 {
@@ -598,9 +600,9 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 
 	stdout, stderr, err := execImplementation(impl, pipeOutputInRealtime)
 	if !pipeOutputInRealtime && (config.Trace || err != nil) {
-		log.Printf("%s%s", formatStdout("stdout", stdout), formatStdout("stderr", stderr))
+		log.Print(formatStdoutStderr(stdout, stderr))
 	}
-	return stdout.String(), err
+	return stdout, stderr, err
 }
 
 func parametersInEnv(componentName string, componentParameters parameters.LockedParameters) []string {
@@ -650,7 +652,7 @@ func goWait(routine func()) chan string {
 	return ch
 }
 
-func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer, bytes.Buffer, error) {
+func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []byte, error) {
 	stderr, err := impl.StderrPipe()
 	if err != nil {
 		log.Fatalf("Unable to obtain stderr pipe: %v", err)
@@ -659,6 +661,13 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer
 	if err != nil {
 		log.Fatalf("Unable to obtain stdout pipe: %v", err)
 	}
+
+	args := ""
+	if len(impl.Args) > 1 {
+		args = fmt.Sprintf(" %v", impl.Args[1:])
+	}
+	implBlurb := fmt.Sprintf("%s%s (%s)", impl.Path, args, impl.Dir)
+
 	os.Stdout.Sync()
 	os.Stderr.Sync()
 
@@ -669,11 +678,7 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer
 	if pipeOutputInRealtime {
 		stdoutWritter = io.MultiWriter(&stdoutBuffer, os.Stdout)
 		stderrWritter = io.MultiWriter(&stderrBuffer, os.Stderr)
-		args := ""
-		if len(impl.Args) > 1 {
-			args = fmt.Sprintf(" %v", impl.Args[1:])
-		}
-		fmt.Printf("--- %s%s (%s)\n", impl.Path, args, impl.Dir)
+		fmt.Printf("--- %s\n", implBlurb)
 	}
 
 	stdoutComplete := goWait(func() { io.Copy(stdoutWritter, stdout) })
@@ -696,12 +701,15 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) (bytes.Buffer
 	if err == nil {
 		err = impl.Wait()
 	}
+	if err != nil {
+		err = fmt.Errorf("%s: %v", implBlurb, err)
+	}
 
-	return stdoutBuffer, stderrBuffer, err
+	return stdoutBuffer.Bytes(), stderrBuffer.Bytes(), err
 }
 
 func captureOutputs(componentName string, componentParameters parameters.LockedParameters,
-	textOutput string, requestedOutputs []manifest.Output) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
+	textOutput []byte, requestedOutputs []manifest.Output) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
 
 	tfOutputs := parseTextOutput(textOutput)
 	dynamicProvides := extractDynamicProvides(tfOutputs)
@@ -774,12 +782,12 @@ func captureOutputs(componentName string, componentParameters parameters.LockedP
 	return tfOutputs, outputs, dynamicProvides, errs
 }
 
-func parseTextOutput(textOutput string) parameters.RawOutputs {
+func parseTextOutput(textOutput []byte) parameters.RawOutputs {
 	outputs := make(map[string][]string)
-	outputsMarker := "Outputs:\n"
+	outputsMarker := []byte("Outputs:\n")
 	chunk := 1
 	for {
-		i := strings.Index(textOutput, outputsMarker)
+		i := bytes.Index(textOutput, outputsMarker)
 		if i == -1 {
 			if config.Debug && len(outputs) > 0 {
 				log.Print("Parsed raw outputs:")
@@ -797,7 +805,7 @@ func parseTextOutput(textOutput string) parameters.RawOutputs {
 			continue
 		}
 		textFragment := textOutput
-		i = strings.Index(textFragment, "\n\n")
+		i = bytes.Index(textFragment, []byte("\n\n"))
 		if i > 0 {
 			textFragment = textFragment[:i]
 		}
@@ -805,7 +813,7 @@ func parseTextOutput(textOutput string) parameters.RawOutputs {
 			log.Printf("Parsing output chunk #%d:\n%s", chunk, textFragment)
 			chunk++
 		}
-		lines := strings.Split(textFragment, "\n")
+		lines := strings.Split(string(textFragment), "\n")
 		for _, line := range lines {
 			if strings.HasPrefix(line, "#") {
 				continue

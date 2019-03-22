@@ -3,6 +3,7 @@ package state
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -188,6 +189,7 @@ func UpdateOperation(manifest *StateManifest, id, operation, status string, opti
 		if op.Options == nil {
 			op.Options = ops[found].Options
 		}
+		op.Logs = ops[found].Logs
 		op.Phases = ops[found].Phases
 		ops[found] = op
 	} else {
@@ -199,21 +201,46 @@ func UpdateOperation(manifest *StateManifest, id, operation, status string, opti
 	return manifest
 }
 
-func UpdatePhase(manifest *StateManifest, opId, name, status string) *StateManifest {
-	foundOp := -1
+func findOperation(manifest *StateManifest, id string) int {
+	found := -1
 	ops := manifest.Operations
 	for i, op := range ops {
-		if op.Id == opId {
-			foundOp = i
+		if op.Id == id {
+			found = i
 			break
 		}
 	}
+	if found == -1 {
+		util.Warn("Internal state error: no lifecycle operation with id `%s` found", id)
+	}
+	return found
+}
+
+func AppendOperationLog(manifest *StateManifest, id, logAdd string) *StateManifest {
+	foundOp := findOperation(manifest, id)
 	if foundOp == -1 {
-		util.Warn("Internal state error: asked to update lifecycle phase `%s - %s` but no lifecycle operation with id `%s` found",
-			name, status, opId)
 		return manifest
 	}
-	op := ops[foundOp]
+	op := manifest.Operations[foundOp]
+
+	sep := "\n"
+	if op.Logs == "" || strings.HasSuffix(op.Logs, sep) {
+		sep = ""
+	}
+	manifest.Operations[foundOp].Logs = op.Logs + sep + logAdd
+
+	if config.Debug {
+		log.Printf("State lifecycle operation `%s` log appended: %s", op.Operation, util.Wrap(logAdd))
+	}
+	return manifest
+}
+
+func UpdatePhase(manifest *StateManifest, opId, name, status string) *StateManifest {
+	foundOp := findOperation(manifest, opId)
+	if foundOp == -1 {
+		return manifest
+	}
+	op := manifest.Operations[foundOp]
 
 	foundPhase := -1
 	phases := op.Phases

@@ -1,7 +1,6 @@
 package lifecycle
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
@@ -75,16 +74,20 @@ func printTemplates(templates []TemplateRef) {
 	}
 }
 
-func formatStdout(what string, stream bytes.Buffer) string {
-	if stream.Len() > 0 {
-		str := stream.String()
+func formatBytes(what string, stream []byte) string {
+	l := len(stream)
+	if l > 0 {
 		nl := "\n"
-		if strings.HasSuffix(str, "\n") {
+		if stream[l-1] == '\n' {
 			nl = ""
 		}
-		return fmt.Sprintf("\n--- %s:\n%s%s---\n", what, str, nl)
+		return fmt.Sprintf("\n--- %s:\n%s%s---\n", what, stream, nl)
 	}
 	return ""
+}
+
+func formatStdoutStderr(stdout, stderr []byte) string {
+	return fmt.Sprintf("%s%s", formatBytes("stdout", stdout), formatBytes("stderr", stderr))
 }
 
 func printExpandedOutputs(outputs []parameters.ExpandedOutput) {

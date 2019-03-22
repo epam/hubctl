@@ -100,12 +100,11 @@ func Invoke(request *Request) {
 	stdout, stderr, err := execImplementation(impl, request.PipeOutputInRealtime)
 
 	if !request.PipeOutputInRealtime && (config.Trace || err != nil) {
-		stdoutMsg := formatStdout("stdout", stdout)
-		stderrMsg := formatStdout("stderr", stderr)
+		msg := formatStdoutStderr(stdout, stderr)
 		if err != nil {
-			util.MaybeFatalf("%s%sFailed to %s %s: %v", stdoutMsg, stderrMsg, request.Verb, request.Component, err)
+			util.MaybeFatalf("%sFailed to %s %s: %v", msg, request.Verb, request.Component, err)
 		} else {
-			log.Printf("%s%s", stdoutMsg, stderrMsg)
+			log.Print(msg)
 		}
 	}
 	if request.PipeOutputInRealtime && err != nil {
