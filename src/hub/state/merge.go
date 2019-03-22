@@ -172,12 +172,18 @@ func mergeStateOutputs(outputs parameters.CapturedOutputs, state []parameters.Ca
 func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depends []string, mergedTimestamp time.Time,
 	components map[string]*StateStep) {
 
+	loading := make([]string, 0, len(depends))
 	for _, dependencyName := range depends {
 		// TODO review: always load outputs from dependencies?
-		if dependency, exist := components[dependencyName]; exist /* && dependency.Timestamp.After(mergedTimestamp) */ {
-			if config.Verbose {
-				log.Printf("Additionally, loading state after component `%s` due to `depends` declaration", dependencyName)
-			}
+		if _, exist := components[dependencyName]; exist /* && dependency.Timestamp.After(mergedTimestamp) */ {
+			loading = append(loading, dependencyName)
+		}
+	}
+	if config.Verbose && len(loading) > 0 {
+		log.Printf("Additionally, loading state after component(s) %v due to `depends` declaration", loading)
+	}
+	for _, dependencyName := range loading {
+		if dependency, exist := components[dependencyName]; exist {
 			for _, output := range dependency.CapturedOutputs {
 				qName := output.QName()
 				current, exists := outputs[qName]
