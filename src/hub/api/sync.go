@@ -138,7 +138,8 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 			noSecretOutputs := filterOutSecretOutputs(component.CapturedOutputs)
 			outputs := state.DiffOutputs(noSecretOutputs, prevOutputs)
 			prevOutputs = noSecretOutputs
-			components = append(components, ComponentStatus{Name: name, Status: component.Status, Outputs: outputs})
+			components = append(components,
+				ComponentStatus{Name: name, Status: component.Status, Message: component.Message, Outputs: outputs})
 		}
 	}
 	return components

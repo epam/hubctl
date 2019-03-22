@@ -135,6 +135,7 @@ type PlatformRef struct {
 type ComponentStatus struct {
 	Name    string            `json:"name"`
 	Status  string            `json:"status"`
+	Message string            `json:"message"`
 	Outputs map[string]string `json:"outputs,omitempty"`
 }
 

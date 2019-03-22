@@ -273,7 +273,11 @@ func formatStackOutputs(resource string, outputs []Output, showSecrets bool) (st
 
 func formatComponentStatus(comp ComponentStatus) string {
 	ident := "\t\t\t"
-	str := fmt.Sprintf("%s%s - %s\n", ident, comp.Name, comp.Status)
+	message := ""
+	if comp.Message != "" {
+		message = fmt.Sprintf(": %s", comp.Message)
+	}
+	str := fmt.Sprintf("%s%s - %s%s\n", ident, comp.Name, comp.Status, message)
 	if len(comp.Outputs) > 0 {
 		str = fmt.Sprintf("%s%s\t%s\n", str, ident, formatComponentOutputs(comp.Outputs, ident))
 	}
@@ -282,7 +286,7 @@ func formatComponentStatus(comp ComponentStatus) string {
 
 func formatComponentOutputs(outputs map[string]string, ident string) string {
 	keys := make([]string, 0, len(outputs))
-	for key, _ := range outputs {
+	for key := range outputs {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
