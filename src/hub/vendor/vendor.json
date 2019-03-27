@@ -45,6 +45,84 @@
 			"revisionTime": "2019-02-19T18:16:00Z"
 		},
 		{
+			"checksumSHA1": "F8iGZyESm4ZZMF9BR8c5gSmZq3c=",
+			"path": "contrib.go.opencensus.io/exporter/ocagent",
+			"revision": "04c6eab681d88de979f546186ee73cc147e5e622",
+			"revisionTime": "2019-03-21T16:58:48Z"
+		},
+		{
+			"checksumSHA1": "VypEUNCCn05yJIc+jebCaLFAlIE=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-11-01/storage",
+			"revision": "f0ff339f1297d3374fc36bcbfc7d1bbba045d992",
+			"revisionTime": "2019-03-25T19:23:50Z"
+		},
+		{
+			"checksumSHA1": "Fo0yAWjaIGDb4GNhqnLCgyaPzNI=",
+			"path": "github.com/Azure/azure-sdk-for-go/storage",
+			"revision": "f0ff339f1297d3374fc36bcbfc7d1bbba045d992",
+			"revisionTime": "2019-03-25T19:23:50Z"
+		},
+		{
+			"checksumSHA1": "bk3VZC/EH8NnY82fcIJdUWv4Ltg=",
+			"path": "github.com/Azure/azure-sdk-for-go/version",
+			"revision": "f0ff339f1297d3374fc36bcbfc7d1bbba045d992",
+			"revisionTime": "2019-03-25T19:23:50Z"
+		},
+		{
+			"checksumSHA1": "WNmSrXZj3r9n+q3g1erWlQYYuWY=",
+			"path": "github.com/Azure/go-autorest/autorest",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "2e8Mwo2rrGoDx//Kxna5nNjxVwA=",
+			"path": "github.com/Azure/go-autorest/autorest/adal",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "tdK29mIwFK9314mFuUHoF/qgQZo=",
+			"path": "github.com/Azure/go-autorest/autorest/azure",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "HQPWCenhGuW0ceIzJDzxioIj74s=",
+			"path": "github.com/Azure/go-autorest/autorest/azure/auth",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "DqgRpcKsji3jcPzXJwwT3H7coG8=",
+			"path": "github.com/Azure/go-autorest/autorest/azure/cli",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "9nXCi9qQsYjxCeajJKWttxgEt0I=",
+			"path": "github.com/Azure/go-autorest/autorest/date",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "HjdLfAF3oA2In8F3FKh/Y+BPyXk=",
+			"path": "github.com/Azure/go-autorest/autorest/validation",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "o2qI63YFK2UPxMUK+WmV6GJv794=",
+			"path": "github.com/Azure/go-autorest/logger",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
+			"checksumSHA1": "SIuMOYtCDIhIa+DsJ0jOHGB419I=",
+			"path": "github.com/Azure/go-autorest/tracing",
+			"revision": "3b1641ed03046f2ee28d73f7a51e5b884d55b92a",
+			"revisionTime": "2019-03-26T16:51:46Z"
+		},
+		{
 			"checksumSHA1": "hqWYEoD1GImvadoZ7kY+gLJb4iU=",
 			"path": "github.com/arkadijs/golang-socketio",
 			"revision": "dc2d2a43165c170905dc2a6c3b62441549deabbd",
@@ -291,10 +369,58 @@
 			"revisionTime": "2019-01-11T19:28:25Z"
 		},
 		{
+			"checksumSHA1": "JSI40pWrSLZxzkRuQFj7KQszQu8=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1",
+			"revision": "a9646cb397b005487c839c47296c96c0c27cb0b2",
+			"revisionTime": "2019-03-20T16:28:14Z"
+		},
+		{
+			"checksumSHA1": "NbZ7eC2jF5bMDS5Eh7sMZSGIerg=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/metrics/v1",
+			"revision": "a9646cb397b005487c839c47296c96c0c27cb0b2",
+			"revisionTime": "2019-03-20T16:28:14Z"
+		},
+		{
+			"checksumSHA1": "5rzdbkMMOyHnUYH3Jd8Kt1varKI=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/agent/trace/v1",
+			"revision": "a9646cb397b005487c839c47296c96c0c27cb0b2",
+			"revisionTime": "2019-03-20T16:28:14Z"
+		},
+		{
+			"checksumSHA1": "42xtTdcQBmqw7+VC0JHNtZJJmvQ=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1",
+			"revision": "a9646cb397b005487c839c47296c96c0c27cb0b2",
+			"revisionTime": "2019-03-20T16:28:14Z"
+		},
+		{
+			"checksumSHA1": "s+Zw+s2zmz/ycirtX22Q7ZA728w=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/resource/v1",
+			"revision": "a9646cb397b005487c839c47296c96c0c27cb0b2",
+			"revisionTime": "2019-03-20T16:28:14Z"
+		},
+		{
+			"checksumSHA1": "dwZuVPNFvkhOhHtPnOZjPEa9TFQ=",
+			"path": "github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1",
+			"revision": "a9646cb397b005487c839c47296c96c0c27cb0b2",
+			"revisionTime": "2019-03-20T16:28:14Z"
+		},
+		{
 			"checksumSHA1": "00wtByhdiRe1Q1nOYEqaQzWkrkI=",
 			"path": "github.com/cpuguy83/go-md2man/md2man",
 			"revision": "691ee98543af2f262f35fbb54bdd42f00b9b9cc5",
 			"revisionTime": "2018-06-19T20:56:30Z"
+		},
+		{
+			"checksumSHA1": "blOHP3HPYU+IeV6yWCalQuuM+zE=",
+			"path": "github.com/dgrijalva/jwt-go",
+			"revision": "3af4c746e1c248ee8491a3e0c6f7a9cd831e95f8",
+			"revisionTime": "2018-09-21T17:23:15Z"
+		},
+		{
+			"checksumSHA1": "L7NqEfBxi5sjuvjE8hnDimfGemA=",
+			"path": "github.com/dimchansky/utfbom",
+			"revision": "d2133a1ce379ef6fa992b0514a77146c60db9d1c",
+			"revisionTime": "2018-12-05T23:29:56Z"
 		},
 		{
 			"checksumSHA1": "IlDHv+GrkfH+xp1pdKzOqws1sLY=",
@@ -339,6 +465,12 @@
 			"revisionTime": "2018-08-30T22:02:26Z"
 		},
 		{
+			"checksumSHA1": "BP2buXHHOKxI5eYS2xELVng2kf4=",
+			"path": "github.com/golang/protobuf/jsonpb",
+			"revision": "d3c38a4eb4970272b87a425ae00ccc4548e2f9bb",
+			"revisionTime": "2019-03-18T19:48:12Z"
+		},
+		{
 			"checksumSHA1": "Y2MOwzNZfl4NRNDbLCZa6sgx7O0=",
 			"path": "github.com/golang/protobuf/proto",
 			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
@@ -349,6 +481,24 @@
 			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
 			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
 			"revisionTime": "2019-02-05T22:20:52Z"
+		},
+		{
+			"checksumSHA1": "dqkZJ8o1Hj3gbN30RyZ7G3CxhfU=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/generator",
+			"revision": "d3c38a4eb4970272b87a425ae00ccc4548e2f9bb",
+			"revisionTime": "2019-03-18T19:48:12Z"
+		},
+		{
+			"checksumSHA1": "uY4dEtqaAe5gsU8gbpCI1JgEIII=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/generator/internal/remap",
+			"revision": "d3c38a4eb4970272b87a425ae00ccc4548e2f9bb",
+			"revisionTime": "2019-03-18T19:48:12Z"
+		},
+		{
+			"checksumSHA1": "h4PLbJDYnRmcUuf56USJ5K3xJOg=",
+			"path": "github.com/golang/protobuf/protoc-gen-go/plugin",
+			"revision": "d3c38a4eb4970272b87a425ae00ccc4548e2f9bb",
+			"revisionTime": "2019-03-18T19:48:12Z"
 		},
 		{
 			"checksumSHA1": "aEiR2m3NGaMGTbUW5P+w5gKFyc8=",
@@ -369,10 +519,22 @@
 			"revisionTime": "2019-02-05T22:20:52Z"
 		},
 		{
+			"checksumSHA1": "RT/PGRMtH/yBCbIJfZftaz5yc3M=",
+			"path": "github.com/golang/protobuf/ptypes/struct",
+			"revision": "d3c38a4eb4970272b87a425ae00ccc4548e2f9bb",
+			"revisionTime": "2019-03-18T19:48:12Z"
+		},
+		{
 			"checksumSHA1": "seEwY2xETpK9yHJ9+bHqkLZ0VMU=",
 			"path": "github.com/golang/protobuf/ptypes/timestamp",
 			"revision": "c823c79ea1570fb5ff454033735a8e68575d1d0f",
 			"revisionTime": "2019-02-05T22:20:52Z"
+		},
+		{
+			"checksumSHA1": "KlQCb83HC090bojw4ofNDxn2nho=",
+			"path": "github.com/golang/protobuf/ptypes/wrappers",
+			"revision": "d3c38a4eb4970272b87a425ae00ccc4548e2f9bb",
+			"revisionTime": "2019-03-18T19:48:12Z"
 		},
 		{
 			"checksumSHA1": "0nwELj+3rtadfnxnI/GMk1rBunQ=",
@@ -385,6 +547,24 @@
 			"path": "github.com/gorilla/websocket",
 			"revision": "95ba29eb981bbb27d92e1f70bf8a1949452d926b",
 			"revisionTime": "2018-12-06T07:02:39Z"
+		},
+		{
+			"checksumSHA1": "POMWFQKvaDrJ1dlFWWl5uYigTGA=",
+			"path": "github.com/grpc-ecosystem/grpc-gateway/internal",
+			"revision": "01b57e6642262f092a9c2b7c38a54b63295ae549",
+			"revisionTime": "2019-03-27T08:40:02Z"
+		},
+		{
+			"checksumSHA1": "ga/cknMaaysh4K87uzqCBq2xVAk=",
+			"path": "github.com/grpc-ecosystem/grpc-gateway/runtime",
+			"revision": "01b57e6642262f092a9c2b7c38a54b63295ae549",
+			"revisionTime": "2019-03-27T08:40:02Z"
+		},
+		{
+			"checksumSHA1": "yUJS5jJyNTvxHCUUXiK3xnKfN14=",
+			"path": "github.com/grpc-ecosystem/grpc-gateway/utilities",
+			"revision": "01b57e6642262f092a9c2b7c38a54b63295ae549",
+			"revisionTime": "2019-03-27T08:40:02Z"
 		},
 		{
 			"checksumSHA1": "NvkV52M5EFd0kT4U+9A2Eu/kKr8=",
@@ -482,6 +662,12 @@
 			"path": "github.com/magiconair/properties",
 			"revision": "7757cc9fdb852f7579b24170bcacda2c7471bb6a",
 			"revisionTime": "2019-01-10T14:24:58Z"
+		},
+		{
+			"checksumSHA1": "T9E+5mKBQ/BX4wlNxgaPfetxdeI=",
+			"path": "github.com/marstr/guid",
+			"revision": "8bdf7d1a087ccc975cf37dd6507da50698fd19ca",
+			"revisionTime": "2017-04-27T23:51:15Z"
 		},
 		{
 			"checksumSHA1": "GiVgQkx5acnq+JZtYiuHPlhHoso=",
@@ -648,6 +834,18 @@
 			"revisionTime": "2019-02-20T19:47:58Z"
 		},
 		{
+			"checksumSHA1": "TxBvrBM2uIz9wGczsexq228U5RM=",
+			"path": "go.opencensus.io/metric/metricdata",
+			"revision": "41e54b832491efe97a2aafe696f6e7d812f136bb",
+			"revisionTime": "2019-03-27T17:06:59Z"
+		},
+		{
+			"checksumSHA1": "kWj13srwY1SH5KgFecPhEfHnzVc=",
+			"path": "go.opencensus.io/metric/metricproducer",
+			"revision": "41e54b832491efe97a2aafe696f6e7d812f136bb",
+			"revisionTime": "2019-03-27T17:06:59Z"
+		},
+		{
 			"checksumSHA1": "Mk65d5cxnkihdvjUeyRlGmF4suc=",
 			"path": "go.opencensus.io/plugin/ochttp",
 			"revision": "bf352733d4dffdd0e650c71cabc694aca654be9a",
@@ -658,6 +856,18 @@
 			"path": "go.opencensus.io/plugin/ochttp/propagation/b3",
 			"revision": "bf352733d4dffdd0e650c71cabc694aca654be9a",
 			"revisionTime": "2019-02-20T19:47:58Z"
+		},
+		{
+			"checksumSHA1": "bLpZ3pUjneUgtRyjLggDEc4bnEA=",
+			"path": "go.opencensus.io/plugin/ochttp/propagation/tracecontext",
+			"revision": "41e54b832491efe97a2aafe696f6e7d812f136bb",
+			"revisionTime": "2019-03-27T17:06:59Z"
+		},
+		{
+			"checksumSHA1": "q+y8X+5nDONIlJlxfkv+OtA18ds=",
+			"path": "go.opencensus.io/resource",
+			"revision": "41e54b832491efe97a2aafe696f6e7d812f136bb",
+			"revisionTime": "2019-03-27T17:06:59Z"
 		},
 		{
 			"checksumSHA1": "iITJeCEWl7VUPxOB8ThLRAGYTJU=",
@@ -786,6 +996,18 @@
 			"revisionTime": "2018-07-25T11:53:45Z"
 		},
 		{
+			"checksumSHA1": "US9Z/XwhkXQXbHk1sPAQE3qMt5Y=",
+			"path": "golang.org/x/crypto/pkcs12",
+			"revision": "a5d413f7728c81fb97d96a2b722368945f651e78",
+			"revisionTime": "2019-03-25T14:57:12Z"
+		},
+		{
+			"checksumSHA1": "p0GC51McIdA7JygoP223twJ1s0E=",
+			"path": "golang.org/x/crypto/pkcs12/internal/rc2",
+			"revision": "a5d413f7728c81fb97d96a2b722368945f651e78",
+			"revisionTime": "2019-03-25T14:57:12Z"
+		},
+		{
 			"checksumSHA1": "vKbPb9fpjCdzuoOvajOJnYfHG2g=",
 			"path": "golang.org/x/crypto/poly1305",
 			"revision": "ff983b9c42bc9fbf91556e191cc8efb585c16908",
@@ -888,6 +1110,12 @@
 			"revisionTime": "2019-02-20T15:45:37Z"
 		},
 		{
+			"checksumSHA1": "tI1YsCNEjyDW/aGNtunZDyjN9MA=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "e225da77a7e68af35c70ccbf71af2b83e6acac3c",
+			"revisionTime": "2019-02-15T22:36:53Z"
+		},
+		{
 			"checksumSHA1": "UcIaC9EYOUoiZ8H667yLw0cK7wM=",
 			"path": "golang.org/x/sys/unix",
 			"revision": "48ac38b7c8cbedd50b1613c0fccacfc7d88dfcdf",
@@ -972,6 +1200,12 @@
 			"revisionTime": "2019-02-19T19:04:39Z"
 		},
 		{
+			"checksumSHA1": "3MKQfzebrexFB4O7eRWdonIHlng=",
+			"path": "google.golang.org/api/support/bundler",
+			"revision": "af986cd59464c8245c96ea197dd3de71d5930b8e",
+			"revisionTime": "2019-03-27T00:07:50Z"
+		},
+		{
 			"checksumSHA1": "a+PkIGoiF+p+ghmjmA9gUkMFwYQ=",
 			"path": "google.golang.org/api/transport/http",
 			"revision": "ed2534c57ed076df43af394869d83ac66b040e17",
@@ -990,6 +1224,12 @@
 			"revisionTime": "2019-02-19T18:24:10Z"
 		},
 		{
+			"checksumSHA1": "miIz0oxJJo81MpqESJAKVoNLR9o=",
+			"path": "google.golang.org/genproto/googleapis/api/httpbody",
+			"revision": "d831d65fe17df2e52bcc4316d4a9f7a418701f43",
+			"revisionTime": "2019-03-27T12:56:43Z"
+		},
+		{
 			"checksumSHA1": "PhCTccjTEHHwnwxd8MvQyUdba4Q=",
 			"path": "google.golang.org/genproto/googleapis/iam/v1",
 			"revision": "082222b4a5c572e33e82ee9162d1352c7cf38682",
@@ -1006,6 +1246,12 @@
 			"path": "google.golang.org/genproto/googleapis/rpc/status",
 			"revision": "082222b4a5c572e33e82ee9162d1352c7cf38682",
 			"revisionTime": "2019-02-19T18:24:10Z"
+		},
+		{
+			"checksumSHA1": "nqnnm6YjyqMt33FmtYC9GbOaHiA=",
+			"path": "google.golang.org/genproto/protobuf/field_mask",
+			"revision": "d831d65fe17df2e52bcc4316d4a9f7a418701f43",
+			"revisionTime": "2019-03-27T12:56:43Z"
 		},
 		{
 			"checksumSHA1": "YwUZW2mYOioc7Vj1tPVVeWFd1Lc=",

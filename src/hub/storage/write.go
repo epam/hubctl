@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"hub/aws"
+	"hub/azure"
 	"hub/config"
 	"hub/gcp"
 	"hub/util"
@@ -63,6 +64,13 @@ func Write(data []byte, files *Files) []error {
 
 		case "gs":
 			err := gcp.WriteGCS(file.Path, encryptedData)
+			if err != nil {
+				msg := fmt.Sprintf("Unable to write `%s` %s file: %v", file.Path, files.Kind, err)
+				errs = append(errs, errors.New(msg))
+			}
+
+		case "az":
+			err := azure.WriteStorageBlob(file.Path, encryptedData)
 			if err != nil {
 				msg := fmt.Sprintf("Unable to write `%s` %s file: %v", file.Path, files.Kind, err)
 				errs = append(errs, errors.New(msg))

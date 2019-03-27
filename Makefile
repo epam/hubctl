@@ -72,13 +72,13 @@ bindata:
 
 fmt:
 	@go fmt \
-		hub hub/api hub/aws hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
+		hub hub/api hub/aws hub/azure hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
 		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
 .PHONY: fmt
 
 vet:
 	@cd src && go tool vet -shadow \
-		hub hub/api hub/aws hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
+		hub/api hub/aws hub/azure hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
 		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
 .PHONY: vet
 

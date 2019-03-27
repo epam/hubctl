@@ -16,6 +16,7 @@ var (
 	AwsRegion                string
 	AwsUseIamRoleCredentials bool
 	GcpCredentialsFile       string
+	AzureCredentialsFile     string
 
 	Verbose bool
 	Debug   bool

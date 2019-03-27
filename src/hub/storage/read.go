@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"hub/aws"
+	"hub/azure"
 	"hub/config"
 	"hub/gcp"
 	"hub/util"
 )
 
-var storageSchemes = []string{"s3", "gs"}
+var storageSchemes = []string{"s3", "gs", "az"}
 
 func checkPath(path, kind string) (*File, error) {
 	if strings.Contains(path, ",") {
@@ -106,6 +107,28 @@ func Check(paths []string, kind string) (*Files, []error) {
 			}
 			size, modTime, err := gcp.StatGCS(file.Path)
 			_, _, errLock := gcp.StatGCS(lockPath)
+			if err != nil {
+				if err == os.ErrNotExist {
+					file.Exist = false
+					file.Locked = errLock == nil
+					filesChecked = append(filesChecked, file)
+				} else {
+					util.Warn("Unable to check `%s` %s file: %v", file.Path, kind, err)
+				}
+			} else {
+				file.Exist = true
+				file.ModTime = modTime
+				file.Size = size
+				file.Locked = errLock == nil
+				filesChecked = append(filesChecked, file)
+			}
+
+		case "az":
+			if config.Debug {
+				log.Printf("Checking `%s` %s file...", file.Path, kind)
+			}
+			size, modTime, err := azure.StatStorageBlob(file.Path)
+			_, _, errLock := azure.StatStorageBlob(lockPath)
 			if err != nil {
 				if err == os.ErrNotExist {
 					file.Exist = false
@@ -219,6 +242,9 @@ func readFile(file *File) ([]byte, error) {
 
 	case "gs":
 		data, err = gcp.ReadGCS(file.Path)
+
+	case "az":
+		data, err = azure.ReadStorageBlob(file.Path)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read `%s`: %v", file.Path, err)
