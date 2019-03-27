@@ -1150,7 +1150,7 @@ func writeStackManifest(elaborateManifests []string, stackManifest *manifest.Man
 		}
 	}
 
-	errs = storage.Write(yamlBytes.Bytes(), elaborateFiles)
+	_, errs = storage.Write(yamlBytes.Bytes(), elaborateFiles)
 	if len(errs) > 0 {
 		log.Fatalf("Unable to write elaborate: %s", util.Errors2(errs...))
 	}

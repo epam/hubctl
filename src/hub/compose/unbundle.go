@@ -57,7 +57,7 @@ func BackupUnbundle(bundlesFilenames [][]string, parametersFiles []string,
 		log.Fatalf("Unable to marshal parameters into YAML: %v", err)
 	}
 	if outputs != nil {
-		errs := storage.Write(yamlBytes, outputs)
+		_, errs := storage.Write(yamlBytes, outputs)
 		if len(errs) > 0 {
 			log.Fatalf("Unable to write restore parameters: %s", util.Errors2(errs...))
 		}

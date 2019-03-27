@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -271,9 +272,14 @@ func WriteState(manifest *StateManifest, stateFiles *storage.Files) {
 		log.Fatalf("Unable to marshal state into YAML: %v", err)
 	}
 
-	errs := storage.Write(yamlBytes, stateFiles)
+	written, errs := storage.Write(yamlBytes, stateFiles)
 	if len(errs) > 0 {
-		log.Fatalf("Unable to write state: %s", util.Errors2(errs...))
+		msg := fmt.Sprintf("Unable to write state: %s", util.Errors2(errs...))
+		if !written {
+			log.Fatal(msg)
+		} else {
+			util.Warn("%s", msg)
+		}
 	}
 }
 

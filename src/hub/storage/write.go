@@ -13,7 +13,7 @@ import (
 	"hub/util"
 )
 
-func Write(data []byte, files *Files) []error {
+func Write(data []byte, files *Files) (bool, []error) {
 	// write remote files encrypted
 	encrypt := false
 	if config.Encrypted {
@@ -30,7 +30,7 @@ func Write(data []byte, files *Files) []error {
 		var err error
 		compressedData, err = util.Gzip(data)
 		if err != nil {
-			return []error{fmt.Errorf("Unable to gzip: %v", err)}
+			return false, []error{fmt.Errorf("Unable to gzip: %v", err)}
 		}
 		if config.Compressed {
 			data = compressedData
@@ -42,12 +42,12 @@ func Write(data []byte, files *Files) []error {
 		var err error
 		encryptedData, err = util.Encrypt(compressedData)
 		if err != nil {
-			return []error{fmt.Errorf("Unable to encrypt: %v", err)}
+			return false, []error{fmt.Errorf("Unable to encrypt: %v", err)}
 		}
 	}
 
-	errs := make([]error, 0)
-
+	var errs []error
+	written := false
 	for _, file := range files.Files {
 		nErrs := len(errs)
 		switch file.Kind {
@@ -97,12 +97,9 @@ func Write(data []byte, files *Files) []error {
 
 		if config.Verbose && nErrs == len(errs) {
 			log.Printf("Wrote %s `%s`", files.Kind, file.Path)
+			written = true
 		}
 	}
 
-	if len(errs) == 0 {
-		errs = nil
-	}
-
-	return errs
+	return written, errs
 }
