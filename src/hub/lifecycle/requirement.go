@@ -67,7 +67,7 @@ func setupRequirement(requirement string, provider string,
 	case "kubectl", "kubernetes":
 		kube.SetupKubernetes(parameters, provider, outputs, "", false)
 
-	case "aws", "gcp", "gcs", "tiller", "helm", "vault", "ingress":
+	case "aws", "azure", "gcp", "gcs", "tiller", "helm", "vault", "ingress":
 		if config.Verbose {
 			log.Printf("Assuming `%s` requirement is setup", requirement)
 		}
@@ -78,8 +78,10 @@ func setupRequirement(requirement string, provider string,
 }
 
 var bins = map[string][]string{
+	"aws":        {"aws", "s3", "ls", "--page-size", "5"},
+	"azure":      {"az", "storage", "account", "list", "-o", "table"},
 	"gcp":        {"gcloud", "version"},
-	"gcs":        {"gsutil", "version"},
+	"gcs":        {"gsutil", "list"},
 	"kubectl":    {"kubectl", "version", "--client"},
 	"kubernetes": {"kubectl", "version", "--client"},
 	"helm":       {"helm", "version", "--client"},
@@ -90,13 +92,7 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 	for _, require := range requires {
 		skip := false
 		switch require {
-		case "aws":
-			hasAws, err := checkRequiresAws()
-			if !hasAws {
-				log.Fatalf("`aws` requirement cannot be satisfied: %v", err)
-			}
-
-		case "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
+		case "aws", "azure", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
 			bin, exist := bins[require]
 			if !exist {
 				bin = []string{require, "version"}
@@ -123,12 +119,8 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 	return provided
 }
 
-func checkRequiresAws() (bool, error) {
-	return checkRequiresBin("aws", "s3", "ls", "--page-size", "5")
-}
-
 func checkRequiresBin(bin ...string) (bool, error) {
-	if config.Trace {
+	if config.Debug {
 		log.Printf("Checking %v", bin)
 	}
 	cmd := exec.Command(bin[0], bin[1:]...)
