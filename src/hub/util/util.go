@@ -25,7 +25,11 @@ var WarnColor = func(str string) string {
 }
 
 func init() {
-	if isatty.IsTerminal(os.Stdout.Fd()) {
+	fd := os.Stderr.Fd()
+	if config.LogDestination == "stdout" {
+		fd = os.Stdout.Fd()
+	}
+	if isatty.IsTerminal(fd) {
 		WarnColor = func(str string) string {
 			return aurora.Magenta(str).String()
 		}
