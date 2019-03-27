@@ -1,17 +1,16 @@
 package lifecycle
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 	"strings"
 	"time"
 
 	"hub/config"
 	"hub/manifest"
 	"hub/parameters"
+	"hub/util"
 )
 
 func waitForReadyConditions(conditions []manifest.ReadyCondition,
@@ -111,14 +110,7 @@ func waitForUrl(url string, waitSeconds int) error {
 		log.Printf("Waiting for `%s` to respond", url)
 	}
 	interval := time.Duration(10) * time.Second
-	transport := &http.Transport{
-		ResponseHeaderTimeout: interval,
-		TLSHandshakeTimeout:   interval,
-		DialContext:           (&net.Dialer{Timeout: interval}).DialContext,
-		DisableKeepAlives:     true,
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: transport, Timeout: interval}
+	client := util.RobustHttpClient(interval, true)
 	start := time.Now()
 	for time.Since(start) < time.Duration(waitSeconds)*time.Second {
 		response, err := client.Get(url)
