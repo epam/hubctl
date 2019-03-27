@@ -16,7 +16,7 @@ import (
 	"hub/util"
 )
 
-var storageSchemes = []string{"s3", "gs", "az"}
+var remoteStorageSchemes = []string{"s3", "gs", "az"}
 
 func checkPath(path, kind string) (*File, error) {
 	if strings.Contains(path, ",") {
@@ -26,9 +26,9 @@ func checkPath(path, kind string) (*File, error) {
 		remote, err := url.Parse(path)
 		if err != nil {
 			err = fmt.Errorf("Unable to parse `%s` %s file path as URL: %v", path, kind, err)
-		} else if !util.Contains(storageSchemes, remote.Scheme) {
+		} else if !util.Contains(remoteStorageSchemes, remote.Scheme) {
 			err = fmt.Errorf("%s file `%s` scheme `%s` not supported. Supported schemes: %v",
-				strings.Title(kind), path, remote.Scheme, storageSchemes)
+				strings.Title(kind), path, remote.Scheme, remoteStorageSchemes)
 		}
 		if err != nil {
 			return nil, err

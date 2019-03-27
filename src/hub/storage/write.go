@@ -18,7 +18,7 @@ func Write(data []byte, files *Files) []error {
 	encrypt := false
 	if config.Encrypted {
 		for _, file := range files.Files {
-			if file.Kind == "s3" {
+			if util.Contains(remoteStorageSchemes, file.Kind) {
 				encrypt = true
 				break
 			}
