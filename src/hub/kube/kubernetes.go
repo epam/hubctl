@@ -30,7 +30,10 @@ const (
 
 var (
 	KubernetesDefaultProviders = []string{
-		"kubernetes", "stack-k8s-aws", "stack-k8s-eks", "k8s-aws", "k8s-eks", "k8s-gke", "k8s-metal", "k8s-openshift", "k8s-aks"}
+		"kubernetes",
+		"stack-k8s-aws", "stack-k8s-eks", "stack-k8s-gke", "stack-k8s-aks",
+		"k8s-aws", "k8s-eks", "k8s-gke", "k8s-aks",
+		"k8s-metal", "k8s-openshift"}
 	kubernetesApiKeysFileSuf = map[string]string{
 		kubernetesApiCaCertOutput:     "-ca.pem",
 		kubernetesApiClientCertOutput: "-client.pem",
