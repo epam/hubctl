@@ -15,6 +15,7 @@ var (
 	AwsProfile               string
 	AwsRegion                string
 	AwsUseIamRoleCredentials bool
+	GcpCredentialsFile       string
 
 	Verbose bool
 	Debug   bool

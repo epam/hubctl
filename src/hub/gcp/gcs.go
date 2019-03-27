@@ -9,6 +9,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
+
+	"hub/config"
 )
 
 var (
@@ -23,7 +26,11 @@ func gcsClient() (*storage.Client, error) {
 	}
 	ctx := context.Background()
 	var err error
-	defaultGcsClient, err = storage.NewClient(ctx)
+	opts := []option.ClientOption{option.WithScopes(storage.ScopeReadWrite)}
+	if config.GcpCredentialsFile != "" {
+		opts = append(opts, option.WithCredentialsFile(config.GcpCredentialsFile))
+	}
+	defaultGcsClient, err = storage.NewClient(ctx, opts...)
 	return defaultGcsClient, err
 }
 
