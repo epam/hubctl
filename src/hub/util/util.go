@@ -357,7 +357,8 @@ func Trim(str string) string {
 
 func NoSuchFile(err error) bool {
 	str := err.Error()
-	return str == "file does not exist" ||
+	return err == os.ErrNotExist ||
+		str == "file does not exist" ||
 		strings.Contains(str, "no such file or directory")
 }
 

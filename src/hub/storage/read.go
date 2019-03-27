@@ -85,7 +85,7 @@ func Check(paths []string, kind string) (*Files, []error) {
 			size, modTime, err := aws.StatS3(file.Path)
 			_, _, errLock := aws.StatS3(lockPath)
 			if err != nil {
-				if util.NoSuchFile(err) {
+				if err == os.ErrNotExist {
 					file.Exist = false
 					file.Locked = errLock == nil
 					filesChecked = append(filesChecked, file)
@@ -107,7 +107,7 @@ func Check(paths []string, kind string) (*Files, []error) {
 			size, modTime, err := gcp.StatGCS(file.Path)
 			_, _, errLock := gcp.StatGCS(lockPath)
 			if err != nil {
-				if util.NoSuchFile(err) {
+				if err == os.ErrNotExist {
 					file.Exist = false
 					file.Locked = errLock == nil
 					filesChecked = append(filesChecked, file)

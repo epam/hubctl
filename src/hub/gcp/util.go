@@ -1,6 +1,7 @@
 package gcp
 
+import "cloud.google.com/go/storage"
+
 func IsNotFound(err error) bool {
-	str := err.Error()
-	return str == "storage: object doesn't exist"
+	return err == storage.ErrObjectNotExist
 }
