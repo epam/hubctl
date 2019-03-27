@@ -85,14 +85,14 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 		}
 		params = parameters.MergeParameters(stackParameters, expandedComponentParameters, additionalParameters)
 	} else {
-		state, err := state.ParseState(stateFiles)
+		st, err := state.ParseState(stateFiles)
 		if err != nil {
 			log.Fatalf("Unable to load state: %s", err)
 		}
-		stateParameters := state.StackParameters
-		stateOutputs := state.CapturedOutputs
-		if componentName != "" && state.Components != nil {
-			step, exist := state.Components[componentName]
+		stateParameters := st.StackParameters
+		stateOutputs := st.CapturedOutputs
+		if componentName != "" && st.Components != nil {
+			step, exist := st.Components[componentName]
 			if exist {
 				stateParameters = step.Parameters
 				stateOutputs = step.CapturedOutputs
