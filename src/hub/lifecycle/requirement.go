@@ -97,8 +97,8 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 			if !exist {
 				bin = []string{require, "version"}
 			}
-			hasBin, err := checkRequiresBin(bin...)
-			if !hasBin {
+			err := checkRequiresBin(bin...)
+			if err != nil {
 				log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
 			}
 
@@ -119,7 +119,7 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 	return provided
 }
 
-func checkRequiresBin(bin ...string) (bool, error) {
+func checkRequiresBin(bin ...string) error {
 	if config.Debug {
 		log.Printf("Checking %v", bin)
 	}
@@ -131,7 +131,9 @@ func checkRequiresBin(bin ...string) (bool, error) {
 	}
 	err := cmd.Run()
 	if err != nil {
-		return false, fmt.Errorf("%v: %v", bin, err)
+		return fmt.Errorf("%v: %v", bin, err)
+	}
+	return nil
 	}
 	return true, nil
 }
