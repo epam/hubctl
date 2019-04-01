@@ -80,7 +80,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 	}
 
 	switch flavor {
-	case "k8s-aws":
+	case "k8s-aws", "k8s-aks":
 		if len(kubernetesApiKeysFiles) != len(KubernetesKeysParameters) {
 			util.Warn("Component `%s` declared to provide Kubernetes but some key/certs output(s) are missing", componentName)
 			if config.Debug && len(kubernetesApiKeysFiles) > 0 {
@@ -247,7 +247,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	mustExec(kubectl, clusterArgs...)
 	user := ""
 	switch flavor {
-	case "k8s-aws":
+	case "k8s-aws", "k8s-aks":
 		user = "admin@" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--embed-certs=true",
