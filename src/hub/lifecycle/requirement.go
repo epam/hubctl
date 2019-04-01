@@ -1,6 +1,7 @@
 package lifecycle
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +15,10 @@ import (
 	"hub/util"
 )
 
-const providedByEnv = "*environment*"
+const (
+	providedByEnv      = "*environment*"
+	azureGoSdkAuthHelp = "https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization"
+)
 
 func prepareComponentRequires(provided map[string][]string, componentManifest *manifest.Manifest,
 	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs,
@@ -79,7 +83,6 @@ func setupRequirement(requirement string, provider string,
 
 var bins = map[string][]string{
 	"aws":        {"aws", "s3", "ls", "--page-size", "5"},
-	"azure":      {"az", "storage", "account", "list", "-o", "table"},
 	"gcp":        {"gcloud", "version"},
 	"gcs":        {"gsutil", "list"},
 	"kubectl":    {"kubectl", "version", "--client"},
@@ -92,7 +95,14 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 	for _, require := range requires {
 		skip := false
 		switch require {
-		case "aws", "azure", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
+		case "azure":
+			err := checkRequiresAzure()
+			if err != nil {
+				log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
+			}
+			setupTerraformAzureOsEnv()
+
+		case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
 			bin, exist := bins[require]
 			if !exist {
 				bin = []string{require, "version"}
@@ -134,8 +144,84 @@ func checkRequiresBin(bin ...string) error {
 		return fmt.Errorf("%v: %v", bin, err)
 	}
 	return nil
+}
+
+func checkRequiresBinWithOutput(bin ...string) ([]byte, error) {
+	if config.Debug {
+		printCmd(bin)
 	}
-	return true, nil
+	cmd := exec.Command(bin[0], bin[1:]...)
+	cmd.Env = os.Environ()
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("%v: %v", bin, err)
+	}
+	if config.Trace && len(out) > 0 {
+		fmt.Printf("%s", out)
+	}
+	return out, err
+}
+
+func checkRequiresAzure() error {
+	out, err := checkRequiresBinWithOutput("az", "storage", "account", "list", "-o", "table")
+	if err == nil {
+		return nil
+	}
+	if !bytes.Contains(out, []byte("az login")) {
+		return err
+	}
+	tenantId := os.Getenv("AZURE_TENANT_ID")
+	if tenantId == "" {
+		return fmt.Errorf("AZURE_TENANT_ID is not set, see %s", azureGoSdkAuthHelp)
+	}
+	clientId := os.Getenv("AZURE_CLIENT_ID")
+	if clientId == "" {
+		return fmt.Errorf("AZURE_CLIENT_ID is not set, see %s", azureGoSdkAuthHelp)
+	}
+	clientSecret := os.Getenv("AZURE_CLIENT_SECRET")
+	if clientSecret == "" {
+		clientSecret := os.Getenv("AZURE_CERTIFICATE_PATH")
+		if clientSecret == "" {
+			return fmt.Errorf("No AZURE_CLIENT_ID, nor AZURE_CERTIFICATE_PATH is set, see %s", azureGoSdkAuthHelp)
+		}
+	}
+	return checkRequiresBin("az", "login", "--service-principal",
+		"--tenant", tenantId, "--username", clientId, "--password", clientSecret)
+	// TODO az login --identity
+	// https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
+	// Also, SDK supports AZURE_AUTH_LOCATION
+}
+
+func setupTerraformAzureOsEnv() {
+	if os.Getenv("ARM_CLIENT_ID") != "" {
+		return
+	}
+	if os.Getenv("ARM_ACCESS_KEY") == "" {
+		vars := []string{"AZURE_STORAGE_ACCESS_KEY", "AZURE_STORAGE_KEY"}
+		for _, v := range vars {
+			key := os.Getenv(v)
+			if key != "" {
+				if config.Trace {
+					log.Printf("Setting ARM_ACCESS_KEY=%s", key)
+				}
+				os.Setenv("ARM_ACCESS_KEY", key)
+				return
+			}
+		}
+	}
+	for _, v := range []string{"ARM_CLIENT_ID", "ARM_CLIENT_SECRET", "ARM_SUBSCRIPTION_ID", "ARM_TENANT_ID"} {
+		src := "AZURE" + v[3:]
+		if value := os.Getenv(src); value != "" {
+			if config.Trace {
+				log.Printf("Setting %s=%s", v, value)
+			}
+			os.Setenv(v, value)
+		} else {
+			util.Warn("Unable to set %s: no %s env var set", v, src)
+		}
+	}
+	// TODO ARM_USE_MSI ARM_ENVIRONMENT?
+	// https://www.terraform.io/docs/backends/types/azurerm.html
 }
 
 func noEnvironmentProvides(provides map[string][]string) map[string][]string {
