@@ -197,6 +197,15 @@ func Contains(list []string, value string) bool {
 	return false
 }
 
+func ContainsSubstring(list []string, substr string) bool {
+	for _, v := range list {
+		if strings.Contains(v, substr) {
+			return true
+		}
+	}
+	return false
+}
+
 func ContainsPrefix(list []string, value string) bool {
 	for _, v := range list {
 		if v == value ||
@@ -219,6 +228,15 @@ func ContainsAll(list []string, values []string) bool {
 func ContainsAny(list []string, values []string) bool {
 	for _, v := range values {
 		if Contains(list, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsAnySubstring(list []string, substrs []string) bool {
+	for _, substr := range substrs {
+		if ContainsSubstring(list, substr) {
 			return true
 		}
 	}

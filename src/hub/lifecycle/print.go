@@ -6,10 +6,13 @@ import (
 	"strings"
 
 	"hub/api"
+	"hub/config"
 	"hub/manifest"
 	"hub/parameters"
 	"hub/util"
 )
+
+var sensitiveCmdArgs = []string{"password", "secret", "key"}
 
 func startStopComponentsBlurb(request *Request, stackManifest *manifest.Manifest) string {
 	if len(request.Components) == 0 {
@@ -66,6 +69,40 @@ func printEnvironment(env []string) {
 	for _, v := range env {
 		log.Printf("\t%s", v)
 	}
+}
+
+func printCmd(cmd []string) {
+	if !config.Trace {
+		cmd = trimSensitiveCmd(cmd)
+	}
+	log.Printf("Checking %v", cmd)
+
+}
+
+func trimSensitiveCmd(cmd []string) []string {
+	l := len(cmd)
+	if l == 0 {
+		return cmd
+	}
+
+	clean := make([]string, 1, l)
+	clean[0] = cmd[0]
+
+	skip := false
+	for _, arg := range cmd[1:] {
+		if skip {
+			arg = "<sensitive>"
+		} else {
+			arg = strings.ToLower(arg)
+			for _, sensitive := range sensitiveCmdArgs {
+				if strings.Contains(arg, sensitive) {
+					skip = true
+				}
+			}
+		}
+		clean = append(clean, arg)
+	}
+	return clean
 }
 
 func printTemplates(templates []TemplateRef) {

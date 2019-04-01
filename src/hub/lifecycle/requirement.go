@@ -121,7 +121,7 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 
 func checkRequiresBin(bin ...string) error {
 	if config.Debug {
-		log.Printf("Checking %v", bin)
+		printCmd(bin)
 	}
 	cmd := exec.Command(bin[0], bin[1:]...)
 	cmd.Env = os.Environ()
