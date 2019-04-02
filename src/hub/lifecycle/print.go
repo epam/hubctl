@@ -92,6 +92,7 @@ func trimSensitiveCmd(cmd []string) []string {
 	for _, arg := range cmd[1:] {
 		if skip {
 			arg = "<sensitive>"
+			skip = false
 		} else {
 			arg = strings.ToLower(arg)
 			for _, sensitive := range sensitiveCmdArgs {
