@@ -2,7 +2,7 @@
     "name": "${name}",
     "description": "Bare-metal Adapter",
     "stack": "metal-adapter:1",
-    "componentsEnabled": ["k8s-metal", "tiller", "traefik", "dex", "kube-dashboard"],
+    "componentsEnabled": ["k8s-metal", "tiller", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
     "tags": ["adapter=metal"],
     "parameters": [{
@@ -24,8 +24,8 @@
         "name": "component.ingress.ssoUrlPrefix",
         "value": "apps"
     }, {
-        "name": "component.ingress.ssl.enabled",
-        "value": "false"
+        "name": "component.cert-manager.enabled",
+        "value": "true"
     }],
     "teamsPermissions": []
 }

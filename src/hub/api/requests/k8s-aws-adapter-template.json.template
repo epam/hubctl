@@ -2,7 +2,7 @@
     "name": "${name}",
     "description": "AgileStack's K8S on AWS adapter",
     "stack": "k8s-adapter:1",
-    "componentsEnabled": ["k8s-aws", "tiller", "traefik", "dex", "kube-dashboard"],
+    "componentsEnabled": ["k8s-aws", "tiller", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
     "tags": ["adapter=k8s-aws"],
     "parameters": [{
@@ -20,8 +20,8 @@
         "name": "component.ingress.ssoUrlPrefix",
         "value": "apps"
     }, {
-        "name": "component.ingress.ssl.enabled",
-        "value": "false"
+        "name": "component.cert-manager.enabled",
+        "value": "true"
     }],
     "teamsPermissions": []
 }

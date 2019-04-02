@@ -25,7 +25,7 @@
         "name": "component.ingress.ssoUrlPrefix",
         "value": "apps"
     }, {
-        "name": "component.ingress.ssl.enabled",
-        "value": "false"
+        "name": "component.cert-manager.enabled",
+        "value": "true"
     }]
 }
