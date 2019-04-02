@@ -24,11 +24,11 @@ govendor-list: bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor list
 .PHONY: govendor-list
 
-govendor: govendor-list
+govendor: govendor-list bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor sync
 .PHONY: govendor
 
-govendor-add: govendor-list
+govendor-add: govendor-list bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor add +e
 .PHONY: govendor-add
 
@@ -41,7 +41,7 @@ version:
 		src/hub/util/version.go.template > src/hub/util/version.go
 .PHONY: version
 
-compile: install govendor version
+compile: bin/$(OS)/gox govendor version
 	@$(GOBIN)/gox -rebuild -tags git \
 		-osarch="darwin/amd64 linux/amd64" \
 		-output=$(GOPATH)/bin/{{.OS}}/{{.Dir}} \
@@ -62,7 +62,7 @@ get: version
 	@go get -tags git hub
 .PHONY: get
 
-bindata:
+bindata: bin/$(OS)/go-bindata
 	$(GOBIN)/go-bindata -o src/hub/bindata/bindata.go -pkg bindata \
 		meta/hub-well-known-parameters.yaml \
 		src/hub/api/requests/*.template \
