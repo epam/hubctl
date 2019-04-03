@@ -46,18 +46,24 @@ var importConfigs = map[string]ImportConfig{
 			{"kubernetes.api.caCert", "certificate", nil},
 		},
 	},
+	"openshift": {
+		"OpenShift Adapter in %s",
+		[]Secret{
+			{"kubernetes.api.caCert", "certificate", nil}, // optional
+		},
+	},
 }
 
 func ImportKubernetes(kind, name, environment, template string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
-	pems io.Reader,
+	pems io.Reader, clusterBearerToken,
 	nativeEndpoint, nativeClusterName, ingressIp string) {
 
 	err := errors.New("Not implemented")
 	if importConfig, exist := importConfigs[kind]; exist {
 		err = importK8s(importConfig, kind, name, environment, template,
 			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
-			pems,
+			pems, clusterBearerToken,
 			nativeEndpoint, nativeClusterName, ingressIp)
 	}
 	if err != nil {
@@ -67,7 +73,7 @@ func ImportKubernetes(kind, name, environment, template string,
 
 func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templateSelector string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
-	pems io.Reader,
+	pems io.Reader, clusterBearerToken,
 	nativeEndpoint, nativeClusterName, ingressIp string) error {
 
 	environment, err := environmentBy(environmentSelector)
@@ -147,7 +153,16 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 
 	secrets, err := readImportSecrets(importConfig.SecretsOrder, pems)
 	if err != nil {
-		return fmt.Errorf("Unable to read auth secrets: %v", err)
+		if !(kind == "openshift" && secrets != nil) { // OpenShift CA is optional
+			return fmt.Errorf("Unable to read auth secrets: %v", err)
+		}
+	}
+	hasCaCert := false
+	for _, s := range secrets {
+		if s.Name == "kubernetes.api.caCert" {
+			hasCaCert = true
+			break
+		}
 	}
 
 	adapterTag := "adapter=" + kind
@@ -233,6 +248,10 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 			} else {
 				rm = true
 			}
+		case "kubernetes.api.caCert":
+			if !hasCaCert {
+				rm = true
+			}
 		case "kubernetes.eks.cluster":
 			p.Value = nativeClusterName
 		case "component.ingress.staticIp":
@@ -253,6 +272,10 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		return fmt.Errorf("Unable to create adapter Stack Instance: %v", err)
 	}
 
+	if kind == "openshift" && clusterBearerToken != "" {
+		secrets = append(secrets,
+			Secret{"kubernetes.api.token", "bearerToken", map[string]string{"bearerToken": clusterBearerToken}})
+	}
 	for _, secret := range secrets {
 		id, err := createSecret(stackInstancesResource, instance.Id, secret.Name, "", secret.Kind, secret.Values)
 		if err != nil {
@@ -307,7 +330,7 @@ func readImportSecrets(secretsOrder []Secret, pems io.Reader) ([]Secret, error) 
 		}
 	}
 	if len(secrets) < len(secretsOrder)-1 {
-		return nil, fmt.Errorf("Expected at least %d secrets, read %d", len(secretsOrder)-1, len(secrets))
+		err = fmt.Errorf("Expected at least %d secrets, read %d", len(secretsOrder)-1, len(secrets))
 	}
-	return secrets, nil
+	return secrets, err
 }

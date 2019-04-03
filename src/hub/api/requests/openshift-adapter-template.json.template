@@ -1,0 +1,27 @@
+{
+    "name": "${name}",
+    "description": "OpenShift Adapter",
+    "stack": "openshift-adapter:1",
+    "componentsEnabled": ["k8s-openshift", "tiller", "traefik", "dex", "cert-manager"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["adapter=openshift"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "kubernetes.api.endpoint"
+    }, {
+        "name": "kubernetes.api.caCert"
+    }, {
+        "name": "kubernetes.api.token"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": "true"
+    }],
+    "teamsPermissions": []
+}

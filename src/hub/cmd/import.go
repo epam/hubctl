@@ -18,26 +18,29 @@ import (
 var (
 	autoCreateTemplate bool
 	createNewTemplate  bool
-	knownImportKinds   = []string{"k8s-aws", "eks", "metal"}
+	knownImportKinds   = []string{"k8s-aws", "eks", "metal", "openshift"}
 	k8sEndpoint        string
 	eksClusterName     string
 	eksEndpoint        string
 	metalEndpoint      string
 	metalIngressIp     string
+	bearerToken        string
 )
 
 var importCmd = &cobra.Command{
-	Use:   "import <k8s-aws | eks | metal> <name or FQDN> -e <id | environment name> [-m <id | template name>] < keys.pem",
+	Use:   "import <k8s-aws | eks | metal | openshift> <name or FQDN> -e <id | environment name> [-m <id | template name>] < keys.pem",
 	Short: "Import Kubernetes cluster",
 	Long: `Import Kubernetes cluster into SuperHub to become Platform Stack.
 Currently supported cluster types are:
 - k8s-aws - AgileStacks Kubernetes on AWS (stack-k8s-aws)
 - eks - AWS EKS
 - metal - Bare-metal
+- openshift - OpenShift on AWS
 
 Cluster TLS auth is read from stdin in the order:
 - k8s-aws, metal - Client cert, Client key, CA cert (optional).
 - eks - CA cert
+- openshift - optional CA cert
 
 User-supplied FQDN must match Cloud Account's base domain.
 If no FQDN is supplied, then the name is prepended to Environment's Cloud Account base domain name
@@ -67,6 +70,11 @@ func importKubernetes(args []string) error {
 			return errors.New("Bare-metal cluster API endpoint must be specified by --metal-endpoint")
 		}
 		nativeEndpoint = metalEndpoint
+
+	case "openshift":
+		if bearerToken == "" {
+			return errors.New("OpenShift authentication must be specified with --bearer-token")
+		}
 
 	case "eks":
 		if eksClusterName == "" {
@@ -108,7 +116,7 @@ func importKubernetes(args []string) error {
 
 	api.ImportKubernetes(kind, name, environmentSelector, templateSelector,
 		autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
-		os.Stdin,
+		os.Stdin, bearerToken,
 		nativeEndpoint, eksClusterName, metalIngressIp)
 
 	return nil
@@ -129,6 +137,8 @@ func init() {
 		"Bare-metal cluster API endpoint (ip[:port])")
 	importCmd.Flags().StringVarP(&metalIngressIp, "metal-ingress-ip", "", "",
 		"Bare-metal cluster static ingress IP (default to IP of endpoint)")
+	importCmd.Flags().StringVarP(&bearerToken, "bearer-token", "b", "",
+		"Use Bearer token to authenticate to the OpenShift cluster")
 	importCmd.Flags().BoolVarP(&autoCreateTemplate, "create-template", "", true,
 		"Create adapter template if no existing template is found for reuse")
 	importCmd.Flags().BoolVarP(&createNewTemplate, "create-new-template", "", false,
