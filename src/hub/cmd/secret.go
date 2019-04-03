@@ -15,13 +15,15 @@ import (
 
 var secretCmd = &cobra.Command{
 	Use:   "secret [entity kind/]<selector> <secret name>[|component] <secret kind> <value | key:value | - ...>",
-	Short: "Create secret in Environment, Template, or Stack Instance",
+	Short: "Create secret parameter in Environment, Template, or Stack Instance",
 	Long: `To create Secret, provide:
 
 - optionally, entity kind is one of: environment (default), stackTemplate, stackInstance
 - selector is either environment name or id, template name or id, instance full domain name or id
 - secret name
-- secret kind, one of: password, usernamePassword, text, cloudAccount, cloudAccessKeys, privateKey, certificate, sshKey, license, loginToken, gitAccessToken
+- secret kind, one of: password cloudAccount cloudAccessKeys privateKey
+	certificate sshKey usernamePassword text license
+	token bearerToken accessToken refreshToken loginToken
 - secret plain value, or a number of key:value pairs appropriate for particular secret kind, ie.:
 	password: password
 	usernamePassword: username, password
@@ -32,7 +34,7 @@ var secretCmd = &cobra.Command{
 	certificate: certificate
 	sshKey: sshKey
 	license: licenseKey
-	loginToken, gitAccessToken: loginToken
+	*token: *token
 - of secret "value" is "-" then it is read from stdin`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {

@@ -127,9 +127,12 @@ func getParameter(resource string, parameters []Parameter, name, component strin
 							name, secretKind, kind)
 					}
 					switch kind {
-					case "text", "password", "certificate", "sshKey", "privateKey", "loginToken":
+					case "text", "password", "certificate", "sshKey", "privateKey",
+						"token", "bearerToken", "accessToken", "refreshToken", "loginToken":
 						return true, s[kind], nil
-					case "gitAccessToken":
+					case "license":
+						return true, s["licenseKey"], nil
+					case "gitAccessToken": // legacy
 						return true, s["loginToken"], nil
 					case "usernamePassword":
 						return true, fmt.Sprintf("%s/%s", s["username"], s["password"]), nil

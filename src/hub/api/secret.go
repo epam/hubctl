@@ -124,9 +124,12 @@ func formatSecret(s map[string]string) string {
 	str := ""
 	if kind, ok := s["kind"]; ok {
 		switch kind {
-		case "text", "password", "certificate", "sshKey", "privateKey", "loginToken":
+		case "text", "password", "certificate", "sshKey", "privateKey",
+			"token", "bearerToken", "accessToken", "refreshToken", "loginToken":
 			str = s[kind]
-		case "gitAccessToken":
+		case "license":
+			str = s["licenseKey"]
+		case "gitAccessToken": // legacy
 			str = s["loginToken"]
 		case "usernamePassword":
 			str = fmt.Sprintf("%s/%s", s["username"], s["password"])
