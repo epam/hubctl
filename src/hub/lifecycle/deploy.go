@@ -27,7 +27,6 @@ const HubEnvVarNameComponentName = "HUB_COMPONENT"
 func Execute(request *Request) {
 	isDeploy := strings.HasPrefix(request.Verb, "deploy")
 	isUndeploy := strings.HasPrefix(request.Verb, "undeploy")
-	isStateFile := len(request.StateFilenames) > 0
 	isSomeComponents := len(request.Components) > 0 || request.OffsetComponent != ""
 
 	stackManifest, componentsManifests, chosenManifestFilename, err := manifest.ParseManifest(request.ManifestFilenames)
@@ -81,9 +80,9 @@ func Execute(request *Request) {
 	defer util.Done()
 
 	var stateManifest *state.StateManifest
-	var stateUpdater func(interface{})
+	stateUpdater := func(interface{}) {}
 	var operationLogId string
-	if isStateFile {
+	if len(request.StateFilenames) > 0 {
 		if isUndeploy || isSomeComponents { // skip state file at start of full deploy
 			var err error
 			stateManifest, err = state.ParseState(stateFiles)
@@ -179,7 +178,7 @@ func Execute(request *Request) {
 		order = util.Reverse(order)
 
 		// on undeploy, guess which component failed to deploy and start undeploy from it
-		if request.GuessComponent && isStateFile && stateManifest != nil && !isSomeComponents {
+		if request.GuessComponent && stateManifest != nil && !isSomeComponents {
 			for i, component := range order {
 				if _, exist := stateManifest.Components[component]; exist {
 					if i == 0 {
@@ -208,8 +207,10 @@ func Execute(request *Request) {
 
 	// TODO handle ^C interrupt to update op log and stack status
 	// or expiry by time and set to `interrupted`
-	stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "in-progress",
-		map[string]interface{}{"args": os.Args})
+	if stateManifest != nil {
+		stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "in-progress",
+			map[string]interface{}{"args": os.Args})
+	}
 
 NEXT_COMPONENT:
 	for componentIndex, componentName := range order {
@@ -240,7 +241,7 @@ NEXT_COMPONENT:
 		}
 
 		var updateStateComponentFailed func(string, bool)
-		if isStateFile {
+		if stateManifest != nil {
 			updateStateComponentFailed = func(msg string, final bool) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, "error", msg)
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "error")
@@ -311,7 +312,7 @@ NEXT_COMPONENT:
 			continue NEXT_COMPONENT
 		}
 
-		if isStateFile {
+		if stateManifest != nil {
 			status := fmt.Sprintf("%sing", request.Verb)
 			if isDeploy {
 				stateManifest = state.UpdateState(stateManifest,
@@ -335,8 +336,10 @@ NEXT_COMPONENT:
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
-			stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
-				fmt.Sprintf("%v%s", err, formatStdoutStderr(stdout, stderr)))
+			if stateManifest != nil {
+				stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
+					fmt.Sprintf("%v%s", err, formatStdoutStderr(stdout, stderr)))
+			}
 			maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
 				fmt.Sprintf("Component `%s` failed to %s: %v", componentName, request.Verb, err),
 				updateStateComponentFailed)
@@ -387,7 +390,7 @@ NEXT_COMPONENT:
 			mergeProvides(provides, componentName, append(dynamicProvides, componentManifest.Provides...), componentOutputs)
 		}
 
-		if isDeploy && isStateFile {
+		if isDeploy && stateManifest != nil {
 			final := componentIndex == len(order)-1 || (len(request.Components) > 0 && request.LoadFinalState)
 			stateManifest = state.UpdateState(stateManifest,
 				componentName, "", "",
@@ -411,7 +414,7 @@ NEXT_COMPONENT:
 			log.Printf("Component `%s` completed %s", componentName, request.Verb)
 		}
 
-		if isStateFile {
+		if stateManifest != nil {
 			if !util.Contains(failedComponents, componentName) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, fmt.Sprintf("%sed", request.Verb), "")
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "success")
@@ -425,7 +428,7 @@ NEXT_COMPONENT:
 		err := waitForReadyConditions(stackManifest.Lifecycle.ReadyConditions, stackParameters, allOutputs)
 		if err != nil {
 			message := fmt.Sprintf("Stack ready condition failed: %v", err)
-			if isStateFile {
+			if stateManifest != nil {
 				stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", message)
 				stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "error", nil)
 				stateUpdater(stateManifest)
@@ -435,7 +438,7 @@ NEXT_COMPONENT:
 		}
 	}
 
-	if isStateFile {
+	if stateManifest != nil {
 		if !stackReadyConditionFailed {
 			status, message := calculateStackStatus(stackManifest, stateManifest)
 			stateManifest = state.UpdateStackStatus(stateManifest, status, message)
