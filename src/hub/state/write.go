@@ -87,8 +87,7 @@ func writer(ch <-chan interface{}, done chan<- struct{}, ticker <-chan time.Time
 	}
 }
 
-func UpdateState(manifest *StateManifest,
-	componentName, componentStatus, stackStatus string,
+func UpdateState(manifest *StateManifest, componentName string,
 	stackParameters parameters.LockedParameters, componentParameters []parameters.LockedParameter,
 	rawOutputs parameters.RawOutputs, outputs parameters.CapturedOutputs,
 	requestedOutputs []manifest.Output,
@@ -99,20 +98,7 @@ func UpdateState(manifest *StateManifest,
 
 	manifest = maybeInitState(manifest)
 	componentState := maybeInitComponentState(manifest, componentName)
-
-	if config.Debug {
-		if componentStatus != "" {
-			log.Printf("State component `%s` status: %s", componentName, componentStatus)
-		}
-		if stackStatus != "" {
-			log.Printf("State stack status: %s", stackStatus)
-		}
-	}
-
 	componentState.Timestamp = now
-	if componentStatus != "" {
-		componentState.Status = componentStatus
-	}
 	componentState.Parameters = componentParameters
 	componentState.CapturedOutputs = parameters.CapturedOutputsToList(outputs)
 	if len(rawOutputs) > 0 {
@@ -120,9 +106,6 @@ func UpdateState(manifest *StateManifest,
 	}
 
 	manifest.Timestamp = now
-	if stackStatus != "" {
-		manifest.Status = stackStatus
-	}
 	if final {
 		manifest.CapturedOutputs = componentState.CapturedOutputs
 	}
@@ -135,10 +118,9 @@ func UpdateState(manifest *StateManifest,
 }
 
 func UpdateStackStatus(manifest *StateManifest, status, message string) *StateManifest {
-	now := time.Now()
 	manifest = maybeInitState(manifest)
 	if status != "" {
-		manifest.Timestamp = now
+		manifest.Timestamp = time.Now()
 		manifest.Status = status
 		manifest.Message = message
 		if config.Debug {
@@ -152,11 +134,10 @@ func UpdateStackStatus(manifest *StateManifest, status, message string) *StateMa
 }
 
 func UpdateComponentStatus(manifest *StateManifest, name, status, message string) *StateManifest {
-	now := time.Now()
 	manifest = maybeInitState(manifest)
 	if name != "" && status != "" {
 		componentState := maybeInitComponentState(manifest, name)
-		componentState.Timestamp = now
+		componentState.Timestamp = time.Now()
 		componentState.Status = status
 		componentState.Message = message
 		if config.Debug {

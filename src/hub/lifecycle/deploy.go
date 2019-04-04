@@ -315,16 +315,14 @@ NEXT_COMPONENT:
 		if stateManifest != nil {
 			status := fmt.Sprintf("%sing", request.Verb)
 			if isDeploy {
-				stateManifest = state.UpdateState(stateManifest,
-					componentName, status, status,
+				stateManifest = state.UpdateState(stateManifest, componentName,
 					stackParameters, expandedComponentParameters,
 					nil, allOutputs, stackManifest.Outputs,
 					noEnvironmentProvides(provides),
 					false)
-			} else {
-				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, status, "")
-				stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			}
+			stateManifest = state.UpdateComponentStatus(stateManifest, componentName, status, "")
+			stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "in-progress")
 			stateUpdater(stateManifest)
 		}
@@ -392,8 +390,7 @@ NEXT_COMPONENT:
 
 		if isDeploy && stateManifest != nil {
 			final := componentIndex == len(order)-1 || (len(request.Components) > 0 && request.LoadFinalState)
-			stateManifest = state.UpdateState(stateManifest,
-				componentName, "", "",
+			stateManifest = state.UpdateState(stateManifest, componentName,
 				stackParameters, expandedComponentParameters,
 				rawOutputs, allOutputs, stackManifest.Outputs,
 				noEnvironmentProvides(provides), final)
