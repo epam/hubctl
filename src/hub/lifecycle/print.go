@@ -12,7 +12,7 @@ import (
 	"hub/util"
 )
 
-var sensitiveCmdArgs = []string{"password", "secret", "key"}
+var sensitiveCmdArgs = []string{"password", "secret", "key", "token"}
 
 func startStopComponentsBlurb(request *Request, stackManifest *manifest.Manifest) string {
 	if len(request.Components) == 0 {
