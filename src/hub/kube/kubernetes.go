@@ -228,7 +228,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	if caCertExist {
 		writeFile(caCertFile, caCert)
 	}
-	if flavor != "eks" {
+	if flavor != "eks" && flavor != "openshift" {
 		writeFile(clientCertFile,
 			mustOutput(params, outputs, provider, kubernetesApiClientCertOutput))
 		writeFile(clientKeyFile,
