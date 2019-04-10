@@ -96,8 +96,11 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	fqdn := fmt.Sprintf("%s.%s", name, cloudAccount.BaseDomain)
 
 	if kind == "eks" {
+		if !strings.HasPrefix(cloudAccount.Kind, "aws") {
+			return fmt.Errorf("Cloud Account %s is not AWS but `%s`", cloudAccount.BaseDomain, cloudAccount.Kind)
+		}
 		if nativeEndpoint == "" {
-			cac, err := cloudAccountTemporaryCredentials(cloudAccount.Id)
+			cac, err := awsCloudAccountCredentials(cloudAccount.Id)
 			if err != nil {
 				return err
 			}

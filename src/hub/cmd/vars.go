@@ -7,7 +7,10 @@ const (
 	envVarNameAwsRegion         = "HUB_AWS_REGION"
 	envVarNameComponentsBaseDir = "HUB_COMPONENTS_BASEDIR"
 	envVarNameHubApi            = "HUB_API"
+	SuperHubIo                  = ".superhub.io"
 )
+
+var supportedCloudAccountKinds = []string{"aws", "azure", "gcp"}
 
 var (
 	name                  string

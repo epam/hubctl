@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"hub/config"
 )
@@ -14,34 +16,46 @@ const cloudAccountsResource = "hub/api/v1/cloud-accounts"
 var cloudAccountsCache = make(map[string]*CloudAccount)
 
 func CloudAccounts(selector string,
-	getCloudTemporaryCredentials, shFormat, awsConfigFormat bool) {
+	getCloudCredentials, shFormat, nativeConfigFormat bool) {
 
 	cloudAccounts, err := cloudAccountsBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Cloud Account(s): %v", err)
 	}
-	if getCloudTemporaryCredentials && (shFormat || awsConfigFormat) {
+	if getCloudCredentials && (shFormat || nativeConfigFormat) {
 		if len(cloudAccounts) == 0 {
 			fmt.Print("# No Cloud Accounts\n")
 		} else {
 			errors := make([]error, 0)
 			for i, cloudAccount := range cloudAccounts {
-				keys, err := cloudAccountTemporaryCredentials(cloudAccount.Id)
+				keys, err := cloudAccountCredentials(cloudAccount.Id, cloudAccount.Kind)
 				if err != nil {
 					errors = append(errors, err)
 				} else {
 					sh := ""
 					if shFormat {
-						sh = formatCloudAccountTemporaryCredentialsSh(keys)
+						sh, err = formatCloudAccountCredentialsSh(keys)
+						if err != nil {
+							errors = append(errors, err)
+						}
 					}
-					awsConfig := ""
-					if awsConfigFormat {
-						awsConfig = formatCloudAccountTemporaryCredentialsAwsConfig(&cloudAccount, keys)
+					nativeConfig := ""
+					if nativeConfigFormat {
+						nativeConfig, err = formatCloudAccountCredentialsNativeConfig(&cloudAccount, keys)
+						if err != nil {
+							errors = append(errors, err)
+						}
 					}
 					if i > 0 {
 						fmt.Print("\n")
 					}
-					fmt.Printf("# %s%s%s", cloudAccount.BaseDomain, sh, awsConfig)
+					header := ""
+					if len(cloudAccounts) > 1 {
+						header = fmt.Sprintf("# %s\n", cloudAccount.BaseDomain)
+					}
+					if sh != "" || nativeConfig != "" {
+						fmt.Printf("%s%s%s", header, sh, nativeConfig)
+					}
 				}
 			}
 			if len(errors) > 0 {
@@ -58,14 +72,19 @@ func CloudAccounts(selector string,
 		errors := make([]error, 0)
 		for _, cloudAccount := range cloudAccounts {
 			fmt.Printf("\n\t%s\n", formatCloudAccount(&cloudAccount))
-			fmt.Printf("\t\tKind: %s\n", formatCloudAccountKind(cloudAccount.Type))
+			fmt.Printf("\t\tKind: %s\n", formatCloudAccountKind(cloudAccount.Kind))
 			fmt.Printf("\t\tStatus: %s\n", cloudAccount.Status)
-			if getCloudTemporaryCredentials {
-				keys, err := cloudAccountTemporaryCredentials(cloudAccount.Id)
+			if getCloudCredentials {
+				keys, err := cloudAccountCredentials(cloudAccount.Id, cloudAccount.Kind)
 				if err != nil {
 					errors = append(errors, err)
 				} else {
-					fmt.Printf("\t\tTemporary Security Credentials: %s\n", formatCloudAccountTemporaryCredentials(keys))
+					formatted, err := formatCloudAccountCredentials(keys)
+					if err != nil {
+						errors = append(errors, err)
+					} else {
+						fmt.Printf("\t\tSecurity Credentials: %s\n", formatted)
+					}
 				}
 			}
 			if len(cloudAccount.TeamsPermissions) > 0 {
@@ -204,36 +223,204 @@ func cloudAccountRegion(account *CloudAccount) string {
 	return ""
 }
 
-func cloudAccountTemporaryCredentials(id string) (*AwsTemporarySecurityCredentials, error) {
+func cloudAccountCredentials(id, kind string) (interface{}, error) {
+	switch kind {
+	case "aws", "awscar", "awsarn":
+		return awsCloudAccountCredentials(id)
+	case "azure", "gcp":
+		return rawCloudAccountCredentials(id)
+	}
+	return nil, fmt.Errorf("Unsupported cloud account kind `%s`", kind)
+}
+
+func rawCloudAccountCredentials(id string) ([]byte, error) {
 	if config.Debug {
-		log.Printf("Getting Cloud Account `%s` temporary security credentials", id)
+		log.Printf("Getting Cloud Account `%s` credentials", id)
 	}
 	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
-	var jsResp AwsTemporarySecurityCredentials
-	code, err := get(hubApi, path, &jsResp)
+	code, err, body := get2(hubApi, path)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Cloud Account `%s` Temporary Security Credentials: %v",
+		return nil, fmt.Errorf("Error querying Hub Service Cloud Account `%s` Credentials: %v",
 			id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Account `%s` Temporary Security Credentials, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Account `%s` Credentials, expected 200 HTTP",
+			code, id)
+	}
+	return body, nil
+}
+
+func awsCloudAccountCredentials(id string) (*AwsSecurityCredentials, error) {
+	if config.Debug {
+		log.Printf("Getting Cloud Account `%s` credentials", id)
+	}
+	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
+	var jsResp AwsSecurityCredentials
+	code, err := get(hubApi, path, &jsResp)
+	if err != nil {
+		return nil, fmt.Errorf("Error querying Hub Service Cloud Account `%s` Credentials: %v",
+			id, err)
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Account `%s` Credentials, expected 200 HTTP",
 			code, id)
 	}
 	return &jsResp, nil
 }
 
-func formatCloudAccountTemporaryCredentials(keys *AwsTemporarySecurityCredentials) string {
+func formatCloudAccountCredentials(keys interface{}) (string, error) {
+	if aws, ok := keys.(*AwsSecurityCredentials); ok {
+		return formatAwsCloudAccountCredentials(aws)
+	}
+	if raw, ok := keys.([]byte); ok {
+		return formatRawCloudAccountCredentialsSh(raw)
+	}
+	return "", fmt.Errorf("Unable to format credentials: %+v", keys)
+}
+
+func formatCloudAccountCredentialsSh(keys interface{}) (string, error) {
+	if aws, ok := keys.(*AwsSecurityCredentials); ok {
+		return formatAwsCloudAccountCredentialsSh(aws)
+	}
+	if raw, ok := keys.([]byte); ok {
+		return formatRawCloudAccountCredentialsSh(raw)
+	}
+	return "", fmt.Errorf("Unable to format credentials: %+v", keys)
+}
+
+func formatCloudAccountCredentialsNativeConfig(account *CloudAccount, keys interface{}) (string, error) {
+	if aws, ok := keys.(*AwsSecurityCredentials); ok {
+		return formatAwsCloudAccountCredentialsCliConfig(account, aws)
+	}
+	if raw, ok := keys.([]byte); ok {
+		return formatRawCloudAccountCredentialsSh(raw)
+	}
+	return "", fmt.Errorf("Unable to format credentials: %+v", keys)
+}
+
+func formatAwsCloudAccountCredentials(keys *AwsSecurityCredentials) (string, error) {
 	return fmt.Sprintf("%s ttl = %d\n\t\t\tAccess = %s\n\t\t\tSecret = %s\n\t\t\tSession = %s",
 		keys.Cloud, keys.Ttl,
-		keys.AccessKey, keys.SecretKey, keys.SessionToken)
+		keys.AccessKey, keys.SecretKey, keys.SessionToken), nil
 }
 
-func formatCloudAccountTemporaryCredentialsSh(keys *AwsTemporarySecurityCredentials) string {
-	return fmt.Sprintf("\n# eval this in your shell\nexport AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=%s\nexport AWS_SESSION_TOKEN=%s\n",
-		keys.AccessKey, keys.SecretKey, keys.SessionToken)
+func formatAwsCloudAccountCredentialsSh(keys *AwsSecurityCredentials) (string, error) {
+	return fmt.Sprintf("# eval this in your shell\nexport AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=%s\nexport AWS_SESSION_TOKEN=%s\n",
+		keys.AccessKey, keys.SecretKey, keys.SessionToken), nil
 }
 
-func formatCloudAccountTemporaryCredentialsAwsConfig(account *CloudAccount, keys *AwsTemporarySecurityCredentials) string {
-	return fmt.Sprintf("\n[%s]\naws_access_key_id = %s\naws_secret_access_key = %s\naws_session_token = %s\n",
-		account.BaseDomain, keys.AccessKey, keys.SecretKey, keys.SessionToken)
+func formatAwsCloudAccountCredentialsCliConfig(account *CloudAccount, keys *AwsSecurityCredentials) (string, error) {
+	return fmt.Sprintf("[%s]\naws_access_key_id = %s\naws_secret_access_key = %s\naws_session_token = %s\n",
+		account.BaseDomain, keys.AccessKey, keys.SecretKey, keys.SessionToken), nil
+}
+
+func formatRawCloudAccountCredentialsSh(raw []byte) (string, error) {
+	var kv map[string]interface{}
+	err := json.Unmarshal(raw, kv)
+	if err != nil {
+		return "", fmt.Errorf("Unable un unmarshal JSON: %v", err)
+	}
+	lines := make([]string, 0, len(kv))
+	for k, v := range kv {
+		line := fmt.Sprintf("%s=%v", k, v)
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n\t\t\t"), nil
+}
+
+func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
+	return string(raw), nil
+}
+
+func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLogs bool) {
+	if kind != "aws" {
+		log.Fatalf("%s not implemented", kind)
+	}
+	if config.Debug {
+		log.Printf("Onboarding %s cloud account %s with %v", kind, domain, args)
+	}
+
+	if kind == "aws" {
+		kind = "awscar" // cross-account role
+	}
+	domainParts := strings.SplitN(domain, ".", 2)
+	if len(domainParts) != 2 {
+		log.Fatalf("Domain `%s` invalid", domain)
+	}
+	req := &CloudAccountRequest{
+		Name: domainParts[0],
+		Kind: kind,
+		Parameters: []Parameter{
+			{Name: "dns.baseDomain", Value: domainParts[1]},
+			{Name: "cloud.provider", Value: "aws"},
+			{Name: "cloud.region", Value: args[0]},
+			{Name: "cloud.availabilityZone", Value: args[0] + "a"},
+			{Name: "cloud.sshKey", Value: "agilestacks"},
+			{Name: "cloud.accessKey", Value: args[1]},
+			{Name: "cloud.secretKey", Value: args[2]},
+		},
+	}
+	account, err := createCloudAccount(req)
+	if err != nil {
+		log.Fatal("Unable to onboard Cloud Account: %v", err)
+	}
+	CloudAccounts(account.Id, false, false, false)
+	if waitAndTailDeployLogs {
+		// TODO wait for cloudAccount status update and exit on success of failure
+		if config.Verbose {
+			log.Print("Tailing automation task logs... ^C to interrupt")
+		}
+		Logs([]string{"cloudAccount/" + domain})
+	}
+}
+
+func createCloudAccount(cloudAccount *CloudAccountRequest) (*CloudAccount, error) {
+	var jsResp CloudAccount
+	code, err := post(hubApi, cloudAccountsResource, cloudAccount, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 && code != 201 && code != 202 {
+		return nil, fmt.Errorf("Got %d HTTP creating Hub Service Cloud Account, expected [200, 201, 202] HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
+	if config.Debug {
+		log.Printf("Deleting %s cloud account", selector)
+	}
+	err := deleteCloudAccount(selector)
+	if err != nil {
+		log.Fatalf("Unable to delete Hub Service Cloud Account: %v", err)
+	}
+	if waitAndTailDeployLogs {
+		if config.Verbose {
+			log.Print("Tailing automation task logs... ^C to interrupt")
+		}
+		Logs([]string{"cloudAccount/" + selector})
+	}
+}
+
+func deleteCloudAccount(selector string) error {
+	account, err := cloudAccountBy(selector)
+	if err != nil {
+		return err
+	}
+	if account == nil {
+		return error404
+	}
+	force := ""
+	if config.Force {
+		force = "?force=true"
+	}
+	path := fmt.Sprintf("%s/%s%s", cloudAccountsResource, url.PathEscape(account.Id), force)
+	code, err := delete(hubApi, path)
+	if err != nil {
+		return err
+	}
+	if code != 202 && code != 204 {
+		return fmt.Errorf("Got %d HTTP deleting Hub Service Cloud Account, expected [202, 204] HTTP", code)
+	}
+	return nil
 }

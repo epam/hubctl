@@ -5,19 +5,25 @@ import "time"
 type CloudAccount struct {
 	Id               string
 	Name             string
-	Type             string
+	Kind             string `json:"type"`
 	Status           string
 	BaseDomain       string `json:"baseDomain"`
 	Parameters       []Parameter
 	TeamsPermissions []Team `json:"teamsPermissions"`
 }
 
-type AwsTemporarySecurityCredentials struct {
+type AwsSecurityCredentials struct {
 	Cloud        string
 	AccessKey    string
 	SecretKey    string
 	SessionToken string
 	Ttl          int
+}
+
+type CloudAccountRequest struct {
+	Name       string      `json:"name"`
+	Kind       string      `json:"type"`
+	Parameters []Parameter `json:"parameters,omitempty"`
 }
 
 type Parameter struct {

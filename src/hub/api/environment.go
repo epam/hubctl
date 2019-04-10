@@ -13,7 +13,7 @@ const environmentsResource = "hub/api/v1/environments"
 var environmentsCache = make(map[string]*Environment)
 
 func Environments(selector string, showSecrets, showMyTeams,
-	showServiceAccount, showServiceAccountLoginToken, getCloudTemporaryCredentials bool) {
+	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials bool) {
 
 	envs, err := environmentsBy(selector)
 	if err != nil {
@@ -40,12 +40,17 @@ func Environments(selector string, showSecrets, showMyTeams,
 				} else {
 					fmt.Printf("\t\tCloud Account: %s\n", formatCloudAccount(account))
 				}
-				if getCloudTemporaryCredentials {
-					keys, err := cloudAccountTemporaryCredentials(env.CloudAccount)
+				if getCloudCredentials {
+					keys, err := cloudAccountCredentials(account.Id, account.Kind)
 					if err != nil {
 						errors = append(errors, err)
 					} else {
-						fmt.Printf("\t\tTemporary Security Credentials: %s\n", formatCloudAccountTemporaryCredentials(keys))
+						formatted, err := formatCloudAccountCredentials(keys)
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							fmt.Printf("\t\tSecurity Credentials: %s\n", formatted)
+						}
 					}
 				}
 			}

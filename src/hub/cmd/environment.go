@@ -42,7 +42,7 @@ func environment(args []string) error {
 		showServiceAccount = true
 	}
 	api.Environments(selector, showSecrets, showMyTeams,
-		showServiceAccount, showServiceAccountLoginToken, getCloudTemporaryCredentials)
+		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials)
 
 	return nil
 }
@@ -56,7 +56,7 @@ func init() {
 		"Show Service Account")
 	environmentGetCmd.Flags().BoolVarP(&showServiceAccountLoginToken, "service-account-login-token", "l", false,
 		"Show Service Account login token")
-	environmentGetCmd.Flags().BoolVarP(&getCloudTemporaryCredentials, "cloud-credentials", "c", false,
+	environmentGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
 		"Request Temporary Security Credentials")
 	environmentCmd.AddCommand(environmentGetCmd)
 	apiCmd.AddCommand(environmentCmd)
