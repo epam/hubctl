@@ -88,7 +88,7 @@ func cloudAccount(args []string) error {
 }
 
 func onboardCloudAccount(args []string) error {
-	if len(args) < 4 || len(args) > 5 {
+	if len(args) < 4 || len(args) > 5 || (len(args) == 4 && args[1] == "aws") {
 		return fmt.Errorf(`Onboard CloudAccount command at least four mandatory arguments:
 - domain of the cloud account;
 - cloud kind - one of %s;

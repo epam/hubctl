@@ -5,7 +5,7 @@ import "time"
 type CloudAccount struct {
 	Id               string
 	Name             string
-	Kind             string `json:"type"`
+	Kind             string
 	Status           string
 	BaseDomain       string `json:"baseDomain"`
 	Parameters       []Parameter
@@ -21,9 +21,10 @@ type AwsSecurityCredentials struct {
 }
 
 type CloudAccountRequest struct {
-	Name       string      `json:"name"`
-	Kind       string      `json:"type"`
-	Parameters []Parameter `json:"parameters,omitempty"`
+	Name        string            `json:"name"`
+	Kind        string            `json:"kind"`
+	Parameters  []Parameter       `json:"parameters,omitempty"`
+	Credentials map[string]string `json:"credentials,omitempty"`
 }
 
 type Parameter struct {

@@ -350,19 +350,21 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	req := &CloudAccountRequest{
 		Name: domainParts[0],
 		Kind: kind,
+		Credentials: map[string]string{
+			"accessKey": args[1],
+			"secretKey": args[2],
+		},
 		Parameters: []Parameter{
 			{Name: "dns.baseDomain", Value: domainParts[1]},
 			{Name: "cloud.provider", Value: "aws"},
 			{Name: "cloud.region", Value: args[0]},
 			{Name: "cloud.availabilityZone", Value: args[0] + "a"},
 			{Name: "cloud.sshKey", Value: "agilestacks"},
-			{Name: "cloud.accessKey", Value: args[1]},
-			{Name: "cloud.secretKey", Value: args[2]},
 		},
 	}
 	account, err := createCloudAccount(req)
 	if err != nil {
-		log.Fatal("Unable to onboard Cloud Account: %v", err)
+		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
 	CloudAccounts(account.Id, false, false, false)
 	if waitAndTailDeployLogs {
