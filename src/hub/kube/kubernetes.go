@@ -247,7 +247,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	mustExec(kubectl, clusterArgs...)
 	user := ""
 	switch flavor {
-	case "k8s-aws", "k8s-aks":
+	case "k8s-aws", "k8s-aks", "metal":
 		user = "admin@" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--embed-certs=true",
