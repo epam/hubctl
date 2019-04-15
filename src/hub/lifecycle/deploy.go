@@ -325,6 +325,7 @@ NEXT_COMPONENT:
 			stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "in-progress")
 			stateUpdater(stateManifest)
+			stateUpdater("sync")
 		}
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
