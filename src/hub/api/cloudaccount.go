@@ -3,8 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -202,14 +204,18 @@ func formatCloudAccount(account *CloudAccount) string {
 	return fmt.Sprintf("%s / %s [%s]", account.Name, account.BaseDomain, account.Id)
 }
 
-var cloudAccountKinds = map[string]string{
+var cloudAccountKindDescription = map[string]string{
 	"aws":    "access and secret keys",
 	"awscar": "automatic cross-account IAM role",
 	"awsarn": "manually entered cross-account IAM role ARN",
 }
 
 func formatCloudAccountKind(kind string) string {
-	return fmt.Sprintf("%s (%s)", kind, cloudAccountKinds[kind])
+	description := cloudAccountKindDescription[kind]
+	if description != "" {
+		description = fmt.Sprintf(" (%s)", description)
+	}
+	return fmt.Sprintf("%s%s", kind, description)
 }
 
 func cloudAccountRegion(account *CloudAccount) string {
@@ -316,16 +322,17 @@ func formatAwsCloudAccountCredentialsCliConfig(account *CloudAccount, keys *AwsS
 
 func formatRawCloudAccountCredentialsSh(raw []byte) (string, error) {
 	var kv map[string]interface{}
-	err := json.Unmarshal(raw, kv)
+	err := json.Unmarshal(raw, &kv)
 	if err != nil {
-		return "", fmt.Errorf("Unable un unmarshal JSON: %v", err)
+		return "", fmt.Errorf("Unable un unmarshal: %v", err)
 	}
 	lines := make([]string, 0, len(kv))
 	for k, v := range kv {
 		line := fmt.Sprintf("%s=%v", k, v)
 		lines = append(lines, line)
 	}
-	return strings.Join(lines, "\n\t\t\t"), nil
+	ident := "\n\t\t\t"
+	return ident + strings.Join(lines, ident), nil
 }
 
 func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
@@ -333,13 +340,16 @@ func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
 }
 
 func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLogs bool) {
-	if kind != "aws" {
-		log.Fatalf("%s not implemented", kind)
+	credentials, err := cloudSpecificCredentials(kind, args)
+	if err != nil {
+		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
+
 	if config.Debug {
 		log.Printf("Onboarding %s cloud account %s with %v", kind, domain, args)
 	}
 
+	provider := kind
 	if kind == "aws" {
 		kind = "awscar" // cross-account role
 	}
@@ -347,21 +357,23 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	if len(domainParts) != 2 {
 		log.Fatalf("Domain `%s` invalid", domain)
 	}
+	region := args[0]
 	req := &CloudAccountRequest{
-		Name: domainParts[0],
-		Kind: kind,
-		Credentials: map[string]string{
-			"accessKey": args[1],
-			"secretKey": args[2],
-		},
+		Name:        domainParts[0],
+		Kind:        kind,
+		Credentials: credentials,
 		Parameters: []Parameter{
 			{Name: "dns.baseDomain", Value: domainParts[1]},
-			{Name: "cloud.provider", Value: "aws"},
-			{Name: "cloud.region", Value: args[0]},
-			{Name: "cloud.availabilityZone", Value: args[0] + "a"},
-			{Name: "cloud.sshKey", Value: "agilestacks"},
+			{Name: "cloud.provider", Value: provider},
+			{Name: "cloud.region", Value: region},
+			{Name: "cloud.availabilityZone", Value: cloudFirstZoneInRegion(provider, region)},
+			// {Name: "cloud.sshKey", Value: "agilestacks"},
 		},
 	}
+	if provider == "azure" {
+		req.Parameters = append(req.Parameters, Parameter{Name: "cloud.azureResourceGroupName", Value: "superhub-" + region})
+	}
+
 	account, err := createCloudAccount(req)
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
@@ -374,6 +386,44 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 		}
 		Logs([]string{"cloudAccount/" + domain})
 	}
+}
+
+func cloudSpecificCredentials(provider string, args []string) (map[string]string, error) {
+	switch provider {
+	case "aws":
+		return map[string]string{"accessKey": args[1], "secretKey": args[2]}, nil
+
+	case "azure", "gcp":
+		credentialsFile := args[1]
+		file, err := os.Open(credentialsFile)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to open credentials file: %v", err)
+		}
+		defer file.Close()
+		data, err := ioutil.ReadAll(file)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to read credentials file `%s`: %v", credentialsFile, err)
+		}
+		var creds map[string]string
+		err = json.Unmarshal(data, &creds)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to unmarshall credentials file `%s`: %v", credentialsFile, err)
+		}
+		return creds, nil
+	}
+	return nil, nil
+}
+
+func cloudFirstZoneInRegion(provider, region string) string {
+	switch provider {
+	case "aws":
+		return region + "a"
+	case "azure":
+		return "1"
+	case "gcp":
+		return region + "-a"
+	}
+	return ""
 }
 
 func createCloudAccount(cloudAccount *CloudAccountRequest) (*CloudAccount, error) {
