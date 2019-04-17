@@ -94,7 +94,7 @@ func onboardCloudAccount(args []string) error {
 - cloud kind - one of %s;
 - region;
 - cloud-specific credentials.
-`, strings.Join(supportedCloudAccountKinds, ","))
+`, strings.Join(supportedCloudAccountKinds, ", "))
 	}
 
 	domain := strings.ToLower(args[0])
@@ -107,7 +107,7 @@ func onboardCloudAccount(args []string) error {
 	}
 	cloud := args[1]
 	if !util.Contains(supportedCloudAccountKinds, cloud) {
-		return fmt.Errorf("Unsupported cloud `%s`; supported clouds are: %s", cloud, strings.Join(supportedCloudAccountKinds, ","))
+		return fmt.Errorf("Unsupported cloud `%s`; supported clouds are: %s", cloud, strings.Join(supportedCloudAccountKinds, ", "))
 	}
 	api.OnboardCloudAccount(domain, cloud, args[2:], waitAndTailDeployLogs)
 
