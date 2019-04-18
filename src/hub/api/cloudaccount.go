@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"hub/config"
+	"hub/util"
 )
 
 const cloudAccountsResource = "hub/api/v1/cloud-accounts"
@@ -421,6 +422,10 @@ func cloudFirstZoneInRegion(provider, region string) string {
 	case "azure":
 		return "1"
 	case "gcp":
+		// https://cloud.google.com/compute/docs/regions-zones/
+		if util.Contains([]string{"europe-west1", "us-east1"}, region) {
+			return region + "-b"
+		}
 		return region + "-a"
 	}
 	return ""
