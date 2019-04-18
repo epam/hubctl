@@ -369,7 +369,7 @@ func TrimColor(str string) string {
 }
 
 func Trim(str string) string {
-	cutset := " "
+	cutset := " \r"
 	return strings.Trim(str, cutset)
 }
 
