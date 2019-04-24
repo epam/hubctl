@@ -172,30 +172,30 @@ type TemplateStatus struct {
 }
 
 type StackInstanceStatus struct {
-	Status             string              `json:"status,omitempty"`
-	Template           *TemplateStatus     `json:"template,omitempty"`
-	K8s                *TemplateStatus     `json:"k8s,omitempty"`
-	Components         []ComponentStatus   `json:"components,omitempty"`
-	InflightOperations []InflightOperation `json:"inflightOperations,omitempty"`
+	Status     string            `json:"status,omitempty"`
+	Template   *TemplateStatus   `json:"template,omitempty"`
+	K8s        *TemplateStatus   `json:"k8s,omitempty"`
+	Components []ComponentStatus `json:"components,omitempty"`
 }
 
 type StackInstance struct {
-	Id                string
-	Name              string
-	Domain            string
-	Description       string
-	Tags              []string
-	Environment       EnvironmentRef
-	Stack             StackRef
-	Template          StackTemplateRef
-	Platform          PlatformRef
-	ComponentsEnabled []string `json:"componentsEnabled"`
-	GitRemote         GitRef   `json:"gitRemote"`
-	Parameters        []Parameter
-	Outputs           []Output
-	Provides          map[string][]string
-	StateFiles        []string `json:"stateFiles"`
-	Status            StackInstanceStatus
+	Id                 string
+	Name               string
+	Domain             string
+	Description        string
+	Tags               []string
+	Environment        EnvironmentRef
+	Stack              StackRef
+	Template           StackTemplateRef
+	Platform           PlatformRef
+	ComponentsEnabled  []string `json:"componentsEnabled"`
+	GitRemote          GitRef   `json:"gitRemote"`
+	Parameters         []Parameter
+	Outputs            []Output
+	Provides           map[string][]string
+	StateFiles         []string `json:"stateFiles"`
+	Status             StackInstanceStatus
+	InflightOperations []InflightOperation `json:"inflightOperations,omitempty"`
 }
 
 type StackInstanceRequest struct {
@@ -214,12 +214,13 @@ type StackInstanceDeployResponse struct {
 }
 
 type StackInstancePatch struct {
-	ComponentsEnabled []string             `json:"componentsEnabled,omitempty"`
-	Parameters        []Parameter          `json:"parameters,omitempty"`
-	StateFiles        []string             `json:"stateFiles,omitempty"`
-	Status            *StackInstanceStatus `json:"status,omitempty"`
-	Outputs           []Output             `json:"outputs,omitempty"`
-	Provides          map[string][]string  `json:"provides,omitempty"`
+	ComponentsEnabled  []string             `json:"componentsEnabled,omitempty"`
+	Parameters         []Parameter          `json:"parameters,omitempty"`
+	StateFiles         []string             `json:"stateFiles,omitempty"`
+	Status             *StackInstanceStatus `json:"status,omitempty"`
+	InflightOperations []InflightOperation  `json:"inflightOperations,omitempty"`
+	Outputs            []Output             `json:"outputs,omitempty"`
+	Provides           map[string][]string  `json:"provides,omitempty"`
 }
 
 type Application struct {

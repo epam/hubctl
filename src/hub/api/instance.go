@@ -126,9 +126,9 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 			fmt.Print(formatComponentStatus(comp))
 		}
 	}
-	if len(instance.Status.InflightOperations) > 0 {
+	if len(instance.InflightOperations) > 0 {
 		fmt.Print("\t\tInflight Operations:\n")
-		for _, op := range instance.Status.InflightOperations {
+		for _, op := range instance.InflightOperations {
 			fmt.Print(formatInflightOperation(op, showLogs))
 		}
 	}

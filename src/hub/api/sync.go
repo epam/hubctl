@@ -44,12 +44,13 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	}
 
 	patch := StackInstancePatch{
-		Parameters:        params,
-		ComponentsEnabled: componentsEnabled,
-		StateFiles:        s3StatePaths,
-		Status:            &StackInstanceStatus{Status: status, Components: components, InflightOperations: ops},
-		Outputs:           outputs,
-		Provides:          provides,
+		Parameters:         params,
+		ComponentsEnabled:  componentsEnabled,
+		StateFiles:         s3StatePaths,
+		Status:             &StackInstanceStatus{Status: status, Components: components},
+		InflightOperations: ops,
+		Outputs:            outputs,
+		Provides:           provides,
 	}
 	if config.Verbose {
 		log.Print("Syncing instance state to SuperHub")
