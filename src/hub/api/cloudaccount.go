@@ -206,9 +206,11 @@ func formatCloudAccount(account *CloudAccount) string {
 }
 
 var cloudAccountKindDescription = map[string]string{
-	"aws":    "access and secret keys",
-	"awscar": "automatic cross-account IAM role",
-	"awsarn": "manually entered cross-account IAM role ARN",
+	"aws":    "AWS access and secret keys",
+	"awscar": "AWS automatic cross-account IAM role",
+	"awsarn": "AWS manually entered cross-account IAM role ARN",
+	"azure":  "Azure",
+	"gcp":    "Google Cloud Platform",
 }
 
 func formatCloudAccountKind(kind string) string {
