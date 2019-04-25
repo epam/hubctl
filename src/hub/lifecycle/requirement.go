@@ -2,10 +2,12 @@ package lifecycle
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"hub/config"
@@ -90,6 +92,20 @@ var bins = map[string][]string{
 	"helm":       {"helm", "version", "--client"},
 }
 
+type BinVersion struct {
+	minVersion    string
+	versionRegexp *regexp.Regexp
+}
+
+// TODO check binaries as we go between components and new provider/requirement pair is encountered
+var binVersion = map[string]BinVersion{
+	"gcloud":  {"239.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
+	"gsutil":  {"4.37", regexp.MustCompile("version: ([\\d.]+)")},
+	"vault":   {"1.1.0", regexp.MustCompile("Vault v([\\d.]+)")},
+	"kubectl": {"1.13.5", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
+	"helm":    {"2.13.1", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
+}
+
 func checkRequires(requires []string, maybeOptional map[string][]string) map[string][]string {
 	provided := make(map[string][]string, len(requires))
 	for _, require := range requires {
@@ -107,9 +123,16 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 			if !exist {
 				bin = []string{require, "version"}
 			}
-			err := checkRequiresBin(bin...)
+			out, err := checkRequiresBin(bin...)
 			if err != nil {
 				log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
+			}
+			verReq, exist := binVersion[bin[0]]
+			if exist {
+				err := checkRequiresBinVersion(verReq.minVersion, verReq.versionRegexp, out)
+				if err != nil {
+					util.WarnOnce("`%s` version requirement cannot be satisfied: %v", require, err)
+				}
 			}
 
 		default:
@@ -129,24 +152,7 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 	return provided
 }
 
-func checkRequiresBin(bin ...string) error {
-	if config.Debug {
-		printCmd(bin)
-	}
-	cmd := exec.Command(bin[0], bin[1:]...)
-	cmd.Env = os.Environ()
-	if config.Trace {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-	}
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("%v: %v", bin, err)
-	}
-	return nil
-}
-
-func checkRequiresBinWithOutput(bin ...string) ([]byte, error) {
+func checkRequiresBin(bin ...string) ([]byte, error) {
 	if config.Debug {
 		printCmd(bin)
 	}
@@ -162,8 +168,23 @@ func checkRequiresBinWithOutput(bin ...string) ([]byte, error) {
 	return out, err
 }
 
+func checkRequiresBinVersion(minVer string, verRegexp *regexp.Regexp, out []byte) error {
+	if len(out) == 0 {
+		return errors.New("no output")
+	}
+	match := verRegexp.FindSubmatch(out)
+	if len(match) != 2 {
+		return errors.New("no version string found")
+	}
+	ver := string(match[1])
+	if ver < minVer {
+		return fmt.Errorf("`%s` version detected; must have at least version `%s`", ver, minVer)
+	}
+	return nil
+}
+
 func checkRequiresAzure() error {
-	out, err := checkRequiresBinWithOutput("az", "storage", "account", "list", "-o", "table")
+	out, err := checkRequiresBin("az", "storage", "account", "list", "-o", "table")
 	if err == nil {
 		return nil
 	}
@@ -185,8 +206,9 @@ func checkRequiresAzure() error {
 			return fmt.Errorf("No AZURE_CLIENT_ID, nor AZURE_CERTIFICATE_PATH is set, see %s", azureGoSdkAuthHelp)
 		}
 	}
-	return checkRequiresBin("az", "login", "--service-principal",
+	_, err = checkRequiresBin("az", "login", "--service-principal",
 		"--tenant", tenantId, "--username", clientId, "--password", clientSecret)
+	return err
 	// TODO az login --identity
 	// https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
 	// Also, SDK supports AZURE_AUTH_LOCATION
