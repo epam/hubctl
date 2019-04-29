@@ -53,13 +53,15 @@ where creds.json is a file with Service Principal credentials created by:
 This is the file usually used via AZURE_AUTH_LOCATION environment variable.
 For details please consult
 https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli
+https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
 
 GCP:
 	$ hub api onboard gcp dev-01.superhub.io gcp creds.json
 
 where creds.json is a file with Service Account credentials usually used via GOOGLE_APPLICATION_CREDENTIALS environment variable.
 For details please consult
-https://cloud.google.com/iam/docs/creating-managing-service-accounts`,
+https://cloud.google.com/iam/docs/creating-managing-service-accounts
+https://cloud.google.com/docs/authentication/getting-started`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return onboardCloudAccount(args)
 	},

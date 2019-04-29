@@ -68,8 +68,8 @@ func init() {
 	RootCmd.PersistentFlags().StringVar(&config.AwsRegion, "aws_region", awsRegion, "AWS region hint (for S3 state access), AWS_DEFAULT_REGION")
 	RootCmd.PersistentFlags().BoolVar(&config.AwsUseIamRoleCredentials, "aws_use_iam_role_credentials", true, "Try EC2 instance credentials")
 
-	RootCmd.PersistentFlags().StringVar(&config.GcpCredentialsFile, "gcp_credentials_file", "", "Path to GCP Service Account keys JSON file, GOOGLE_APPLICATION_CREDENTIALS")
-	RootCmd.PersistentFlags().StringVar(&config.AzureCredentialsFile, "azure_credentials_file", "", "Path to Azure Service Principal auth JSON file, AZURE_AUTH_LOCATION")
+	RootCmd.PersistentFlags().StringVar(&config.GcpCredentialsFile, "gcp_credentials_file", "", "Path to GCP Service Account keys JSON file, GOOGLE_APPLICATION_CREDENTIALS, see https://cloud.google.com/docs/authentication/getting-started")
+	RootCmd.PersistentFlags().StringVar(&config.AzureCredentialsFile, "azure_credentials_file", "", "Path to Azure Service Principal auth JSON file, AZURE_AUTH_LOCATION, see https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization")
 
 	RootCmd.PersistentFlags().BoolVarP(&config.Verbose, "verbose", "v", true, "Verbose mode")
 	RootCmd.PersistentFlags().BoolVarP(&config.Debug, "debug", "d", false, "Print debug info. Or set HUB_DEBUG=1")
