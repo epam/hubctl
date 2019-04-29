@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	providedByEnv      = "*environment*"
-	azureGoSdkAuthHelp = "https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization"
+	providedByEnv          = "*environment*"
+	gcpServiceAccountsHelp = "https://cloud.google.com/docs/authentication/getting-started"
+	azureGoSdkAuthHelp     = "https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization"
 )
 
 func prepareComponentRequires(provided map[string][]string, componentManifest *manifest.Manifest,
@@ -135,6 +136,13 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 				}
 			}
 
+			if require == "gcp" || require == "gcs" {
+				err := checkRequiresGcp()
+				if err != nil {
+					log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
+				}
+			}
+
 		default:
 			if optionalFor, exist := maybeOptional[require]; !exist {
 				log.Fatalf("Cannot check for `requires: %s`: no implementation", require)
@@ -244,6 +252,23 @@ func setupTerraformAzureOsEnv() {
 	}
 	// TODO ARM_USE_MSI ARM_ENVIRONMENT?
 	// https://www.terraform.io/docs/backends/types/azurerm.html
+}
+
+func checkRequiresGcp() error {
+	out, err := checkRequiresBin("gcloud", "auth", "list")
+	if err != nil {
+		return err
+	}
+	if !bytes.Contains(out, []byte("gcloud auth login")) {
+		return nil
+	}
+	credentials := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credentials == "" {
+		return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS is not set, see %s", gcpServiceAccountsHelp)
+	}
+	_, err = checkRequiresBin("gcloud", "auth", "activate-service-account", "--key-file", credentials)
+
+	return err
 }
 
 func noEnvironmentProvides(provides map[string][]string) map[string][]string {
