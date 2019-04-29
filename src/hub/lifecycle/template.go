@@ -274,6 +274,7 @@ func processTemplate(template TemplateRef, componentName string, componentDepend
 	if err != nil {
 		return []error{fmt.Errorf("Unable to open `%s` component template output `%s`: %v", componentName, outPath, err)}
 	}
+	defer out.Close()
 	if statInfo != nil {
 		err = out.Chmod(statInfo.Mode())
 		if err != nil {
