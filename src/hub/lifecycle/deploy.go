@@ -64,7 +64,7 @@ func Execute(request *Request) {
 	checkComponentsDepends(components, stackManifest.Lifecycle.Order)
 	manifest.CheckComponentsExist(components, append(request.Components, request.OffsetComponent, request.LimitComponent)...)
 	optionalRequires := parseRequiresTunning(stackManifest.Lifecycle.Requires)
-	provides := checkRequires(stackManifest.Requires, optionalRequires)
+	provides := checkStackRequires(stackManifest.Requires, optionalRequires)
 	mergePlatformProvides(provides, stackManifest.Platform.Provides)
 	if config.Debug && len(provides) > 0 {
 		log.Print("Requirements provided by:")

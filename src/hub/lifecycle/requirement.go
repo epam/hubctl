@@ -74,20 +74,27 @@ func setupRequirement(requirement string, provider string,
 	case "kubectl", "kubernetes":
 		kube.SetupKubernetes(parameters, provider, outputs, "", false)
 
-	case "aws", "azure", "gcp", "gcs", "tiller", "helm", "vault", "ingress":
-		if config.Verbose {
-			log.Printf("Assuming `%s` requirement is setup", requirement)
+	case "aws", "azure", "gcp", "gcs", "tiller", "helm", "vault", "ingress", "tls-ingress":
+		wellKnown, err := checkRequire(requirement)
+		if wellKnown {
+			if err != nil {
+				log.Fatalf("`%s` requirement cannot be satisfied: %v", requirement, err)
+			}
+		} else {
+			if config.Verbose {
+				log.Printf("Assuming `%s` requirement is setup", requirement)
+			}
 		}
 
 	default:
-		util.Warn("Don't know how to setup requirement `%s`", requirement)
+		util.WarnOnce("Don't know how to setup requirement `%s`", requirement)
 	}
 }
 
 var bins = map[string][]string{
 	"aws":        {"aws", "s3", "ls", "--page-size", "5"},
 	"gcp":        {"gcloud", "version"},
-	"gcs":        {"gsutil", "list"},
+	"gcs":        {"gsutil", "version"},
 	"kubectl":    {"kubectl", "version", "--client"},
 	"kubernetes": {"kubectl", "version", "--client"},
 	"helm":       {"helm", "version", "--client"},
@@ -98,7 +105,6 @@ type BinVersion struct {
 	versionRegexp *regexp.Regexp
 }
 
-// TODO check binaries as we go between components and new provider/requirement pair is encountered
 var binVersion = map[string]BinVersion{
 	"gcloud":  {"239.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
 	"gsutil":  {"4.37", regexp.MustCompile("version: ([\\d.]+)")},
@@ -107,43 +113,16 @@ var binVersion = map[string]BinVersion{
 	"helm":    {"2.13.1", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
 }
 
-func checkRequires(requires []string, maybeOptional map[string][]string) map[string][]string {
+func checkStackRequires(requires []string, maybeOptional map[string][]string) map[string][]string {
 	provided := make(map[string][]string, len(requires))
 	for _, require := range requires {
 		skip := false
-		switch require {
-		case "azure":
-			err := checkRequiresAzure()
+		wellKnown, err := checkRequire(require)
+		if wellKnown {
 			if err != nil {
 				log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
 			}
-			setupTerraformAzureOsEnv()
-
-		case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
-			bin, exist := bins[require]
-			if !exist {
-				bin = []string{require, "version"}
-			}
-			out, err := checkRequiresBin(bin...)
-			if err != nil {
-				log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
-			}
-			verReq, exist := binVersion[bin[0]]
-			if exist {
-				err := checkRequiresBinVersion(verReq.minVersion, verReq.versionRegexp, out)
-				if err != nil {
-					util.WarnOnce("`%s` version requirement cannot be satisfied: %v", require, err)
-				}
-			}
-
-			if require == "gcp" || require == "gcs" {
-				err := checkRequiresGcp()
-				if err != nil {
-					log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
-				}
-			}
-
-		default:
+		} else {
 			if optionalFor, exist := maybeOptional[require]; !exist {
 				log.Fatalf("Cannot check for `requires: %s`: no implementation", require)
 			} else {
@@ -158,6 +137,50 @@ func checkRequires(requires []string, maybeOptional map[string][]string) map[str
 		}
 	}
 	return provided
+}
+
+var requirementsVerified = make(map[string]struct{})
+
+func checkRequire(require string) (bool, error) {
+	if _, exist := requirementsVerified[require]; exist {
+		return true, nil
+	}
+	switch require {
+	case "azure":
+		err := checkRequiresAzure()
+		if err != nil {
+			return true, err
+		}
+		setupTerraformAzureOsEnv()
+
+	case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
+		bin, exist := bins[require]
+		if !exist {
+			bin = []string{require, "version"}
+		}
+		out, err := checkRequiresBin(bin...)
+		if err != nil {
+			return true, err
+		}
+		verReq, exist := binVersion[bin[0]]
+		if exist {
+			err := checkRequiresBinVersion(verReq.minVersion, verReq.versionRegexp, out)
+			if err != nil {
+				util.WarnOnce("`%s` version requirement cannot be satisfied: %v", require, err)
+			}
+		}
+		if require == "gcp" || require == "gcs" {
+			err := checkRequiresGcp()
+			if err != nil {
+				return true, err
+			}
+		}
+
+	default:
+		return false, nil
+	}
+	requirementsVerified[require] = struct{}{}
+	return true, nil
 }
 
 func checkRequiresBin(bin ...string) ([]byte, error) {
