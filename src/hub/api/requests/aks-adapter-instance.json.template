@@ -1,0 +1,28 @@
+{
+    "name": "${name}",
+    "template": "",
+    "environment": "",
+    "tags": ["adapter=aks"],
+    "parameters": [{
+        "name": "dns.domain",
+        "value": ""
+    }, {
+        "name": "cloud.region",
+        "value": ""
+    }, {
+        "name": "cloud.azureResourceGroupName",
+        "value": ""
+    }, {
+        "name": "kubernetes.aks.cluster",
+        "value": ""
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": "true"
+    }]
+}

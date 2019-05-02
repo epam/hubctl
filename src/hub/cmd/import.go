@@ -18,29 +18,37 @@ import (
 var (
 	autoCreateTemplate bool
 	createNewTemplate  bool
-	knownImportKinds   = []string{"k8s-aws", "eks", "metal", "openshift"}
+	knownImportKinds   = []string{"k8s-aws", "eks", "gke", "aks", "metal", "openshift"}
+	importRegion       string
 	k8sEndpoint        string
 	eksClusterName     string
 	eksEndpoint        string
+	gkeClusterName     string
+	aksClusterName     string
+	azureResourceGroup string
 	metalEndpoint      string
 	metalIngressIp     string
 	bearerToken        string
 )
 
 var importCmd = &cobra.Command{
-	Use:   "import <k8s-aws | eks | metal | openshift> <name or FQDN> -e <id | environment name> [-m <id | template name>] < keys.pem",
+	Use: fmt.Sprintf("import <%s> <name or FQDN> -e <id | environment name> [-m <id | template name>] < keys.pem",
+		strings.Join(knownImportKinds, " | ")),
 	Short: "Import Kubernetes cluster",
 	Long: `Import Kubernetes cluster into SuperHub to become Platform Stack.
 Currently supported cluster types are:
 - k8s-aws - AgileStacks Kubernetes on AWS (stack-k8s-aws)
 - eks - AWS EKS
+- gke - GCP GKE
+- aks - Azure AKS
 - metal - Bare-metal
 - openshift - OpenShift on AWS
 
 Cluster TLS auth is read from stdin in the order:
 - k8s-aws, metal - Client cert, Client key, CA cert (optional).
-- eks - CA cert
+- eks - CA cert, optional if --eks-endpoint is omited, then it will be discovered via AWS API
 - openshift - optional CA cert
+GKE and AKS certificates are discovered by import adapter component.
 
 User-supplied FQDN must match Cloud Account's base domain.
 If no FQDN is supplied, then the name is prepended to Environment's Cloud Account base domain name
@@ -63,8 +71,15 @@ func importKubernetes(args []string) error {
 		return fmt.Errorf("Kubernetes cluster kind must be one of %v", knownImportKinds)
 	}
 
-	nativeEndpoint := k8sEndpoint
+	nativeEndpoint := ""
+	nativeClusterName := ""
 	switch kind {
+	case "k8s-aws":
+		if k8sEndpoint == "" {
+			return errors.New("AgileStacks K8S cluster API endpoint must be specified by --k8s-endpoint")
+		}
+		nativeEndpoint = k8sEndpoint
+
 	case "metal":
 		if metalEndpoint == "" {
 			return errors.New("Bare-metal cluster API endpoint must be specified by --metal-endpoint")
@@ -86,6 +101,32 @@ func importKubernetes(args []string) error {
 			}
 		}
 		nativeEndpoint = eksEndpoint
+		nativeClusterName = eksClusterName
+
+	case "gke":
+		if gkeClusterName == "" {
+			if strings.Contains(name, ".") {
+				return errors.New("GKE cluster name (--gke-cluster) must be provided")
+			} else {
+				log.Printf("Setting --gke-cluster=%s", name)
+				gkeClusterName = name
+			}
+		}
+		nativeClusterName = gkeClusterName
+
+	case "aks":
+		if aksClusterName == "" {
+			if strings.Contains(name, ".") {
+				return errors.New("AKS cluster name (--aks-cluster) must be provided")
+			} else {
+				log.Printf("Setting --aks-cluster=%s", name)
+				aksClusterName = name
+			}
+		}
+		nativeClusterName = aksClusterName
+		if azureResourceGroup == "" {
+			log.Printf("Azure resource group name (--azure-resource-group) not be provided - using default Cloud Account resource group")
+		}
 	}
 	if len(nativeEndpoint) >= 8 && strings.HasPrefix(nativeEndpoint, "https://") {
 		nativeEndpoint = nativeEndpoint[8:]
@@ -117,7 +158,7 @@ func importKubernetes(args []string) error {
 	api.ImportKubernetes(kind, name, environmentSelector, templateSelector,
 		autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
 		os.Stdin, bearerToken,
-		nativeEndpoint, eksClusterName, metalIngressIp)
+		importRegion, nativeEndpoint, nativeClusterName, metalIngressIp, azureResourceGroup)
 
 	return nil
 }
@@ -127,18 +168,26 @@ func init() {
 		"Put cluster in Environment, supply name or id")
 	importCmd.Flags().StringVarP(&templateSelector, "template", "m", "",
 		"Use specified adapter template, by name or id")
+	importCmd.Flags().StringVarP(&importRegion, "region", "", "",
+		"Cloud region if different from Cloud Account region")
 	importCmd.Flags().StringVarP(&k8sEndpoint, "k8s-endpoint", "", "",
-		"K8S cluster API endpoint, default to api.{domain}")
+		"AgileStacks Kubernetes cluster API endpoint, default to api.{domain}")
 	importCmd.Flags().StringVarP(&eksClusterName, "eks-cluster", "", "",
-		"EKS cluster native name")
+		"AWS EKS cluster native name")
 	importCmd.Flags().StringVarP(&eksEndpoint, "eks-endpoint", "", "",
-		"EKS cluster API endpoint (discovered via AWS EKS API)")
+		"AWS EKS cluster API endpoint (discovered via AWS EKS API if cluster name is supplied)")
+	importCmd.Flags().StringVarP(&gkeClusterName, "gke-cluster", "", "",
+		"GCP GKE cluster native name")
+	importCmd.Flags().StringVarP(&aksClusterName, "aks-cluster", "", "",
+		"Azure AKS cluster native name")
+	importCmd.Flags().StringVarP(&azureResourceGroup, "azure-resource-group", "", "",
+		"Azure resource group name")
 	importCmd.Flags().StringVarP(&metalEndpoint, "metal-endpoint", "", "",
 		"Bare-metal cluster API endpoint (ip[:port])")
 	importCmd.Flags().StringVarP(&metalIngressIp, "metal-ingress-ip", "", "",
 		"Bare-metal cluster static ingress IP (default to IP of endpoint)")
 	importCmd.Flags().StringVarP(&bearerToken, "bearer-token", "b", "",
-		"Use Bearer token to authenticate to the OpenShift cluster")
+		"Use Bearer token to authenticate (to the OpenShift cluster)")
 	importCmd.Flags().BoolVarP(&autoCreateTemplate, "create-template", "", true,
 		"Create adapter template if no existing template is found for reuse")
 	importCmd.Flags().BoolVarP(&createNewTemplate, "create-new-template", "", false,

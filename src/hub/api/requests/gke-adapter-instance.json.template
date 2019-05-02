@@ -1,0 +1,25 @@
+{
+    "name": "${name}",
+    "template": "",
+    "environment": "",
+    "tags": ["adapter=gke"],
+    "parameters": [{
+        "name": "dns.domain",
+        "value": ""
+    }, {
+        "name": "cloud.region",
+        "value": ""
+    }, {
+        "name": "kubernetes.gke.cluster",
+        "value": ""
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": "true"
+    }]
+}

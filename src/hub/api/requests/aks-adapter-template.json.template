@@ -1,0 +1,27 @@
+{
+    "name": "${name}",
+    "description": "AKS Adapter",
+    "stack": "aks-adapter:1",
+    "componentsEnabled": ["k8s-aks", "tiller", "traefik", "dex", "cert-manager"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["adapter=aks"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "cloud.region"
+    }, {
+        "name": "cloud.azureResourceGroupName"
+    }, {
+        "name": "kubernetes.aks.cluster"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": "true"
+    }],
+    "teamsPermissions": []
+}

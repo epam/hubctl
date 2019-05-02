@@ -43,8 +43,16 @@ var importConfigs = map[string]ImportConfig{
 	"eks": {
 		"EKS Adapter in %s",
 		[]Secret{
-			{"kubernetes.api.caCert", "certificate", nil},
+			{"kubernetes.api.caCert", "certificate", nil}, // discovered by CLI via API
 		},
+	},
+	"gke": {
+		"GKE Adapter in %s",
+		nil, // discovered by import component
+	},
+	"aks": {
+		"AKS Adapter in %s",
+		nil, // discovered by import component
 	},
 	"openshift": {
 		"OpenShift Adapter in %s",
@@ -57,14 +65,14 @@ var importConfigs = map[string]ImportConfig{
 func ImportKubernetes(kind, name, environment, template string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
 	pems io.Reader, clusterBearerToken,
-	nativeEndpoint, nativeClusterName, ingressIp string) {
+	nativeRegion, nativeEndpoint, nativeClusterName, ingressIp, azureResourceGroup string) {
 
 	err := errors.New("Not implemented")
 	if importConfig, exist := importConfigs[kind]; exist {
 		err = importK8s(importConfig, kind, name, environment, template,
 			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
 			pems, clusterBearerToken,
-			nativeEndpoint, nativeClusterName, ingressIp)
+			nativeRegion, nativeEndpoint, nativeClusterName, ingressIp, azureResourceGroup)
 	}
 	if err != nil {
 		log.Fatalf("Unable to import `%s` Kubernetes: %v", kind, err)
@@ -74,7 +82,7 @@ func ImportKubernetes(kind, name, environment, template string,
 func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templateSelector string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
 	pems io.Reader, clusterBearerToken,
-	nativeEndpoint, nativeClusterName, ingressIp string) error {
+	nativeRegion, nativeEndpoint, nativeClusterName, ingressIp, azureResourceGroup string) error {
 
 	environment, err := environmentBy(environmentSelector)
 	if err != nil {
@@ -245,6 +253,12 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		switch p.Name {
 		case "dns.domain":
 			p.Value = fqdn
+		case "cloud.region": // TODO cloud.availabilityZone for GKE cluster deployed into single zone
+			if nativeRegion != "" {
+				p.Value = nativeRegion
+			} else {
+				rm = true
+			}
 		case "kubernetes.api.endpoint":
 			if nativeEndpoint != "" {
 				p.Value = nativeEndpoint
@@ -255,10 +269,16 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 			if !hasCaCert {
 				rm = true
 			}
-		case "kubernetes.eks.cluster":
+		case "kubernetes.eks.cluster", "kubernetes.gke.cluster", "kubernetes.aks.cluster":
 			p.Value = nativeClusterName
 		case "component.ingress.staticIp":
 			p.Value = ingressIp
+		case "cloud.azureResourceGroupName":
+			if azureResourceGroup != "" {
+				p.Value = azureResourceGroup
+			} else {
+				rm = true
+			}
 		}
 		if !rm {
 			parameters = append(parameters, p)
@@ -303,6 +323,9 @@ var pemBlockTypeToSecretKind = map[string]string{
 }
 
 func readImportSecrets(secretsOrder []Secret, pems io.Reader) ([]Secret, error) {
+	if secretsOrder == nil {
+		return nil, nil
+	}
 	if config.Verbose {
 		stdin := ""
 		if pems == os.Stdin {

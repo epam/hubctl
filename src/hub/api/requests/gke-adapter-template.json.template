@@ -1,0 +1,25 @@
+{
+    "name": "${name}",
+    "description": "GKE Adapter",
+    "stack": "gke-adapter:1",
+    "componentsEnabled": ["k8s-gke", "tiller", "traefik", "dex", "cert-manager"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["adapter=gke"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "cloud.region"
+    }, {
+        "name": "kubernetes.gke.cluster"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": "true"
+    }],
+    "teamsPermissions": []
+}
