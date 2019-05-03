@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 
 	"hub/api"
 	"hub/config"
@@ -102,9 +102,9 @@ func Execute(request *Request) {
 		}
 		stateUpdater = state.InitWriter(stateFiles)
 
-		u, err := uuid.NewV4()
+		u, err := uuid.NewRandom()
 		if err != nil {
-			log.Fatalf("Unable to generate operation Id v4 UUID: %v", err)
+			log.Fatalf("Unable to generate operation Id random v4 UUID: %v", err)
 		}
 		operationLogId = u.String()
 	}
@@ -120,9 +120,9 @@ func Execute(request *Request) {
 		}
 	}
 	if deploymentId == "" {
-		u, err := uuid.NewV4()
+		u, err := uuid.NewRandom()
 		if err != nil {
-			log.Fatalf("Unable to generate `hub.deploymentId` v4 UUID: %v", err)
+			log.Fatalf("Unable to generate `hub.deploymentId` random v4 UUID: %v", err)
 		}
 		deploymentId = u.String()
 	}
