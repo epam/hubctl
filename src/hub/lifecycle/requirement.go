@@ -2,8 +2,10 @@ package lifecycle
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -285,13 +287,60 @@ func checkRequiresGcp() error {
 	if !bytes.Contains(out, []byte("gcloud auth login")) {
 		return nil
 	}
-	credentials := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if credentials == "" {
+
+	credsFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credsFile == "" {
 		return fmt.Errorf("GOOGLE_APPLICATION_CREDENTIALS is not set, see %s", gcpServiceAccountsHelp)
 	}
-	_, err = checkRequiresBin("gcloud", "auth", "activate-service-account", "--key-file", credentials)
+	_, err = checkRequiresBin("gcloud", "auth", "activate-service-account", "--key-file", credsFile)
+	if err != nil {
+		return err
+	}
 
-	return err
+	jsonData, err := ioutil.ReadFile(credsFile)
+	if err != nil {
+		return fmt.Errorf("Unable to read `%s`: %v", credsFile, err)
+	}
+	var creds map[string]string
+	err = json.Unmarshal(jsonData, &creds)
+	if err != nil {
+		return fmt.Errorf("Unable to unmarshall `%s`: %v", credsFile, err)
+	}
+	credsProject, existInCredsFile := creds["project_id"]
+
+	out, err = checkRequiresBin("gcloud", "config", "get-value", "project")
+	if err != nil {
+		return err
+	}
+	gcloudProject := strings.Trim(string(out), " \r\n")
+
+	projectUnset := "(unset)"
+	if !existInCredsFile {
+		if gcloudProject == projectUnset {
+			util.WarnOnce("No `project_id` found in `%s` and no gcloud project is set in config - gcloud will fail until --project is specifed inline",
+				credsFile)
+		} else {
+			if config.Debug {
+				log.Printf("Using gcloud pre-configured `%s` project id", gcloudProject)
+			}
+		}
+		return nil
+	}
+	if gcloudProject != credsProject {
+		if gcloudProject == projectUnset || config.Force {
+			if config.Force && gcloudProject != projectUnset {
+				util.Warn("Setting gcloud project to `%s`; was `%s`", credsProject, gcloudProject)
+			}
+			_, err = checkRequiresBin("gcloud", "config", "set", "project", credsProject)
+			if err != nil {
+				return err
+			}
+		} else {
+			util.WarnOnce("Using gcloud pre-configured `%s` project id that is different from service account credentials `%s` project id (%s)",
+				gcloudProject, credsProject, credsFile)
+		}
+	}
+	return nil
 }
 
 func noEnvironmentProvides(provides map[string][]string) map[string][]string {
