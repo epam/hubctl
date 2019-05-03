@@ -12,11 +12,11 @@ func license(id string) (*License, error) {
 	var jsResp License
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service License `%s`: %v",
+		return nil, fmt.Errorf("Error querying SuperHub License `%s`: %v",
 			id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service License `%s`, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub License `%s`, expected 200 HTTP",
 			code, id)
 	}
 	return &jsResp, nil

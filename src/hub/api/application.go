@@ -106,10 +106,10 @@ func applicationById(id string) (*Application, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Applications: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Applications: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Applications, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Applications, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -140,10 +140,10 @@ func applicationsByDomain(domain string) ([]Application, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Applications: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Applications: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Applications, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Applications, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }

@@ -15,10 +15,10 @@ func userDeploymentKey(subject string) (string, error) {
 	var jsResp DeploymentKey
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
-		return "", fmt.Errorf("Error querying Hub Service User Deployment Key: %v", err)
+		return "", fmt.Errorf("Error querying SuperHub User Deployment Key: %v", err)
 	}
 	if code != 200 {
-		return "", fmt.Errorf("Got %d HTTP querying Hub Service User Deployment Key, expected 200 HTTP", code)
+		return "", fmt.Errorf("Got %d HTTP querying SuperHub User Deployment Key, expected 200 HTTP", code)
 	}
 	key := jsResp.DeploymentKey
 	if key == "" {

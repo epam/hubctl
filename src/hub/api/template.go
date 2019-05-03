@@ -165,10 +165,10 @@ func templateById(id string) (*StackTemplate, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Templates: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Templates: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Templates, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Templates, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -199,10 +199,10 @@ func templatesByName(name string) ([]StackTemplate, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Templates: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Templates: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Templates, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Templates, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -215,10 +215,10 @@ func templateGitStatus(id string) (*TemplateStatus, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Template Git status: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Template Git status: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Template Git status, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Template Git status, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -238,7 +238,7 @@ func formatStackRef(ref *StackRef) string {
 func CreateTemplate(body io.Reader) {
 	template, err := createTemplate(body)
 	if err != nil {
-		log.Fatalf("Unable to create Hub Service Template: %v", err)
+		log.Fatalf("Unable to create SuperHub Template: %v", err)
 	}
 	errors := formatTemplateEntity(template, false, false, make([]error, 0))
 	if len(errors) > 0 {
@@ -256,7 +256,7 @@ func createTemplate(body io.Reader) (*StackTemplate, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating Hub Service Template, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Template, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -264,7 +264,7 @@ func createTemplate(body io.Reader) (*StackTemplate, error) {
 func InitTemplate(selector string) {
 	err := initTemplate(selector)
 	if err != nil {
-		log.Fatalf("Unable to initialize Hub Service Template: %v", err)
+		log.Fatalf("Unable to initialize SuperHub Template: %v", err)
 	}
 }
 
@@ -282,7 +282,7 @@ func initTemplate(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP initializing	Hub Service Template, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP initializing SuperHub Template, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -290,7 +290,7 @@ func initTemplate(selector string) error {
 func DeleteTemplate(selector string) {
 	err := deleteTemplate(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete Hub Service Template: %v", err)
+		log.Fatalf("Unable to delete SuperHub Template: %v", err)
 	}
 }
 
@@ -308,7 +308,7 @@ func deleteTemplate(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting Hub Service Template, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting SuperHub Template, expected [202, 204] HTTP", code)
 	}
 	return nil
 }

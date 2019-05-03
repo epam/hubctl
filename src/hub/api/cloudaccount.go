@@ -159,10 +159,10 @@ func cloudAccountById(id string) (*CloudAccount, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Cloud Accounts: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Cloud Accounts: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Accounts, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Accounts, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -193,10 +193,10 @@ func cloudAccountsByDomain(domain string) ([]CloudAccount, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Cloud Accounts: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Cloud Accounts: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Accounts, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Accounts, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -249,11 +249,11 @@ func rawCloudAccountCredentials(id string) ([]byte, error) {
 	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
 	code, err, body := get2(hubApi, path)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Cloud Account `%s` Credentials: %v",
+		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
 			id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Account `%s` Credentials, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Account `%s` Credentials, expected 200 HTTP",
 			code, id)
 	}
 	return body, nil
@@ -267,11 +267,11 @@ func awsCloudAccountCredentials(id string) (*AwsSecurityCredentials, error) {
 	var jsResp AwsSecurityCredentials
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Cloud Account `%s` Credentials: %v",
+		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
 			id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Cloud Account `%s` Credentials, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Account `%s` Credentials, expected 200 HTTP",
 			code, id)
 	}
 	return &jsResp, nil
@@ -440,7 +440,7 @@ func createCloudAccount(cloudAccount *CloudAccountRequest) (*CloudAccount, error
 		return nil, err
 	}
 	if code != 200 && code != 201 && code != 202 {
-		return nil, fmt.Errorf("Got %d HTTP creating Hub Service Cloud Account, expected [200, 201, 202] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Cloud Account, expected [200, 201, 202] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -451,7 +451,7 @@ func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
 	}
 	err := deleteCloudAccount(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete Hub Service Cloud Account: %v", err)
+		log.Fatalf("Unable to delete SuperHub Cloud Account: %v", err)
 	}
 	if waitAndTailDeployLogs {
 		if config.Verbose {
@@ -479,7 +479,7 @@ func deleteCloudAccount(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting Hub Service Cloud Account, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting SuperHub Cloud Account, expected [202, 204] HTTP", code)
 	}
 	return nil
 }

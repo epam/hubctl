@@ -170,10 +170,10 @@ func environmentById(id string) (*Environment, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Environments: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Environments: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Environments, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Environments, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -204,10 +204,10 @@ func environmentsByName(name string) ([]Environment, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Environments: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Environments: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Environments, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Environments, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -221,11 +221,11 @@ func myTeams(environmentId string) ([]Team, error) {
 	var jsResp []Team
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Environment `%s` My Teams: %v",
+		return nil, fmt.Errorf("Error querying SuperHub Environment `%s` My Teams: %v",
 			environmentId, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Environment `%s` My Teams, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Environment `%s` My Teams, expected 200 HTTP",
 			code, environmentId)
 	}
 	return jsResp, nil
@@ -244,11 +244,11 @@ func serviceAccount(environmentId, teamId string) (*ServiceAccount, error) {
 	var jsResp ServiceAccount
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Team `%s` Service Account: %v",
+		return nil, fmt.Errorf("Error querying SuperHub Team `%s` Service Account: %v",
 			teamId, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Team `%s` Service Account, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Team `%s` Service Account, expected 200 HTTP",
 			code, teamId)
 	}
 	return &jsResp, nil

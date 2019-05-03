@@ -95,11 +95,11 @@ func createSecret(resource, id, name, component, kind string, values map[string]
 	var jsResp CreateSecretResponse
 	code, err := post(hubApi, path, values, &jsResp)
 	if err != nil {
-		return "", fmt.Errorf("Error creating Hub Service `%s` Secret `%s`: %v",
+		return "", fmt.Errorf("Error creating SuperHub `%s` Secret `%s`: %v",
 			id, name, err)
 	}
 	if code != 201 {
-		return "", fmt.Errorf("Got %d HTTP creating Hub Service `%s` Secret `%s`, expected 201 HTTP",
+		return "", fmt.Errorf("Got %d HTTP creating SuperHub `%s` Secret `%s`, expected 201 HTTP",
 			code, id, name)
 	}
 	return jsResp.Id, nil
@@ -110,11 +110,11 @@ func secret(resource, id string) (map[string]string, error) {
 	var jsResp map[string]string
 	code, err := get(hubApi, path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service `%s` Secret `%s`: %v",
+		return nil, fmt.Errorf("Error querying SuperHub `%s` Secret `%s`: %v",
 			resource, id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service `%s` Secret `%s`, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub `%s` Secret `%s`, expected 200 HTTP",
 			code, resource, id)
 	}
 	return jsResp, nil

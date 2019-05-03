@@ -68,10 +68,10 @@ func stackById(id string) (*BaseStack, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Base Stacks: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Base Stacks: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Base Stacks, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Base Stacks, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -83,10 +83,10 @@ func stacks() ([]BaseStack, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying Hub Service Base Stacks: %v", err)
+		return nil, fmt.Errorf("Error querying SuperHub Base Stacks: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying Hub Service Base Stacks, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Base Stacks, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
