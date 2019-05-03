@@ -52,6 +52,13 @@ type Output struct {
 	Messenger string      `json:"messenger,omitempty"`
 }
 
+type Provider struct {
+	Kind       string
+	Name       string
+	Provides   []string
+	Parameters []Parameter
+}
+
 type Team struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
@@ -65,6 +72,7 @@ type Environment struct {
 	Tags             []string
 	CloudAccount     string `json:"cloudAccount"`
 	Parameters       []Parameter
+	Providers        []Provider
 	TeamsPermissions []Team `json:"teamsPermissions"`
 }
 

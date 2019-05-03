@@ -54,15 +54,36 @@ func Environments(selector string, showSecrets, showMyTeams,
 					}
 				}
 			}
+			resource := fmt.Sprintf("%s/%s", environmentsResource, env.Id)
 			if len(env.Parameters) > 0 {
 				fmt.Print("\t\tParameters:\n")
+				for _, param := range sortParameters(env.Parameters) {
+					formatted, err := formatParameter(resource, param, showSecrets)
+					fmt.Printf("\t\t%s\n", formatted)
+					if err != nil {
+						errors = append(errors, err)
+					}
+				}
 			}
-			resource := fmt.Sprintf("%s/%s", environmentsResource, env.Id)
-			for _, param := range sortParameters(env.Parameters) {
-				formatted, err := formatParameter(resource, param, showSecrets)
-				fmt.Printf("\t\t%s\n", formatted)
-				if err != nil {
-					errors = append(errors, err)
+			if len(env.Providers) > 0 {
+				fmt.Print("\t\tProviders:\n")
+				for i, provider := range env.Providers {
+					fmt.Printf("\t\t    %02d  %s [%s]\n", i, provider.Name, provider.Kind)
+					provides := "(none)"
+					if len(provider.Provides) > 0 {
+						provides = strings.Join(provider.Provides, ", ")
+					}
+					fmt.Printf("\t\t\tProvides: %s\n", provides)
+					if len(provider.Parameters) > 0 {
+						fmt.Print("\t\t\tParameters:\n")
+						for _, param := range sortParameters(provider.Parameters) {
+							formatted, err := formatParameter(resource, param, showSecrets)
+							fmt.Printf("\t\t\t%s\n", formatted)
+							if err != nil {
+								errors = append(errors, err)
+							}
+						}
+					}
 				}
 			}
 			if len(env.TeamsPermissions) > 0 {
