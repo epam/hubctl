@@ -36,6 +36,10 @@ govendor-update: bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor update +v
 .PHONY: govendor-update
 
+govendor-remove-unused: bin/$(OS)/govendor
+	@cd src/hub && $(GOBIN)/govendor remove +u
+.PHONY: govendor-update
+
 version:
 	@sed -e s/'\$$version'/"git $(shell git rev-parse HEAD | cut -c-7) built on $(shell date +"%Y.%m.%d %H:%M %Z")"/ < \
 		src/hub/util/version.go.template > src/hub/util/version.go

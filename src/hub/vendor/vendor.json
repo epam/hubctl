@@ -840,18 +840,6 @@
 			"revisionTime": "2019-02-20T19:47:58Z"
 		},
 		{
-			"checksumSHA1": "TxBvrBM2uIz9wGczsexq228U5RM=",
-			"path": "go.opencensus.io/metric/metricdata",
-			"revision": "41e54b832491efe97a2aafe696f6e7d812f136bb",
-			"revisionTime": "2019-03-27T17:06:59Z"
-		},
-		{
-			"checksumSHA1": "kWj13srwY1SH5KgFecPhEfHnzVc=",
-			"path": "go.opencensus.io/metric/metricproducer",
-			"revision": "41e54b832491efe97a2aafe696f6e7d812f136bb",
-			"revisionTime": "2019-03-27T17:06:59Z"
-		},
-		{
 			"checksumSHA1": "Mk65d5cxnkihdvjUeyRlGmF4suc=",
 			"path": "go.opencensus.io/plugin/ochttp",
 			"revision": "bf352733d4dffdd0e650c71cabc694aca654be9a",
