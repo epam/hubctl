@@ -168,7 +168,7 @@ func checkRequire(require string) (bool, error) {
 		if exist {
 			err := checkRequiresBinVersion(verReq.minVersion, verReq.versionRegexp, out)
 			if err != nil {
-				util.WarnOnce("`%s` version requirement cannot be satisfied: %v", require, err)
+				util.WarnOnce("`%s` version requirement cannot be satisfied: %s: %v", bin[0], require, err)
 			}
 		}
 		if require == "gcp" || require == "gcs" {
