@@ -614,7 +614,7 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 						envWarningsEmited[fqName] = struct{}{}
 					}
 				} else {
-					if !emitted && config.Verbose {
+					if !emitted && config.Debug {
 						log.Printf("User-level parameter `%s` specify `env: %s` on hub-component.yaml level - not propagated to global env",
 							fqName, parameter.Env)
 						envWarningsEmited[fqName] = struct{}{}
