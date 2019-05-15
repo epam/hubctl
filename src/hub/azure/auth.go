@@ -118,9 +118,15 @@ func managementClient() (*storageManagement.AccountsClient, error) {
 }
 
 func resourceGroup(account string) (string, error) {
-	hardcoded := "SuperHub"
+	osEnvVar := "AZURE_RESOURCE_GROUP_NAME"
+	name := os.Getenv(osEnvVar)
+	if name != "" {
+		return name, nil
+	}
+	hardcoded := "superhub"
 	if config.Verbose {
-		util.WarnOnce("Using hardcoded `%s` resource group to obtain `%s` storage account access key", hardcoded, account)
+		util.WarnOnce("Using hardcoded `%s` resource group to obtain `%s` storage account access key; set %s to override",
+			hardcoded, account, osEnvVar)
 	}
 	return hardcoded, nil
 }
