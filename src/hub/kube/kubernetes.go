@@ -80,7 +80,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 	}
 
 	switch flavor {
-	case "k8s-aws", "aks":
+	case "k8s-aws":
 		if len(kubernetesApiKeysFiles) != len(KubernetesKeysParameters) {
 			util.Warn("Component `%s` declared to provide Kubernetes but some key/certs output(s) are missing", componentName)
 			if config.Debug && len(kubernetesApiKeysFiles) > 0 {
@@ -118,6 +118,19 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 		_, tokenExists := componentOutputs[tokenQName]
 		if !caExists || !tokenExists {
 			util.Warn("Component `%s` declared to provide GKE Kubernetes but no `%s` or `%s` output found", componentName, tokenQName, caQName)
+			if config.Debug && len(componentOutputs) > 0 {
+				log.Print("Outputs:")
+				parameters.PrintCapturedOutputs(componentOutputs)
+			}
+		}
+
+	case "aks":
+		caQName := parameters.OutputQualifiedName(kubernetesApiCaCertOutput, componentName)
+		tokenQName := parameters.OutputQualifiedName(kubernetesApiTokenOutput, componentName)
+		_, caExists := componentOutputs[caQName]
+		_, tokenExists := componentOutputs[tokenQName]
+		if !caExists || !tokenExists {
+			util.Warn("Component `%s` declared to provide AKS Kubernetes but no `%s` or `%s` output found", componentName, tokenQName, caQName)
 			if config.Debug && len(componentOutputs) > 0 {
 				log.Print("Outputs:")
 				parameters.PrintCapturedOutputs(componentOutputs)
@@ -172,7 +185,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	switch flavor {
 	case "eks":
 		eksClusterName = mustOutput(params, outputs, provider, kubernetesEksClusterOutput)
-	case "openshift", "gke":
+	case "openshift", "gke", "aks":
 		bearerToken = mustOutput(params, outputs, provider, kubernetesApiTokenOutput)
 	}
 
@@ -241,7 +254,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	if caCertExist {
 		writeFile(caCertFile, caCert)
 	}
-	if flavor != "eks" && flavor != "openshift" && flavor != "gke" {
+	if flavor != "eks" && flavor != "openshift" && flavor != "gke" && flavor != "aks" {
 		writeFile(clientCertFile,
 			mustOutput(params, outputs, provider, kubernetesApiClientCertOutput))
 		writeFile(clientKeyFile,
@@ -260,7 +273,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	mustExec(kubectl, clusterArgs...)
 	user := ""
 	switch flavor {
-	case "k8s-aws", "aks", "metal":
+	case "k8s-aws", "metal":
 		user = "admin@" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--embed-certs=true",
@@ -282,7 +295,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 				"--exec-arg="+eksClusterName)
 		*/
 
-	case "openshift", "gke":
+	case "openshift", "gke", "aks":
 		user = "openshift-" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--token="+bearerToken)
