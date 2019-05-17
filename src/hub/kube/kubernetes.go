@@ -296,7 +296,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 		*/
 
 	case "openshift", "gke", "aks":
-		user = "openshift-" + domain
+		user = fmt.Sprintf("%s-%s", flavor, domain)
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--token="+bearerToken)
 	}
