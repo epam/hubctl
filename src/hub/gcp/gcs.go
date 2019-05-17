@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -47,6 +48,10 @@ func gcsBucket(name string) (*storage.BucketHandle, error) {
 	return bucket, nil
 }
 
+func noRoot(path string) string {
+	return strings.TrimLeft(path, "/")
+}
+
 func StatGCS(path string) (int64, time.Time, error) {
 	location, err := url.Parse(path)
 	if err != nil {
@@ -58,7 +63,7 @@ func StatGCS(path string) (int64, time.Time, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), gcsTimeout)
 	defer cancel()
-	attrs, err := bucket.Object(location.Path).Attrs(ctx)
+	attrs, err := bucket.Object(noRoot(location.Path)).Attrs(ctx)
 	if err != nil {
 		if IsNotFound(err) {
 			return 0, time.Time{}, os.ErrNotExist
@@ -79,7 +84,7 @@ func ReadGCS(path string) ([]byte, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), gcsTimeout)
 	defer cancel()
-	reader, err := bucket.Object(location.Path).NewReader(ctx)
+	reader, err := bucket.Object(noRoot(location.Path)).NewReader(ctx)
 	defer reader.Close()
 	if err != nil {
 		return nil, err
@@ -102,7 +107,7 @@ func WriteGCS(path string, body []byte) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), gcsTimeout)
 	defer cancel()
-	writer := bucket.Object(location.Path).NewWriter(ctx)
+	writer := bucket.Object(noRoot(location.Path)).NewWriter(ctx)
 	defer writer.Close()
 	written, err := writer.Write(body)
 	if err != nil || written != len(body) {
