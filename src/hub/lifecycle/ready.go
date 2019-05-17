@@ -37,8 +37,12 @@ func waitForReadyCondition(condition manifest.ReadyCondition,
 	params parameters.LockedParameters, outputs parameters.CapturedOutputs) error {
 
 	if condition.PauseSeconds > 0 {
+		why := ""
 		if config.Verbose {
-			log.Printf("Sleeping %d seconds", condition.PauseSeconds)
+			if condition.DNS != "" || condition.URL != "" {
+				why = " before checking for ready condition(s)"
+			}
+			log.Printf("Sleeping %d seconds%s", condition.PauseSeconds, why)
 		}
 		time.Sleep(time.Duration(condition.PauseSeconds) * time.Second)
 	}
