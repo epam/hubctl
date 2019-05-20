@@ -11,9 +11,12 @@ import (
 
 var (
 	wellKnownOsEnv = []string{
-		"AWS_PROFILE", "AWS_DEFAULT_REGION", "KUBECONFIG",
-		"GOBIN", "GOPATH", "GOROOT", "GOOS", "GOARCH",
+		"AWS_PROFILE", "AWS_DEFAULT_REGION",
+		"AZURE_*", "ARM_*",
+		"GOOGLE_APPLICATION_CREDENTIALS",
+		"KUBECONFIG",
 		"HUB", "HUB_*",
+		"GOBIN", "GOPATH", "GOROOT", "GOOS", "GOARCH",
 		"NVM_*", "NODE_*", "SDKMAN_*", "GRADLE_HOME", "VIRTUALENVWRAPPER_*", "VIRTUAL_ENV",
 		"HOME", "LANG", "LC_*", "LOGNAME", "PATH", "LD_LIBRARY_PATH", "SHELL", "SSH_AUTH_SOCK", "TERM", "TMPDIR", "USER",
 	}
@@ -44,8 +47,7 @@ func filterEnv(env, patterns []string, omit bool) []string {
 		if len(kv) != 2 {
 			continue
 		}
-		if (!omit && util.ContainsPrefix(patterns, kv[0])) ||
-			(omit && !util.ContainsPrefix(patterns, kv[0])) {
+		if omit != util.ContainsPrefix(patterns, kv[0]) {
 			filtered = append(filtered, v)
 		}
 	}
