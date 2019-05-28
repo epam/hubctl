@@ -39,11 +39,6 @@ func Execute(request *Request) {
 		log.Fatalf("Unable to parse environment settings `%s`: %v", request.EnvironmentOverrides, err)
 	}
 
-	osEnv, err := initOsEnv(request.OsEnvironmentMode)
-	if err != nil {
-		log.Fatalf("Unable to parse OS environment setup: %v", err)
-	}
-
 	if config.Verbose {
 		printStartBlurb(request, chosenManifestFilename, stackManifest)
 	}
@@ -69,6 +64,11 @@ func Execute(request *Request) {
 	if config.Debug && len(provides) > 0 {
 		log.Print("Requirements provided by:")
 		util.PrintDeps(provides)
+	}
+
+	osEnv, err := initOsEnv(request.OsEnvironmentMode)
+	if err != nil {
+		log.Fatalf("Unable to parse OS environment setup: %v", err)
 	}
 
 	stateFiles, errs := storage.Check(request.StateFilenames, "state")

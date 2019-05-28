@@ -251,6 +251,9 @@ func setupTerraformAzureOsEnv() {
 	if os.Getenv("ARM_CLIENT_ID") != "" {
 		return
 	}
+	if config.Debug {
+		log.Print("Setting Terraform ARM_* variables for Azure provider")
+	}
 	if os.Getenv("ARM_ACCESS_KEY") == "" {
 		vars := []string{"AZURE_STORAGE_ACCESS_KEY", "AZURE_STORAGE_KEY"}
 		for _, v := range vars {
@@ -260,7 +263,7 @@ func setupTerraformAzureOsEnv() {
 					log.Printf("Setting ARM_ACCESS_KEY=%s", key)
 				}
 				os.Setenv("ARM_ACCESS_KEY", key)
-				return
+				break
 			}
 		}
 	}
