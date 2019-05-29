@@ -168,7 +168,8 @@ func checkRequire(require string) (bool, error) {
 		if exist {
 			err := checkRequiresBinVersion(verReq.minVersion, verReq.versionRegexp, out)
 			if err != nil {
-				util.WarnOnce("`%s` version requirement cannot be satisfied: %s: %v", bin[0], require, err)
+				util.WarnOnce("`%s` version requirement cannot be satisfied: %s: %v; update `%[1]s` binary?",
+					bin[0], require, err)
 			}
 		}
 		if require == "gcp" || require == "gcs" {
@@ -211,7 +212,7 @@ func checkRequiresBinVersion(minVer string, verRegexp *regexp.Regexp, out []byte
 	}
 	ver := string(match[1])
 	if ver < minVer {
-		return fmt.Errorf("`%s` version detected; must have at least version `%s`", ver, minVer)
+		return fmt.Errorf("`%s` version detected; should have at least version `%s`", ver, minVer)
 	}
 	return nil
 }
