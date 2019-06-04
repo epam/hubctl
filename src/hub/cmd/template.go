@@ -85,7 +85,7 @@ var templateInitCmd = &cobra.Command{
 
 var templateDeleteCmd = &cobra.Command{
 	Use:   "delete <id | name>",
-	Short: "Delete Stack Template by Id",
+	Short: "Delete Stack Template by Id or name",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return deleteTemplate(args)
 	},
@@ -131,7 +131,7 @@ func initTemplate(args []string) error {
 
 func deleteTemplate(args []string) error {
 	if len(args) != 1 {
-		return errors.New("Delete Template command has one mandatory argument - id of the template")
+		return errors.New("Delete Template command has one mandatory argument - id or name of the template")
 	}
 
 	api.DeleteTemplate(args[0])

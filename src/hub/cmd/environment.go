@@ -29,6 +29,26 @@ the particular environment (specify Id or search by name)`,
 	},
 }
 
+var environmentCreateCmd = &cobra.Command{
+	Use:   "create <name> <cloud account id or domain>",
+	Short: "Create Environment",
+	Long: `Create Environment in SuperHub:
+- name must be a valid DNS name
+- selected Cloud Account will be attached to the Environment
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return createEnvironment(args)
+	},
+}
+
+var environmentDeleteCmd = &cobra.Command{
+	Use:   "delete <id | name>",
+	Short: "Delete Environment by Id or name",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return deleteEnvironment(args)
+	},
+}
+
 func environment(args []string) error {
 	if len(args) > 1 {
 		return errors.New("Environment command has one optional argument - id or name of the Environment")
@@ -47,6 +67,28 @@ func environment(args []string) error {
 	return nil
 }
 
+func createEnvironment(args []string) error {
+	if len(args) != 2 {
+		return errors.New("Create Environment command has two mandatory arguments - a name and id or domain of cloud account")
+	}
+
+	name := args[0]
+	selector := args[1]
+	api.CreateEnvironment(name, selector)
+
+	return nil
+}
+
+func deleteEnvironment(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Delete Environment command has one mandatory argument - id or name of the environment")
+	}
+
+	api.DeleteEnvironment(args[0])
+
+	return nil
+}
+
 func init() {
 	environmentGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
@@ -59,5 +101,7 @@ func init() {
 	environmentGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
 		"Request Temporary Security Credentials")
 	environmentCmd.AddCommand(environmentGetCmd)
+	environmentCmd.AddCommand(environmentCreateCmd)
+	environmentCmd.AddCommand(environmentDeleteCmd)
 	apiCmd.AddCommand(environmentCmd)
 }

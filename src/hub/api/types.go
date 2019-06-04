@@ -53,10 +53,10 @@ type Output struct {
 }
 
 type Provider struct {
-	Kind       string
-	Name       string
-	Provides   []string
-	Parameters []Parameter
+	Kind       string      `json:"kind"`
+	Name       string      `json:"name"`
+	Provides   []string    `json:"provides,omitempty"`
+	Parameters []Parameter `json:"parameters,omitempty"`
 }
 
 type Team struct {
@@ -74,6 +74,13 @@ type Environment struct {
 	Parameters       []Parameter
 	Providers        []Provider
 	TeamsPermissions []Team `json:"teamsPermissions"`
+}
+
+type EnvironmentRequest struct {
+	Name         string      `json:"name"`
+	CloudAccount string      `json:"cloudAccount"`
+	Parameters   []Parameter `json:"parameters"` // TODO omitempty as soon as API is ready
+	Providers    []Provider  `json:"providers"`
 }
 
 type StackComponent struct {

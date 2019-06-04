@@ -261,3 +261,62 @@ func formatServiceAccount(team Team, account *ServiceAccount, showLoginToken boo
 	}
 	return formatted
 }
+
+func CreateEnvironment(name, cloudAccountSelector string) {
+	cloudAccount, err := cloudAccountBy(cloudAccountSelector)
+	if err != nil {
+		log.Fatalf("Unable to create SuperHub Environment: %v", err)
+	}
+	if cloudAccount == nil {
+		log.Fatal("Unable to create SuperHub Environment: Cloud Account not found")
+	}
+	req := &EnvironmentRequest{
+		Name:         name,
+		CloudAccount: cloudAccount.Id,
+		Parameters:   []Parameter{},
+		Providers:    []Provider{},
+	}
+	environment, err := createEnvironment(req)
+	if err != nil {
+		log.Fatalf("Unable to create SuperHub Environment: %v", err)
+	}
+	Environments(environment.Id, false, false, false, false, false)
+}
+
+func createEnvironment(environment *EnvironmentRequest) (*Environment, error) {
+	var jsResp Environment
+	code, err := post(hubApi, environmentsResource, environment, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 && code != 201 {
+		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Environment, expected [200, 201] HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func DeleteEnvironment(selector string) {
+	err := deleteEnvironment(selector)
+	if err != nil {
+		log.Fatalf("Unable to delete SuperHub Environment: %v", err)
+	}
+}
+
+func deleteEnvironment(selector string) error {
+	environment, err := environmentBy(selector)
+	if err != nil {
+		return err
+	}
+	if environment == nil {
+		return error404
+	}
+	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
+	code, err := delete(hubApi, path)
+	if err != nil {
+		return err
+	}
+	if code != 202 && code != 204 {
+		return fmt.Errorf("Got %d HTTP deleting SuperHub Environments, expected [202, 204] HTTP", code)
+	}
+	return nil
+}
