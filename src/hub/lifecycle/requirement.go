@@ -235,9 +235,9 @@ func checkRequiresAzure() error {
 	}
 	clientSecret := os.Getenv("AZURE_CLIENT_SECRET")
 	if clientSecret == "" {
-		clientSecret := os.Getenv("AZURE_CERTIFICATE_PATH")
+		clientSecret = os.Getenv("AZURE_CERTIFICATE_PATH")
 		if clientSecret == "" {
-			return fmt.Errorf("No AZURE_CLIENT_ID, nor AZURE_CERTIFICATE_PATH is set, see %s", azureGoSdkAuthHelp)
+			return fmt.Errorf("No AZURE_CLIENT_SECRET, nor AZURE_CERTIFICATE_PATH is set, see %s", azureGoSdkAuthHelp)
 		}
 	}
 	_, err = checkRequiresBin("az", "login", "--service-principal",
