@@ -749,17 +749,27 @@ func captureOutputs(componentName string, componentParameters parameters.LockedP
 			}
 			if parameters.RequireExpansion(requestedOutput.Value) {
 				value := parameters.CurlyReplacement.ReplaceAllStringFunc(requestedOutput.Value,
-					func(variable string) string {
-						variable = parameters.StripCurly(variable)
-						substitution, exist := parameters.FindValue(variable, componentName, nil, kv)
-						if !exist {
-							errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to unknown substitution `%s`",
-								componentName, requestedOutput.Name, requestedOutput.Value, variable))
-							substitution = "(unknown)"
+					func(match string) string {
+						expr, isCel := parameters.StripCurly(match)
+						var substitution string
+						if isCel {
+							var err error
+							substitution, err = parameters.CelEval(expr, componentName, nil, kv)
+							if err != nil {
+								errs = append(errs, err)
+							}
+						} else {
+							var exist bool
+							substitution, exist = parameters.FindValue(expr, componentName, nil, kv)
+							if !exist {
+								errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to unknown substitution `%s`",
+									componentName, requestedOutput.Name, requestedOutput.Value, expr))
+								substitution = "(unknown)"
+							}
 						}
 						if parameters.RequireExpansion(substitution) {
 							errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to substitution `%s` that expands to `%s`. This is surely a bug.",
-								componentName, requestedOutput.Name, requestedOutput.Value, variable, substitution))
+								componentName, requestedOutput.Name, requestedOutput.Value, expr, substitution))
 							substitution = "(bug)"
 						}
 						return substitution

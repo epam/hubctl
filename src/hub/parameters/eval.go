@@ -11,10 +11,14 @@ import (
 	"hub/util"
 )
 
-var CurlyReplacement = regexp.MustCompile("\\${[a-zA-Z0-9_\\.\\|:/-]+?}")
+var CurlyReplacement = regexp.MustCompile("[\\$#][^}]+}")
 
-func StripCurly(match string) string {
-	return match[2 : len(match)-1]
+func StripCurly(match string) (string, bool) {
+	return match[2 : len(match)-1], match[0] == '#'
+}
+
+func RequireExpansion(value string) bool {
+	return strings.Contains(value, "${") || strings.Contains(value, "#{")
 }
 
 func LockParameters(parameters []manifest.Parameter,
@@ -89,10 +93,6 @@ func ParametersWithoutLinks(parameters LockedParameters) LockedParameters {
 	return withoutLinks
 }
 
-func RequireExpansion(value string) bool {
-	return strings.Contains(value, "${")
-}
-
 func ExpandParameter(parameter *manifest.Parameter, componentDepends []string, kv map[string]string) []error {
 	value, errs := expandValue(parameter, parameter.Value, componentDepends, kv, 0)
 	parameter.Value = value
@@ -111,19 +111,29 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 	}
 	errs := make([]error, 0)
 	expandedValue := CurlyReplacement.ReplaceAllStringFunc(value,
-		func(variable string) string {
-			variable = StripCurly(variable)
+		func(match string) string {
+			expr, isCel := StripCurly(match)
 			// TODO review: expansion search path is set to parameter's `component:`
 			// but in hub-component.yaml it may lead to the path being set to an
 			// unexpected qualifier or not being set at all
-			substitution, exist := FindValue(variable, parameter.Component, componentDepends, kv)
-			if !exist {
-				errs = append(errs, fmt.Errorf("Parameter `%s` value `%s` refer to unknown substitution `%s` at depth %d",
-					parameter.QName(), parameter.Value, variable, depth))
-				substitution = "(unknown)"
+			var substitution string
+			if isCel {
+				var err error
+				substitution, err = CelEval(expr, parameter.Component, componentDepends, kv)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			} else {
+				var exist bool
+				substitution, exist = FindValue(expr, parameter.Component, componentDepends, kv)
+				if !exist {
+					errs = append(errs, fmt.Errorf("Parameter `%s` value `%s` refer to unknown substitution `%s` at depth %d",
+						parameter.QName(), parameter.Value, expr, depth))
+					substitution = "(unknown)"
+				}
 			}
 			if config.Trace {
-				log.Printf("--- %s | %s => %s", variable, parameter.Component, substitution)
+				log.Printf("--- %s | %s => %s", expr, parameter.Component, substitution)
 			}
 			if RequireExpansion(substitution) {
 				var nestedErrs []error

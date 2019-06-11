@@ -90,9 +90,14 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 			invoked := 0
 			found := 0
 			value = CurlyReplacement.ReplaceAllStringFunc(requestedOutput.Value,
-				func(variable string) string {
-					invoked += 1
-					variable = StripCurly(variable)
+				func(match string) string {
+					invoked++
+					variable, isCel := StripCurly(match)
+					if isCel {
+						util.Warn("Stack output `%s = %s` CEL expression `%s` is not supported",
+							requestedOutput.Name, requestedOutput.Value, variable)
+						return "(unsupported)"
+					}
 					substitution, exist := kvParameters[variable]
 					if !exist {
 						substitution, exist = kvOutputs[variable]
@@ -106,7 +111,7 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 						log.Fatalf("Stack output `%s = %s` refer to substitution `%s` that expands to `%s`. This is surely a bug.",
 							requestedOutput.Name, requestedOutput.Value, variable, substitution)
 					} else {
-						found += 1
+						found++
 					}
 					return substitution
 				})
