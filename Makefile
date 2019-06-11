@@ -38,7 +38,7 @@ govendor-update: bin/$(OS)/govendor
 
 govendor-remove-unused: bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor remove +u
-.PHONY: govendor-update
+.PHONY: govendor-remove-unused
 
 version:
 	@sed -e s/'\$$version'/"git $(shell git rev-parse HEAD | cut -c-7) built on $(shell date +"%Y.%m.%d %H:%M %Z")"/ < \
