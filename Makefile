@@ -20,6 +20,10 @@ bin/$(OS)/gox:
 bin/$(OS)/go-bindata:
 	go get -u github.com/tmthrgd/go-bindata/...
 
+govendor-init: bin/$(OS)/govendor
+	@cd src/hub && $(GOBIN)/govendor init
+.PHONY: govendor-init
+
 govendor-list: bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor list
 .PHONY: govendor-list
