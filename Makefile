@@ -66,6 +66,10 @@ undistribute:
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_amd64
 .PHONY: undistribute
 
+cel:
+	@go get cel
+.PHONY: cel
+
 get: version
 	@go get -tags git hub
 .PHONY: get
