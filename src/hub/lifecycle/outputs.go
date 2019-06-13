@@ -124,7 +124,7 @@ func parseTextOutput(textOutput []byte) parameters.RawOutputs {
 		if i > 0 {
 			textFragment = textFragment[:i]
 		}
-		if config.Debug {
+		if config.Trace {
 			log.Printf("Parsing output chunk #%d:\n%s", chunk, textFragment)
 			chunk++
 		}
