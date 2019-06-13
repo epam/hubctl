@@ -110,6 +110,11 @@ func Elaborate(manifestFilename string,
 		componentsManifests = transformApplicationIntoComponent(stackManifest, componentsManifests)
 	}
 
+	guessAndMarkSecrets(stackManifest.Outputs)
+	for i := range componentsManifests {
+		guessAndMarkSecrets(componentsManifests[i].Outputs)
+	}
+
 	err = writeStackManifest(elaborateManifests, stackManifest, componentsManifests)
 	if err != nil {
 		log.Fatalf("Unable to write: %v", err)
@@ -494,6 +499,14 @@ func transformApplicationIntoComponent(stack *manifest.Manifest, components []ma
 	stack.Templates = manifest.TemplateSetup{}
 
 	return components
+}
+
+func guessAndMarkSecrets(outputs []manifest.Output) {
+	for i, output := range outputs {
+		if output.Kind == "" && util.LooksLikeSecret(output.Name) {
+			outputs[i].Kind = "secret" // TODO guess secret kind, like api sync does?
+		}
+	}
 }
 
 func unwrapComponentsParameters(componentsManifests []manifest.Manifest) [][]manifest.Parameter {
