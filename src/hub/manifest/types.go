@@ -132,10 +132,10 @@ type WellKnownParametersManifest struct {
 }
 
 func (p *Parameter) QName() string {
-	return parameterQualifiedName(p.Name, p.Component)
+	return ParameterQualifiedName(p.Name, p.Component)
 }
 
-func parameterQualifiedName(name, component string) string {
+func ParameterQualifiedName(name, component string) string {
 	if component != "" {
 		return fmt.Sprintf("%s|%s", name, component)
 	}

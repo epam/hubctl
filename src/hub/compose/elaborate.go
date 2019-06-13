@@ -331,19 +331,17 @@ func checkLifecycle(components []manifest.ComponentRef, lifecycle manifest.Lifec
 func checkParameters(parametersAssorti [][]manifest.Parameter) {
 	for _, parameters := range parametersAssorti {
 		for _, parameter := range parameters {
-			fqName := manifestParameterQualifiedName(&parameter)
-
 			if parameter.Kind != "" && !util.Contains([]string{"user", "tech", "link"}, parameter.Kind) {
 				util.Warn("Parameter `%s` specify unknown `kind: %s`",
-					fqName, parameter.Kind)
+					parameter.QName(), parameter.Kind)
 			}
 			if parameter.Kind == "link" && parameter.Value == "" {
 				util.Warn("Parameter `%s` of kind `link` has no value assigned",
-					fqName)
+					parameter.QName())
 			}
 			if parameter.Empty != "" && parameter.Empty != "allow" {
 				util.Warn("Parameter `%s` specify `empty: %s` but the only value recognized is `allow`",
-					fqName, parameter.Empty)
+					parameter.QName(), parameter.Empty)
 			}
 		}
 	}
@@ -414,7 +412,7 @@ func warnNoValue(parameters []manifest.Parameter) {
 				noDefault = " nor default"
 			}
 			util.Warn("%s `%s` has no value%s assigned",
-				who, manifestParameterQualifiedName(&parameter), noDefault)
+				who, parameter.QName(), noDefault)
 		}
 	}
 }
@@ -424,7 +422,7 @@ func warnFromEnvValueMismatch(parameters []manifest.Parameter) {
 		if parameter.Kind == "user" && parameter.FromEnv != "" && parameter.Value != "" {
 			if value, exist := os.LookupEnv(parameter.FromEnv); exist && value != parameter.Value {
 				util.Warn("Parameter `%s` value `%s` differs from value `%s` provided by `fromEnv:` environment variable `%s`",
-					manifestParameterQualifiedName(&parameter), parameter.Value, value, parameter.FromEnv)
+					parameter.QName(), parameter.Value, value, parameter.FromEnv)
 			}
 		}
 	}
@@ -498,26 +496,6 @@ func transformApplicationIntoComponent(stack *manifest.Manifest, components []ma
 	return components
 }
 
-func manifestParameterQualifiedName(parameter *manifest.Parameter) string {
-	return parameterQualifiedName(parameter.Name, parameter.Component)
-}
-
-func parameterQualifiedName(name string, component string) string {
-	if component != "" {
-		return fmt.Sprintf("%s|%s", name, component)
-	}
-	return name
-}
-
-func globalEnvVarAllowed(name string) bool {
-	for _, allowed := range globalEnvVarsAllowed {
-		if name == allowed {
-			return true
-		}
-	}
-	return false
-}
-
 func unwrapComponentsParameters(componentsManifests []manifest.Manifest) [][]manifest.Parameter {
 	parameters := make([][]manifest.Parameter, 0, len(componentsManifests))
 	for _, componentsManifest := range componentsManifests {
@@ -577,7 +555,6 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 	for docIndex, parameters := range parametersAssorti {
 		for _, parameter := range parameters {
 			parameter = enrichParameter(parameter, wellKnown)
-			fqName := manifestParameterQualifiedName(&parameter)
 
 			if parameter.FromEnv != "" {
 				if parameter.Kind == "" {
@@ -585,18 +562,18 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 				}
 				if docIndex < nComponents {
 					util.Warn("Parameter `%s` specify `fromEnv: %s` on hub-component.yaml level",
-						fqName, parameter.FromEnv)
+						parameter.QName(), parameter.FromEnv)
 				}
 			}
 
 			if docIndex < nComponents {
 				if parameter.Kind == "link" {
 					util.Warn("Parameter `%s` specify `kind: link` on hub-component.yaml level - this is not supported",
-						fqName)
+						parameter.QName())
 				}
 				if parameter.Kind != "user" && parameter.Value == "" && parameter.Default != "" {
 					util.Warn("Parameter `%s` specify `default:` on hub-component.yaml level - use `value:` instead",
-						fqName)
+						parameter.QName())
 				}
 				// parameters from Stack Manifest and Parameters files are a special treat
 				// Component parameter is propagated to Stack Manifest only for kind == user
@@ -605,47 +582,48 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 				}
 			}
 
-			if parameter.Env != "" && !globalEnvVarAllowed(parameter.Env) {
-				_, emitted := envWarningsEmited[fqName]
+			if parameter.Env != "" && !util.Contains(globalEnvVarsAllowed, parameter.Env) {
+				qName := parameter.QName()
+				_, emitted := envWarningsEmited[qName]
 				if docIndex >= nComponents {
 					if !emitted && !isApplication {
 						util.Warn("Parameter `%s` specify `env: %s` on hub.yaml / params.yaml level",
-							fqName, parameter.Env)
-						envWarningsEmited[fqName] = struct{}{}
+							qName, parameter.Env)
+						envWarningsEmited[qName] = struct{}{}
 					}
 				} else {
 					if !emitted && config.Debug {
 						log.Printf("User-level parameter `%s` specify `env: %s` on hub-component.yaml level - not propagated to global env",
-							fqName, parameter.Env)
-						envWarningsEmited[fqName] = struct{}{}
+							qName, parameter.Env)
+						envWarningsEmited[qName] = struct{}{}
 					}
 					parameter.Env = ""
 				}
 			}
 
 			if parameter.Component == "" {
-				fqNames := make([]string, 0, 1+len(allComponentsNames))
-				fqNames = append(fqNames, parameter.Name)
+				qNames := make([]string, 0, 1+len(allComponentsNames))
+				qNames = append(qNames, parameter.Name)
 				for _, componentName := range allComponentsNames {
-					fqNames = append(fqNames, fmt.Sprintf("%s|%s", parameter.Name, componentName))
+					qNames = append(qNames, manifest.ParameterQualifiedName(parameter.Name, componentName))
 				}
-				for i, fqName := range fqNames {
-					p, exist := kv[fqName]
+				for i, qName := range qNames {
+					p, exist := kv[qName]
 					if !exist {
 						if i == 0 { // plain parameter name
-							kv[fqName] = parameter
+							kv[qName] = parameter
 						}
 					} else {
-						kv[fqName] = mergeParameter(p, parameter, overrides, false)
+						kv[qName] = mergeParameter(p, parameter, overrides, false)
 					}
 				}
 			} else {
-				fqName := fmt.Sprintf("%s|%s", parameter.Name, parameter.Component)
-				p, exist := kv[fqName]
+				qName := manifest.ParameterQualifiedName(parameter.Name, parameter.Component)
+				p, exist := kv[qName]
 				if !exist {
-					kv[fqName] = parameter
+					kv[qName] = parameter
 				} else {
-					kv[fqName] = mergeParameter(p, parameter, overrides, false)
+					kv[qName] = mergeParameter(p, parameter, overrides, false)
 				}
 			}
 		}
