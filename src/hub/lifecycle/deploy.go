@@ -454,7 +454,7 @@ NEXT_COMPONENT:
 				log.Printf("%s provides:", strings.Title(stackManifest.Kind))
 				util.PrintDeps(noEnvironmentProvides(provides))
 			}
-			printExpandedOutputs(stackOutputs)
+			printStackOutputs(stackOutputs)
 		}
 	}
 

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"hub/config"
 	"hub/util"
 )
 
@@ -28,7 +29,13 @@ func PrintLockedParametersList(parameters []LockedParameter) {
 		if parameter.Env != "" {
 			env = fmt.Sprintf(" (env:%s)", parameter.Env)
 		}
-		log.Printf("\t%s => `%s`%s", parameter.QName(), util.Wrap(parameter.Value), env)
+		value := parameter.Value
+		if !config.Trace && util.LooksLikeSecret(parameter.Name) && len(value) > 0 {
+			value = "(masked)"
+		} else {
+			value = fmt.Sprintf("`%s`", util.Wrap(value))
+		}
+		log.Printf("\t%s => %s%s", parameter.QName(), value, env)
 	}
 }
 
@@ -79,11 +86,17 @@ func CapturedOutputsToList(outputs CapturedOutputs) []CapturedOutput {
 
 func PrintCapturedOutputsList(outputs []CapturedOutput) {
 	for _, output := range outputs {
+		value := output.Value
 		kind := ""
 		if output.Kind != "" {
 			kind = fmt.Sprintf("[%s] ", output.Kind)
+			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && len(value) > 0 {
+				value = "(masked)"
+			} else {
+				value = fmt.Sprintf("`%s`", util.Wrap(value))
+			}
 		}
-		log.Printf("\t%s%s:%s => `%s`", kind, output.Component, output.Name, util.Wrap(output.Value))
+		log.Printf("\t%s%s:%s => %s", kind, output.Component, output.Name, value)
 	}
 }
 

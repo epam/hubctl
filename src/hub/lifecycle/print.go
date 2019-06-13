@@ -67,6 +67,12 @@ func printBackupEndBlurb(request *Request, stackManifest *manifest.Manifest) {
 
 func printEnvironment(env []string) {
 	for _, v := range env {
+		if !config.Trace {
+			kv := strings.SplitN(v, "=", 2)
+			if len(kv) == 2 && util.LooksLikeSecret(kv[0]) && len(kv[1]) > 0 {
+				v = fmt.Sprintf("%s=(masked)", kv[0])
+			}
+		}
 		log.Printf("\t%s", v)
 	}
 }
@@ -128,7 +134,7 @@ func formatStdoutStderr(stdout, stderr []byte) string {
 	return fmt.Sprintf("%s%s", formatBytes("stdout", stdout), formatBytes("stderr", stderr))
 }
 
-func printExpandedOutputs(outputs []parameters.ExpandedOutput) {
+func printStackOutputs(outputs []parameters.ExpandedOutput) {
 	if len(outputs) > 0 {
 		log.Print("Stack outputs:")
 		for _, output := range outputs {
@@ -136,14 +142,23 @@ func printExpandedOutputs(outputs []parameters.ExpandedOutput) {
 			if output.Brief != "" {
 				brief = fmt.Sprintf("[%s] ", output.Brief)
 			}
-			if strings.Contains(output.Value, "\n") {
+			value := output.Value
+			valueMasked := false
+			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && len(value) > 0 {
+				value = "(masked)"
+				valueMasked = true
+			}
+			if strings.Contains(value, "\n") {
 				maybeNl := "\n"
-				if strings.HasSuffix(output.Value, "\n") {
+				if strings.HasSuffix(value, "\n") {
 					maybeNl = ""
 				}
-				log.Printf("\t%s%s ~>\n%s%s~~", brief, output.Name, output.Value, maybeNl)
+				log.Printf("\t%s%s ~>\n%s%s~~", brief, output.Name, value, maybeNl)
 			} else {
-				log.Printf("\t%s%s => `%s`", brief, output.Name, output.Value)
+				if !valueMasked {
+					value = fmt.Sprintf("`%s`", value)
+				}
+				log.Printf("\t%s%s => %s", brief, output.Name, value)
 			}
 		}
 	}
@@ -161,6 +176,7 @@ func printStackInstancePatch(patch api.StackInstancePatch) {
 			if output.Component != "" {
 				component = fmt.Sprintf("%s:", output.Component)
 			}
+			// this is under Trace, no secret value masking required
 			log.Printf("\t%s%s%s => `%v`", brief, component, output.Name, output.Value)
 		}
 	}

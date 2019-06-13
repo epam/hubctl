@@ -469,10 +469,12 @@ func SplitQName(qName string) (string, string) {
 
 func initSecretSuffixes() []string {
 	seed := []string{"password", "secret", "key", "cert", "token"}
-	suffixes := make([]string, 0, len(seed)*2)
+	suffixes := make([]string, 0, len(seed)*4)
 	for _, suf := range seed {
 		suffixes = append(suffixes, "."+suf)
+		suffixes = append(suffixes, "_"+suf)
 		suffixes = append(suffixes, strings.Title(suf))
+		suffixes = append(suffixes, strings.ToUpper(suf))
 	}
 	return suffixes
 }
@@ -482,7 +484,7 @@ var notASecretWhitelist = []string{"cloud.sshKey"}
 
 func LooksLikeSecret(name string) bool {
 	i := strings.Index(name, "|")
-	if i > 0 {
+	if i > 0 { // a Qname
 		name = name[0:i]
 	}
 	if Contains(notASecretWhitelist, name) {

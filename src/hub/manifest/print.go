@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"hub/config"
 	"hub/util"
 )
 
@@ -25,7 +26,11 @@ func printParameters(parameters []Parameter) {
 		if value == "" && p.Kind == "user" {
 			value = "*ask*"
 		} else {
-			value = fmt.Sprintf("`%s`", util.Wrap(value))
+			if !config.Trace && util.LooksLikeSecret(p.Name) && len(value) > 0 {
+				value = "(masked)"
+			} else {
+				value = fmt.Sprintf("`%s`", util.Wrap(value))
+			}
 		}
 		fqName := p.Name
 		if p.Component != "" {
