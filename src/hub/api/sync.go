@@ -246,6 +246,8 @@ func guessSecretKind(outputKind, name string) string {
 		kind = "privateKey"
 	} else if strings.HasSuffix(name, ".cert") || strings.HasSuffix(name, "Cert") {
 		kind = "certificate"
+	} else if strings.HasSuffix(name, ".token") || strings.HasSuffix(name, "Token") {
+		kind = "token"
 	} else if strings.HasSuffix(name, ".password") || strings.HasSuffix(name, "Password") {
 		kind = "password"
 	}
