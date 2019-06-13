@@ -55,8 +55,8 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	if len(request.Components) > 0 {
 		manifest.CheckComponentsExist(components, request.Components...)
 		components = make([]manifest.ComponentRef, 0, len(request.Components))
-		for _, comp := range request.Components {
-			componentRef := findComponentRef(stackManifest.Components, comp)
+		for _, componentName := range request.Components {
+			componentRef := manifest.ComponentRefByName(stackManifest.Components, componentName)
 			components = append(components, *componentRef)
 		}
 		order = request.Components
@@ -68,7 +68,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 
 	implementsBackup := make([]string, 0, len(order))
 	for _, componentName := range order {
-		component := findComponentRef(components, componentName)
+		component := manifest.ComponentRefByName(components, componentName)
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		impl := probeImplementation(dir, verb)
 		if impl {
@@ -79,9 +79,9 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		log.Fatalf("No component implements `%s` verb", verb)
 	}
 	if len(request.Components) > 0 && len(request.Components) != len(implementsBackup) {
-		for _, comp := range request.Components {
-			if !util.Contains(implementsBackup, comp) {
-				log.Printf("Component `%s` does not implement `%s` verb", comp, verb)
+		for _, componentName := range request.Components {
+			if !util.Contains(implementsBackup, componentName) {
+				log.Printf("Component `%s` does not implement `%s` verb", componentName, verb)
 			}
 		}
 		os.Exit(1)
@@ -129,8 +129,8 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 			log.Printf("%s ***%s*** (%d/%d)", verb, componentName, componentIndex+1, len(implementsBackup))
 		}
 
-		component := findComponentRef(components, componentName)
-		componentManifest := findComponentManifest(component, componentsManifests)
+		component := manifest.ComponentRefByName(components, componentName)
+		componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
 
 		// TODO Should we reload new parameters from elaborate to allow for component's source mismatch?
 		// Or it will encourage bad practice?

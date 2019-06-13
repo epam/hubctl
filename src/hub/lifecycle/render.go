@@ -63,8 +63,8 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 
 	if stackManifest != nil && componentName != "" {
 		manifest.CheckComponentsExist(stackManifest.Components, componentName)
-		component := findComponentRef(stackManifest.Components, componentName)
-		componentManifest := findComponentManifest(component, componentsManifests)
+		component := manifest.ComponentRefByName(stackManifest.Components, componentName)
+		componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
 
 		stackParameters := make(parameters.LockedParameters)
 		outputs = make(parameters.CapturedOutputs)

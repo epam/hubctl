@@ -64,6 +64,26 @@ func mergeField(base string, over string) string {
 	return out
 }
 
+func ComponentRefByName(components []ComponentRef, componentName string) *ComponentRef {
+	for i, component := range components {
+		name := ComponentQualifiedNameFromRef(&component)
+		if name == componentName {
+			return &components[i]
+		}
+	}
+	return nil
+}
+
+func ComponentManifestByRef(componentsManifests []Manifest, component *ComponentRef) *Manifest {
+	name := ComponentQualifiedNameFromRef(component)
+	for _, componentsManifest := range componentsManifests {
+		if name == ComponentQualifiedNameFromMeta(&componentsManifest.Meta) {
+			return &componentsManifest
+		}
+	}
+	return nil
+}
+
 func ComponentsNamesFromManifests(manifests []Manifest) []string {
 	res := make([]string, len(manifests))
 	for i, v := range manifests {

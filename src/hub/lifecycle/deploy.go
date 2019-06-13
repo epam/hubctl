@@ -228,8 +228,8 @@ NEXT_COMPONENT:
 				componentName, componentIndex+1, len(components))
 		}
 
-		component := findComponentRef(components, componentName)
-		componentManifest := findComponentManifest(component, componentsManifests)
+		component := manifest.ComponentRefByName(components, componentName)
+		componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
 
 		if stateManifest != nil && (componentIndex == offsetComponentIndex || len(request.Components) > 0) {
 			if len(request.Components) > 0 {
@@ -534,26 +534,6 @@ func addLockedParameter2(params []parameters.LockedParameter, name, env, value s
 
 func addHubProvides(params []parameters.LockedParameter, provides map[string][]string) []parameters.LockedParameter {
 	return addLockedParameter2(params, "hub.provides", "HUB_PROVIDES", strings.Join(util.SortedKeys2(provides), " "))
-}
-
-func findComponentRef(components []manifest.ComponentRef, componentName string) *manifest.ComponentRef {
-	for i, component := range components {
-		name := manifest.ComponentQualifiedNameFromRef(&component)
-		if name == componentName {
-			return &components[i]
-		}
-	}
-	return nil
-}
-
-func findComponentManifest(component *manifest.ComponentRef, componentsManifests []manifest.Manifest) *manifest.Manifest {
-	name := manifest.ComponentQualifiedNameFromRef(component)
-	for _, componentsManifest := range componentsManifests {
-		if name == manifest.ComponentQualifiedNameFromMeta(&componentsManifest.Meta) {
-			return &componentsManifest
-		}
-	}
-	return nil
 }
 
 func maybeTestVerb(verb string, test bool) string {

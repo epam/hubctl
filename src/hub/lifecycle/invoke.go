@@ -45,9 +45,9 @@ func Invoke(request *Request) {
 	}
 
 	manifest.CheckComponentsExist(stackManifest.Components, request.Component)
-	component := findComponentRef(stackManifest.Components, request.Component)
+	component := manifest.ComponentRefByName(stackManifest.Components, request.Component)
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
-	componentManifest := findComponentManifest(component, componentsManifests)
+	componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
 	checkVerbs(request.Component, componentManifest.Lifecycle.Verbs, request.Verb)
 
 	stackParameters := make(parameters.LockedParameters)
