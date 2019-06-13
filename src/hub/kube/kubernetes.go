@@ -138,6 +138,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 		}
 	}
 
+	// TODO deprecate
 	for key, apiKey := range kubernetesApiKeysFiles {
 		if strings.HasPrefix(apiKey, kubernetesFileRefPrefix) {
 			filename := apiKey[len(kubernetesFileRefPrefix):]
@@ -156,6 +157,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 	return outputs
 }
 
+// TODO deprecate
 func captureFile(filename string) string {
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strings"
 
 	"hub/config"
@@ -14,7 +16,8 @@ import (
 )
 
 func captureOutputs(componentName string, componentParameters parameters.LockedParameters,
-	textOutput []byte, requestedOutputs []manifest.Output) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
+	textOutput []byte, componentDir string,
+	requestedOutputs []manifest.Output) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
 
 	tfOutputs := parseTextOutput(textOutput)
 	dynamicProvides := extractDynamicProvides(tfOutputs)
@@ -44,6 +47,24 @@ func captureOutputs(componentName string, componentParameters parameters.LockedP
 				} else {
 					errs = append(errs, fmt.Errorf("Unknown encoding `%s` capturing output `%s` from raw output `%s`",
 						encoding, requestedOutput.FromTfVar, variable))
+				}
+			}
+			fileRefPrefix := "file://"
+			if strings.HasPrefix(value, fileRefPrefix) && len(value) > len(fileRefPrefix) {
+				filename := value[len(fileRefPrefix):]
+				if !filepath.IsAbs(filename) {
+					filename = filepath.Join(componentDir, filename)
+				}
+				bytes, err := ioutil.ReadFile(filename)
+				if err != nil {
+					util.Warn("Unable to read raw output `%s` from `%s` for component `%s` output `%s`: %v",
+						variable, filename, componentName, requestedOutput.Name, err)
+					// pass value as is
+				} else {
+					value = string(bytes)
+					if strings.Count(value, "\n") <= 1 {
+						value = strings.Trim(value, " \r\n")
+					}
 				}
 			}
 			output.Value = value

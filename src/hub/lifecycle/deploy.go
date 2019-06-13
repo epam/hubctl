@@ -323,10 +323,10 @@ NEXT_COMPONENT:
 			stateUpdater("sync")
 		}
 
-		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
+		componentDir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		stdout, stderr, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
 			component, componentManifest, componentParameters,
-			dir, osEnv, request.PipeOutputInRealtime)
+			componentDir, osEnv, request.PipeOutputInRealtime)
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
@@ -343,7 +343,7 @@ NEXT_COMPONENT:
 			var dynamicProvides []string
 			var errs []error
 			rawOutputs, componentOutputs, dynamicProvides, errs =
-				captureOutputs(componentName, componentParameters, stdout, componentManifest.Outputs)
+				captureOutputs(componentName, componentParameters, stdout, componentDir, componentManifest.Outputs)
 
 			if len(errs) > 0 {
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
@@ -364,7 +364,7 @@ NEXT_COMPONENT:
 				if config.Verbose {
 					log.Print("Checking Git status")
 				}
-				git := gitOutputs(componentName, dir, request.GitOutputsStatus)
+				git := gitOutputs(componentName, componentDir, request.GitOutputsStatus)
 				if config.Debug && len(git) > 0 {
 					log.Print("Implicit Git outputs added:")
 					parameters.PrintCapturedOutputs(git)
