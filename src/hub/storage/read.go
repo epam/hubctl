@@ -18,6 +18,16 @@ import (
 
 var remoteStorageSchemes = []string{"s3", "gs", "az"}
 
+func RemoteStoragePaths(paths []string) []string {
+	var remote []string
+	for _, path := range paths {
+		if strings.Contains(path, "://") {
+			remote = append(remote, path)
+		}
+	}
+	return remote
+}
+
 func checkPath(path, kind string) (*File, error) {
 	if strings.Contains(path, ",") {
 		util.Warn("Did you split `%s` on ',' (comma)?", path)

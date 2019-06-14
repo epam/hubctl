@@ -14,19 +14,21 @@ import (
 )
 
 var (
-	noLoadState                 bool
-	loadFinalState              bool
-	offsetComponent             string
-	limitComponent              string
-	guessComponent              bool
-	strictParameters            bool
-	compressedState             bool
-	gitOutputs                  bool
-	gitOutputsStatus            bool
-	hubEnvironment              string
-	hubStackInstance            string
-	hubApplication              string
-	hubSaveStackInstanceOutputs bool
+	noLoadState                   bool
+	loadFinalState                bool
+	offsetComponent               string
+	limitComponent                string
+	guessComponent                bool
+	strictParameters              bool
+	compressedState               bool
+	gitOutputs                    bool
+	gitOutputsStatus              bool
+	hubEnvironment                string
+	hubStackInstance              string
+	hubApplication                string
+	hubSaveStackInstanceOutputs   bool
+	hubSyncStackInstance          bool
+	hubSyncSkipParametersAndOplog bool
 )
 
 var deployCmd = &cobra.Command{
@@ -99,27 +101,34 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 
 	setOsEnvForNestedCli(manifests, stateManifests, componentsBaseDir)
 
+	// TODO remove compat
+	if hubSaveStackInstanceOutputs {
+		hubSyncStackInstance = true
+		hubSyncSkipParametersAndOplog = true
+	}
+
 	request := &lifecycle.Request{
-		Verb:                     verb,
-		DryRun:                   dryRun,
-		ManifestFilenames:        manifests,
-		StateFilenames:           stateManifests,
-		LoadFinalState:           loadFinalState,
-		Components:               components,
-		OffsetComponent:          offsetComponent,
-		LimitComponent:           limitComponent,
-		GuessComponent:           guessComponent,
-		StrictParameters:         strictParameters,
-		OsEnvironmentMode:        osEnvironmentMode,
-		EnvironmentOverrides:     environmentOverrides,
-		ComponentsBaseDir:        componentsBaseDir,
-		PipeOutputInRealtime:     pipeOutputInRealtime,
-		GitOutputs:               gitOutputs,
-		GitOutputsStatus:         gitOutputsStatus,
-		Environment:              hubEnvironment,
-		StackInstance:            hubStackInstance,
-		Application:              hubApplication,
-		SaveStackInstanceOutputs: hubSaveStackInstanceOutputs,
+		Verb:                       verb,
+		DryRun:                     dryRun,
+		ManifestFilenames:          manifests,
+		StateFilenames:             stateManifests,
+		LoadFinalState:             loadFinalState,
+		Components:                 components,
+		OffsetComponent:            offsetComponent,
+		LimitComponent:             limitComponent,
+		GuessComponent:             guessComponent,
+		StrictParameters:           strictParameters,
+		OsEnvironmentMode:          osEnvironmentMode,
+		EnvironmentOverrides:       environmentOverrides,
+		ComponentsBaseDir:          componentsBaseDir,
+		PipeOutputInRealtime:       pipeOutputInRealtime,
+		GitOutputs:                 gitOutputs,
+		GitOutputsStatus:           gitOutputsStatus,
+		Environment:                hubEnvironment,
+		StackInstance:              hubStackInstance,
+		Application:                hubApplication,
+		SyncStackInstance:          hubSyncStackInstance,
+		SyncSkipParametersAndOplog: hubSyncSkipParametersAndOplog,
 	}
 
 	return request, nil
@@ -149,6 +158,10 @@ func initDeployUndeployFlags(cmd *cobra.Command, verb string) {
 		fmt.Sprintf("Component to stop %s at", verb))
 	cmd.Flags().StringVarP(&environmentOverrides, "environment", "e", "",
 		"Set environment overrides: -e 'NAME=demo,INSTANCE=r4.large,...'")
+	cmd.Flags().BoolVarP(&hubSyncStackInstance, "hub-sync", "", false,
+		"Sync Stack Instance state to SuperHub (--hub-stack-instance must be set)")
+	cmd.Flags().BoolVarP(&hubSyncSkipParametersAndOplog, "hub-sync-skip-parameters-and-oplog", "", false,
+		"Sync skip syncing Stack Instance parameters and operation log")
 	initCommonLifecycleFlags(cmd, verb)
 	initCommonApiFlags(cmd)
 }
@@ -184,6 +197,6 @@ func init() {
 	deployCmd.Flags().BoolVarP(&gitOutputsStatus, "git-outputs-status", "", false,
 		"Produce hub.components.<component-name>.git.clean = {clean, dirty} which is expensive to calculate")
 	deployCmd.Flags().BoolVarP(&hubSaveStackInstanceOutputs, "hub-save-stack-instance-outputs", "", false,
-		"Send Stack Instance outputs and provides to SuperHub (--hub-stack-instance must be set)")
+		"(deprecated) Send Stack Instance outputs and provides to SuperHub (--hub-stack-instance must be set)")
 	RootCmd.AddCommand(deployCmd)
 }

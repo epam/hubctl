@@ -8,61 +8,53 @@ import (
 	"hub/kube"
 	"hub/parameters"
 	"hub/state"
+	"hub/storage"
 	"hub/util"
 )
 
 func SyncStackInstance(selector, status string, stateFilenames []string) {
-	var st *state.StateManifest
-	var s3StatePaths []string
-	var componentsEnabled []string
+	patch := StackInstancePatch{Status: &StackInstanceStatus{Status: status}}
+
 	if len(stateFilenames) > 0 {
-		st = state.MustParseStateFiles(stateFilenames)
+		state := state.MustParseStateFiles(stateFilenames)
 
-		componentsEnabled = st.Lifecycle.Order
+		patch = TransformStateToApi(state)
+		if status != "" {
+			patch.Status.Status = status
+		}
 
-		for _, filename := range stateFilenames {
-			if strings.HasPrefix(filename, "s3://") {
-				s3StatePaths = append(s3StatePaths, filename)
-			}
+		remoteStatePaths := storage.RemoteStoragePaths(stateFilenames)
+		if len(remoteStatePaths) > 0 {
+			patch.StateFiles = remoteStatePaths
 		}
 	}
 
-	var params []Parameter
-	var outputs []Output
-	var components []ComponentStatus
-	var provides map[string][]string
-	var ops []InflightOperation
-	if st != nil {
-		if status == "" {
-			status = st.Status
-		}
-		params = transformStackParametersToApi(st.StackParameters)
-		outputs = TransformStackOutputsToApi(appendKubernetesOutputs(st.StackOutputs, st.Components))
-		components = transformComponentsToApi(st.Lifecycle.Order, st.Components)
-		ops = transformOperationsToApi(st.Operations)
-		provides = st.Provides
-	}
-
-	patch := StackInstancePatch{
-		Parameters:         params,
-		ComponentsEnabled:  componentsEnabled,
-		StateFiles:         s3StatePaths,
-		Status:             &StackInstanceStatus{Status: status, Components: components},
-		InflightOperations: ops,
-		Outputs:            outputs,
-		Provides:           provides,
-	}
 	if config.Verbose {
-		log.Print("Syncing instance state to SuperHub")
+		log.Print("Syncing Stack Instance state to SuperHub")
 	}
 	patched, err := PatchStackInstance(selector, patch)
 	if err != nil {
 		log.Fatalf("Unable to sync Stack Instance: %v", err)
 	}
+
 	errs := formatStackInstanceEntity(patched, false, false, make([]error, 0))
 	if len(errs) > 0 {
 		config.AggWarnings = false
 		util.Warn("%s", util.Errors2(errs...))
+	}
+}
+
+func TransformStateToApi(state *state.StateManifest) StackInstancePatch {
+	return StackInstancePatch{
+		ComponentsEnabled: state.Lifecycle.Order,
+		Parameters:        transformStackParametersToApi(state.StackParameters),
+		Status: &StackInstanceStatus{
+			Status:     state.Status,
+			Components: transformComponentsToApi(state.Lifecycle.Order, state.Components),
+		},
+		InflightOperations: transformOperationsToApi(state.Operations),
+		Outputs:            transformStackOutputsToApi(appendKubernetesOutputs(state.StackOutputs, state.Components)),
+		Provides:           state.Provides,
 	}
 }
 
@@ -193,7 +185,7 @@ func appendKubernetesOutputs(outputs []parameters.ExpandedOutput, components map
 	return outputs
 }
 
-func TransformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Output {
+func transformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Output {
 	outputs := make([]Output, 0, len(stackOutputs))
 	for _, o := range stackOutputs {
 		name := o.Name

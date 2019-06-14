@@ -458,20 +458,27 @@ NEXT_COMPONENT:
 		}
 	}
 
-	if request.SaveStackInstanceOutputs && request.StackInstance != "" && len(stackOutputs) > 0 {
-		patch := api.StackInstancePatch{
-			Outputs:  api.TransformStackOutputsToApi(stackOutputs),
-			Provides: noEnvironmentProvides(provides),
+	if request.SyncStackInstance && request.StackInstance != "" {
+		patch := api.TransformStateToApi(stateManifest)
+		remoteStatePaths := storage.RemoteStoragePaths(request.StateFilenames)
+		if len(remoteStatePaths) > 0 {
+			patch.StateFiles = remoteStatePaths
+		}
+		if request.SyncSkipParametersAndOplog {
+			patch.ComponentsEnabled = nil
+			patch.Parameters = nil
+			patch.InflightOperations = nil
 		}
 		if config.Verbose {
-			log.Print("Sending stack outputs to SuperHub")
+			log.Print("Syncing stack instance state to SuperHub")
 			if config.Trace {
 				printStackInstancePatch(patch)
 			}
 		}
 		_, err := api.PatchStackInstance(request.StackInstance, patch)
 		if err != nil {
-			util.Warn("Unable to send stack outputs to SuperHub: %v", err)
+			util.Warn("Unable to sync stack instance to SuperHub: %v\n\ttry running sync manually: hub api instance sync %s -s %s ",
+				err, request.StackInstance, strings.Join(request.StateFilenames, ","))
 		}
 	}
 
