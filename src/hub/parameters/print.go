@@ -86,14 +86,12 @@ func CapturedOutputsToList(outputs CapturedOutputs) []CapturedOutput {
 
 func PrintCapturedOutputsList(outputs []CapturedOutput) {
 	for _, output := range outputs {
-		value := output.Value
+		value := fmt.Sprintf("`%s`", util.Wrap(output.Value))
 		kind := ""
 		if output.Kind != "" {
 			kind = fmt.Sprintf("[%s] ", output.Kind)
-			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && len(value) > 0 {
+			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && len(output.Value) > 0 {
 				value = "(masked)"
-			} else {
-				value = fmt.Sprintf("`%s`", util.Wrap(value))
 			}
 		}
 		log.Printf("\t%s%s:%s => %s", kind, output.Component, output.Name, value)
