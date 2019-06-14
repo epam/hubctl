@@ -133,7 +133,11 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 				}
 			}
 			if config.Trace {
-				log.Printf("--- %s | %s => %s", expr, parameter.Component, substitution)
+				comp := ""
+				if parameter.Component != "" {
+					comp = fmt.Sprintf(" | %s", parameter.Component)
+				}
+				log.Printf("--- %s%s => %s", expr, comp, substitution)
 			}
 			if RequireExpansion(substitution) {
 				var nestedErrs []error
