@@ -169,7 +169,7 @@ func bearerToken() string {
 			if resp != nil {
 				exp := time.Unix(resp.Exp, 0)
 				if config.Debug {
-					log.Print("API access token refreshed; expiry at %v")
+					log.Printf("API access token refreshed; expiry at %v", exp)
 				}
 				if !tokenTimeValid(exp) {
 					util.Warn("API refreshed token expiry too short %v", exp)
