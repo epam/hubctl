@@ -406,7 +406,7 @@ func warnNoValue(parameters []manifest.Parameter) {
 			who := "Parameter"
 			noDefault := ""
 			if parameter.Kind == "user" {
-				if parameter.Default != "" || parameter.FromEnv != "" {
+				if parameter.Default != "" || parameter.FromEnv != "" || parameter.FromFile != "" {
 					continue
 				}
 				who = "User-level parameter"
@@ -552,8 +552,6 @@ func mergeAnnotations(parent, child map[string]string) map[string]string {
 	return merged
 }
 
-var envWarningsEmited = make(map[string]struct{})
-
 func mergeParameters(parametersAssorti [][]manifest.Parameter,
 	overrides map[string]string,
 	wellKnown map[string]manifest.Parameter,
@@ -562,20 +560,12 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 
 	kv := make(map[string]manifest.Parameter)
 	for docIndex, parameters := range parametersAssorti {
+		isComponentManifest := docIndex < nComponents
 		for _, parameter := range parameters {
 			parameter = enrichParameter(parameter, wellKnown)
+			parameter = updateKindIfFrom(parameter, isComponentManifest)
 
-			if parameter.FromEnv != "" {
-				if parameter.Kind == "" {
-					parameter.Kind = "user"
-				}
-				if docIndex < nComponents {
-					util.Warn("Parameter `%s` specify `fromEnv: %s` on hub-component.yaml level",
-						parameter.QName(), parameter.FromEnv)
-				}
-			}
-
-			if docIndex < nComponents {
+			if isComponentManifest {
 				if parameter.Kind == "link" {
 					util.Warn("Parameter `%s` specify `kind: link` on hub-component.yaml level - this is not supported",
 						parameter.QName())
@@ -584,27 +574,27 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 					util.Warn("Parameter `%s` specify `default:` on hub-component.yaml level - use `value:` instead",
 						parameter.QName())
 				}
-				// parameters from Stack Manifest and Parameters files are a special treat
-				// Component parameter is propagated to Stack Manifest only for kind == user
+				// parameters from Stack Manifest and Parameters files are a special treat -
+				// they always go to the top level in elaborated
+				// component parameter is propagated to Stack Manifest only for kind == user
 				if parameter.Kind != "user" {
 					continue
 				}
 			}
 
+			// below are either hub.yaml / params.yaml top-level parameters or
+			// kind == user parameters from hub-component.yaml
+
 			if parameter.Env != "" && !util.Contains(globalEnvVarsAllowed, parameter.Env) {
-				qName := parameter.QName()
-				_, emitted := envWarningsEmited[qName]
-				if docIndex >= nComponents {
-					if !emitted && !isApplication {
-						util.Warn("Parameter `%s` specify `env: %s` on hub.yaml / params.yaml level",
-							qName, parameter.Env)
-						envWarningsEmited[qName] = struct{}{}
+				if !isComponentManifest {
+					if !!isApplication {
+						util.WarnOnce("Parameter `%s` specify `env: %s` on hub.yaml / params.yaml level",
+							parameter.QName(), parameter.Env)
 					}
 				} else {
-					if !emitted && config.Debug {
+					if config.Debug {
 						log.Printf("User-level parameter `%s` specify `env: %s` on hub-component.yaml level - not propagated to global env",
-							qName, parameter.Env)
-						envWarningsEmited[qName] = struct{}{}
+							parameter.QName(), parameter.Env)
 					}
 					parameter.Env = ""
 				}
@@ -627,7 +617,7 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 					}
 				}
 			} else {
-				qName := manifest.ParameterQualifiedName(parameter.Name, parameter.Component)
+				qName := parameter.QName()
 				p, exist := kv[qName]
 				if !exist {
 					kv[qName] = parameter
@@ -639,6 +629,28 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 	}
 
 	return sortedParameters(kv)
+}
+
+func updateKindIfFrom(parameter manifest.Parameter, warning bool) manifest.Parameter {
+	if parameter.FromEnv != "" {
+		if parameter.Kind == "" {
+			parameter.Kind = "user"
+		}
+		if warning {
+			util.Warn("Parameter `%s` specify `fromEnv: %s` on hub-component.yaml level",
+				parameter.QName(), parameter.FromEnv)
+		}
+	}
+	if parameter.FromFile != "" {
+		if parameter.Kind == "" {
+			parameter.Kind = "user"
+		}
+		if warning {
+			util.Warn("Parameter `%s` specify `fromFile: %s` on hub-component.yaml level",
+				parameter.QName(), parameter.FromFile)
+		}
+	}
+	return parameter
 }
 
 func enrichParameter(parameter manifest.Parameter, wellKnownKV map[string]manifest.Parameter) manifest.Parameter {
@@ -681,6 +693,7 @@ func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 	description := mergeField(base.Description, over.Description)
 	env := mergeField(base.Env, over.Env)
 	fromEnv := mergeField(base.FromEnv, over.FromEnv)
+	fromFile := mergeField(base.FromFile, over.FromFile)
 	defaultValue := mergeField(base.Default, over.Default)
 	value := mergeField(base.Value, over.Value)
 	if fromEnv != "" && overrides != nil {
@@ -689,13 +702,24 @@ func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 			value = envValue
 		}
 	}
+	// TODO process fromFile?
 	empty := mergeField(base.Empty, over.Empty)
 	if value != "" {
 		empty = ""
 	}
-	merged := manifest.Parameter{Name: over.Name, Component: base.Component, Kind: kind,
-		Brief: brief, Description: description,
-		Default: defaultValue, Env: env, FromEnv: fromEnv, Value: value, Empty: empty}
+	merged := manifest.Parameter{
+		Name:        over.Name,
+		Component:   base.Component,
+		Kind:        kind,
+		Brief:       brief,
+		Description: description,
+		Default:     defaultValue,
+		Env:         env,
+		FromEnv:     fromEnv,
+		FromFile:    fromFile,
+		Value:       value,
+		Empty:       empty,
+	}
 	if config.Trace {
 		log.Printf("Parameters merged:\n\t--- %+v\n\t+++ %+v\n\t=== %+v", base, over, merged)
 	}

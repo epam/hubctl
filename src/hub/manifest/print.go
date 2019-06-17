@@ -14,9 +14,9 @@ func printParameters(parameters []Parameter) {
 		if p.Default != "" {
 			def = fmt.Sprintf(" [%s]", util.Wrap(p.Default))
 		}
-		fromEnv := ""
-		if p.FromEnv != "" {
-			fromEnv = fmt.Sprintf(" (from:%s)", p.FromEnv)
+		from := ""
+		if p.FromEnv != "" || p.FromFile != "" {
+			from = fmt.Sprintf(" (from:%s%s)", p.FromEnv, p.FromFile)
 		}
 		env := ""
 		if p.Env != "" {
@@ -40,6 +40,6 @@ func printParameters(parameters []Parameter) {
 		if kind == "" {
 			kind = "    "
 		}
-		log.Printf("\t%s:%s%s%s => %s%s", kind, fqName, def, fromEnv, value, env)
+		log.Printf("\t%s:%s%s%s => %s%s", kind, fqName, def, from, value, env)
 	}
 }

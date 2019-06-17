@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -14,25 +15,50 @@ import (
 	"hub/util"
 )
 
-func AskParameter(parameter *manifest.Parameter,
+func AskParameter(parameter manifest.Parameter,
 	environment map[string]string, hubEnvironment, hubStackInstance, hubApplication string,
-	isDeploy bool) (retErr error) {
+	isDeploy bool) (string, error) {
+
+	qName := parameter.QName()
 
 	if parameter.FromEnv != "" {
 		key := parameter.FromEnv
 		if environment != nil {
 			if v, exist := environment[key]; exist {
-				parameter.Value = v
-				return
+				return v, nil
 			}
 		}
 		if v, exist := os.LookupEnv(key); exist {
-			parameter.Value = v
-			return
+			return v, nil
 		}
 	}
-
-	qName := parameter.QName()
+	if parameter.FromFile != "" {
+		filename := parameter.FromFile
+		if filename[0] == '$' && len(filename) > 1 {
+			key := filename[1:]
+			filename = ""
+			if environment != nil {
+				if v, exist := environment[key]; exist {
+					filename = v
+				}
+			}
+			if filename == "" {
+				if v, exist := os.LookupEnv(key); exist {
+					filename = v
+				}
+			}
+			if filename == "" {
+				util.Warn("Parameter `%s` `fromFile = %s` expands to an empty filename", qName, parameter.FromFile)
+			}
+		}
+		if filename != "" {
+			bytes, err := ioutil.ReadFile(filename)
+			if err != nil {
+				return "(error)", fmt.Errorf("Error reading `%s`: %v", filename, err)
+			}
+			return string(bytes), nil
+		}
+	}
 
 	if hubEnvironment != "" || hubStackInstance != "" || hubApplication != "" {
 		found, v, errs := api.GetParameterOrMaybeCreateSecret(hubEnvironment, hubStackInstance, hubApplication,
@@ -52,8 +78,7 @@ func AskParameter(parameter *manifest.Parameter,
 				qName, strings.Join(where, ", "), util.Errors("\n\t", errs...))
 		}
 		if found && v != "" {
-			parameter.Value = v
-			return
+			return v, nil
 		}
 	}
 
@@ -70,13 +95,13 @@ func AskParameter(parameter *manifest.Parameter,
 			prompt = fmt.Sprintf("%s [%s]", prompt, parameter.Default)
 		}
 		fmt.Printf("%s: ", prompt)
-		read, err := fmt.Scanln(&parameter.Value)
+		var value string
+		read, err := fmt.Scanln(&value)
 		if read > 0 {
 			if err != nil {
-				log.Fatalf("Error reading input: %v (read %d items)", err, read)
-			} else {
-				return
+				return "(error)", fmt.Errorf("Error reading input: %v (read %d items)", err, read)
 			}
+			return value, nil
 		}
 	}
 
@@ -88,13 +113,10 @@ func AskParameter(parameter *manifest.Parameter,
 			if config.Debug {
 				log.Printf("Empty parameter `%s` value allowed", qName)
 			}
-			return
+			return "", nil
 		}
-		retErr = fmt.Errorf("Parameter `%s` has no value nor default assigned", qName)
-		parameter.Value = "unknown"
+		return "(unknown)", fmt.Errorf("Parameter `%s` has no value nor default assigned", qName)
 	} else {
-		parameter.Value = parameter.Default
+		return parameter.Default, nil
 	}
-
-	return
 }

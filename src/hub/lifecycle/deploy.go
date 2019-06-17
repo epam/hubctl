@@ -133,7 +133,7 @@ func Execute(request *Request) {
 	stackParameters, errs := parameters.LockParameters(
 		manifest.FlattenParameters(stackManifest.Parameters, chosenManifestFilename),
 		extraExpansionValues,
-		func(parameter *manifest.Parameter) error {
+		func(parameter manifest.Parameter) (string, error) {
 			return AskParameter(parameter, environment,
 				request.Environment, request.StackInstance, request.Application,
 				isDeploy)

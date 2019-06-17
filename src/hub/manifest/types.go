@@ -78,8 +78,11 @@ type Parameter struct {
 	Default string `yaml:",omitempty"`
 	Value   string `yaml:",omitempty"`
 	Empty   string `yaml:",omitempty"` // "allow"
-	FromEnv string `yaml:"fromEnv,omitempty"`
-	Env     string `yaml:",omitempty"`
+
+	FromEnv  string `yaml:"fromEnv,omitempty"`
+	FromFile string `yaml:"fromFile,omitempty"`
+
+	Env string `yaml:",omitempty"`
 
 	Parameters []Parameter `yaml:",omitempty"`
 }

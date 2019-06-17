@@ -23,7 +23,7 @@ func RequireExpansion(value string) bool {
 
 func LockParameters(parameters []manifest.Parameter,
 	extraValues []manifest.Parameter,
-	ask func(*manifest.Parameter) error) (LockedParameters, []error) {
+	ask func(manifest.Parameter) (string, error)) (LockedParameters, []error) {
 
 	for _, parameter := range parameters {
 		if parameter.Default != "" && parameter.Kind != "user" {
@@ -34,14 +34,13 @@ func LockParameters(parameters []manifest.Parameter,
 			util.Warn("Parameter `%s` default value `%s` won't be used as parameter is not `user` kind%s",
 				parameter.Name, util.Wrap(parameter.Default), kind)
 		}
-
 	}
 	errs := make([]error, 0)
 	// populate empty user-level parameters from environment or user input
-	for i, _ := range parameters {
-		parameter := &parameters[i]
+	for i, parameter := range parameters {
 		if parameter.Value == "" && parameter.Kind == "user" && len(parameter.Parameters) == 0 {
-			err := ask(parameter)
+			value, err := ask(parameter)
+			parameters[i].Value = value
 			if err != nil {
 				errs = append(errs, err)
 			}
