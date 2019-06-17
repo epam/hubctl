@@ -378,11 +378,7 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 		if parameter.Value == "" {
 			value, exist := stateStackOutputs[parameter.Name]
 			if exist {
-				if parameter.Kind == "user" && parameter.Default == "" {
-					parameter.Default = value
-				} else {
-					parameter.Value = value
-				}
+				parameter.Value = value
 			} else {
 				// a special case for Kubernetes keys
 				if strings.HasPrefix(parameter.Name, "kubernetes.") {
