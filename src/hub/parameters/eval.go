@@ -93,7 +93,7 @@ func ParametersWithoutLinks(parameters LockedParameters) LockedParameters {
 }
 
 func ExpandParameter(parameter *manifest.Parameter, componentDepends []string, kv map[string]string) []error {
-	value, errs := expandValue(parameter, parameter.Value, componentDepends, kv, 0)
+	value, errs, _ := expandValue(parameter, parameter.Value, componentDepends, kv, 0)
 	parameter.Value = value
 	return errs
 }
@@ -101,54 +101,57 @@ func ExpandParameter(parameter *manifest.Parameter, componentDepends []string, k
 const maxExpansionDepth = 10
 
 func expandValue(parameter *manifest.Parameter, value string, componentDepends []string,
-	kv map[string]string, depth int) (string, []error) {
+	kv map[string]string, depth int) (string, []error, bool) {
 
-	fqName := parameter.QName()
 	if depth >= maxExpansionDepth {
 		return "(loop)", []error{fmt.Errorf("Probably loop expanding parameter `%s` value `%s`, reached `%s` at depth %d",
-			fqName, parameter.Value, value, depth)}
+			parameter.QName(), parameter.Value, value, depth)}, false
 	}
 	errs := make([]error, 0)
+	mask := util.LooksLikeSecret(parameter.Name)
 	expandedValue := CurlyReplacement.ReplaceAllStringFunc(value,
 		func(match string) string {
 			expr, isCel := StripCurly(match)
 			// TODO review: expansion search path is set to parameter's `component:`
-			// but in hub-component.yaml it may lead to the path being set to an
+			// but in hub-component.yaml it may lead to the component being set to an
 			// unexpected qualifier or not being set at all
 			var substitution string
 			if isCel {
-				var err error
-				substitution, err = CelEval(expr, parameter.Component, componentDepends, kv)
+				evaluated, err := CelEval(expr, parameter.Component, componentDepends, kv)
 				if err != nil {
 					errs = append(errs, err)
 				}
+				substitution = evaluated
 			} else {
-				var exist bool
-				substitution, exist = FindValue(expr, parameter.Component, componentDepends, kv)
+				mask = mask || util.LooksLikeSecret(expr)
+				found, exist := FindValue(expr, parameter.Component, componentDepends, kv)
 				if !exist {
 					errs = append(errs, fmt.Errorf("Parameter `%s` value `%s` refer to unknown substitution `%s` at depth %d",
 						parameter.QName(), parameter.Value, expr, depth))
 					substitution = "(unknown)"
+				} else {
+					substitution = found
 				}
 			}
 			if config.Trace {
-				comp := ""
-				if parameter.Component != "" {
-					comp = fmt.Sprintf(" | %s", parameter.Component)
-				}
-				log.Printf("--- %s%s => %s", expr, comp, substitution)
+				log.Printf("--- %s => %s", manifest.ParameterQualifiedName(expr, parameter.Component), substitution)
 			}
 			if RequireExpansion(substitution) {
-				var nestedErrs []error
-				substitution, nestedErrs = expandValue(parameter, substitution, componentDepends, kv, depth+1)
-				errs = append(errs, nestedErrs...)
+				expanded, errs2, mask2 := expandValue(parameter, substitution, componentDepends, kv, depth+1)
+				mask = mask || mask2
+				errs = append(errs, errs2...)
+				substitution = expanded
 			}
 			return substitution
 		})
 	if depth == 0 && config.Debug { // do not change to Trace
-		log.Printf("--- %s `%s` => `%s`", fqName, strings.TrimSpace(value), strings.TrimSpace(expandedValue))
+		print := fmt.Sprintf("`%s`", expandedValue)
+		if !config.Trace && mask && expandedValue != "" {
+			print = "(masked)"
+		}
+		log.Printf("--- %s `%s` => %s", parameter.QName(), value, print)
 	}
-	return expandedValue, errs
+	return expandedValue, errs, mask
 }
 
 func ParametersKV(parameters LockedParameters) map[string]string {
