@@ -31,7 +31,7 @@ var globalEnvVarsAllowed = []string{
 
 // this must match to lifecycle.checkRequires()
 var requirementProvidedByEnvironment = []string{
-	"aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault",
+	"aws", "gcp", "gcs", "azure", "kubectl", "kubernetes", "helm", "vault",
 }
 
 var environment map[string]string
