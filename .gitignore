@@ -6,6 +6,7 @@ bin/darwin
 
 src/github.com
 src/golang.org
+src/google.golang.org
 src/gopkg.in
 
 src/hub/util/version.go
