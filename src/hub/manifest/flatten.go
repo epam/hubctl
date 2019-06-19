@@ -143,7 +143,7 @@ func ComponentSourceDirFromRef(component *ComponentRef, stackBaseDir, components
 	return dir
 }
 
-func ParameterWrap(names []string) []Parameter {
+func MakeParameters(names []string) []Parameter {
 	params := make([]Parameter, 0, len(names))
 	for _, name := range names {
 		params = append(params, Parameter{Name: name})

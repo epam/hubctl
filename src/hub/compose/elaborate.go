@@ -15,6 +15,7 @@ import (
 	"hub/config"
 	"hub/kube"
 	"hub/manifest"
+	"hub/parameters"
 	"hub/state"
 	"hub/storage"
 	"hub/util"
@@ -77,8 +78,24 @@ func Elaborate(manifestFilename string,
 		st = state.MustParseStateFiles(stateManifests)
 	}
 
+	extraKubernetesParams := func(elaborated manifest.Manifest) []manifest.Parameter {
+		if st != nil && util.ContainsAny(elaborated.Requires, []string{"kubernetes", "kubectl"}) {
+			outputs := findKubernetesProvider(st)
+			if len(outputs) > 0 {
+				apiParameters := make([]string, 0, len(kube.KubernetesParameters))
+				for _, output := range outputs {
+					if util.Contains(kube.KubernetesParameters, output.Name) && output.Value != "" {
+						apiParameters = append(apiParameters, output.Name)
+					}
+				}
+				return manifest.MakeParameters(apiParameters)
+			}
+		}
+		return nil
+	}
+
 	stackManifest, componentsManifests := elaborate(manifestFilename, parametersFilenames, environment,
-		wellKnownKV, componentsBaseDir, []string{}, 0)
+		wellKnownKV, componentsBaseDir, []string{}, 0, extraKubernetesParams)
 
 	isApplication := stackManifest.Kind == "application"
 
@@ -123,7 +140,8 @@ func Elaborate(manifestFilename string,
 
 func elaborate(manifestFilename string, parametersFilenames []string, overrides map[string]string,
 	wellKnown map[string]manifest.Parameter, componentsBaseDir string,
-	excludedComponents []string, depth int) (*manifest.Manifest, []manifest.Manifest) {
+	excludedComponents []string, depth int,
+	maybeExtraParameters func(manifest.Manifest) []manifest.Parameter) (*manifest.Manifest, []manifest.Manifest) {
 
 	stackManifest := parseManifest(manifestFilename)
 
@@ -163,7 +181,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 		fromStackParams := scanParamsFiles(stackManifest.Meta.FromStack)
 		fromStackExcludedComponents := append(excludedComponents, manifest.ComponentsNamesFromRefs(stackManifest.Components)...)
 		fromStackManifest, fromStackComponentsManifests = elaborate(fromStackFilename, fromStackParams, overrides,
-			wellKnown, componentsBaseDir, fromStackExcludedComponents, depth+1)
+			wellKnown, componentsBaseDir, fromStackExcludedComponents, depth+1, nil)
 	}
 
 	if config.Verbose {
@@ -226,9 +244,11 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 	elaborated.Provides = mergeProvides(fromStackName, fromStackManifest.Provides,
 		stackManifest.Provides, componentsManifests)
 
-	if depth == 0 && util.ContainsAny(elaborated.Requires, []string{"kubernetes", "kubectl"}) {
-		// TODO distinguish EKS/etc. by kubernetes.flavor and setup appropriately
-		parameters = append(parameters, manifest.ParameterWrap(kube.KubernetesParameters))
+	if maybeExtraParameters != nil {
+		extra := maybeExtraParameters(elaborated)
+		if len(extra) > 0 {
+			parameters = append(parameters, extra)
+		}
 	}
 	parameters = append(parameters, manifestsParameters...)
 	elaborated.Parameters = mergeParameters(parameters, overrides, wellKnown,
@@ -352,10 +372,25 @@ func checkParameters(parametersAssorti [][]manifest.Parameter) {
 	}
 }
 
+func findKubernetesProvider(st *state.StateManifest) []parameters.CapturedOutput {
+	var providers []string
+	if st.Provides != nil {
+		providers = st.Provides["kubernetes"]
+	}
+	for _, providerName := range util.MergeUnique(providers, kube.KubernetesDefaultProviders) {
+		provider, exist := st.Components[providerName]
+		if exist && provider != nil && len(provider.CapturedOutputs) > 0 {
+			return provider.CapturedOutputs
+		}
+	}
+	return nil
+}
+
 func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest) {
 	stateStackOutputs := make(map[string]string)
 
-	// should we rely on explicit stack outputs only?
+	// rely on explicit stack outputs only?
+	// currently, only `cloud.kind` is a showstopper
 	for _, parameter := range st.StackParameters {
 		// should we filter out `link` parameters?
 		if parameter.Component == "" && parameter.Value != "" {
@@ -370,7 +405,9 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 		stateStackOutputs[name] = output.Value
 	}
 
-	for i, _ := range parameters {
+	kubeOutputs := findKubernetesProvider(st)
+
+	for i := range parameters {
 		parameter := &parameters[i]
 		if strings.HasPrefix(parameter.Name, "hub.") {
 			continue
@@ -380,17 +417,11 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 			if exist {
 				parameter.Value = value
 			} else {
-				// a special case for Kubernetes keys
-				if strings.HasPrefix(parameter.Name, "kubernetes.") {
-					for _, providerName := range kube.KubernetesDefaultProviders {
-						provider, exist := st.Components[providerName]
-						if exist {
-							for _, output := range provider.CapturedOutputs {
-								if output.Name == parameter.Name {
-									parameter.Value = output.Value
-									break
-								}
-							}
+				// a special case for Kubernetes
+				if len(kubeOutputs) > 0 && util.Contains(kube.KubernetesParameters, parameter.Name) {
+					for _, output := range kubeOutputs {
+						if output.Name == parameter.Name {
+							parameter.Value = output.Value
 							break
 						}
 					}

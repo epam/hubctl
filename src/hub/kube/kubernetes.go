@@ -25,6 +25,7 @@ const (
 	kubernetesApiClientCertOutput = "kubernetes.api.clientCert"
 	kubernetesApiClientKeyOutput  = "kubernetes.api.clientKey"
 	kubernetesEksClusterOutput    = "kubernetes.eks.cluster"
+	kubernetesGkeClusterOutput    = "kubernetes.gke.cluster"
 	kubernetesFileRefPrefix       = "file:"
 )
 
@@ -41,7 +42,7 @@ var (
 	}
 	KubernetesParameters = []string{kubernetesDomainOutput, kubernetesFlavorOutput, kubernetesApiEndpointOutput,
 		kubernetesApiTokenOutput, kubernetesApiCaCertOutput, kubernetesApiClientCertOutput, kubernetesApiClientKeyOutput,
-		kubernetesEksClusterOutput}
+		kubernetesEksClusterOutput, kubernetesGkeClusterOutput}
 	KubernetesKeysParameters = []string{
 		kubernetesApiCaCertOutput, kubernetesApiClientCertOutput, kubernetesApiClientKeyOutput}
 	KubernetesSecretParameters = []string{
