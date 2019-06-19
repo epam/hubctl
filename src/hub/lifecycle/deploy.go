@@ -75,12 +75,12 @@ func Execute(request *Request) {
 	defer util.Done()
 
 	var stateManifest *state.StateManifest
+	var operationsHistory []state.LifecycleOperation
 	stateUpdater := func(interface{}) {}
 	var operationLogId string
 	if len(request.StateFilenames) > 0 {
-		if isUndeploy || isSomeComponents { // skip state file at start of full deploy
-			var err error
-			stateManifest, err = state.ParseState(stateFiles)
+		parsed, err := state.ParseState(stateFiles)
+		if isUndeploy || isSomeComponents {
 			if err != nil {
 				if err != os.ErrNotExist {
 					log.Fatalf("Failed to read %v state files: %v", request.StateFilenames, err)
@@ -92,6 +92,19 @@ func Execute(request *Request) {
 					}
 					util.MaybeFatalf("Component `%s` is specified but failed to read %v state file(s): %v",
 						comps, request.StateFilenames, err)
+				}
+			} else {
+				stateManifest = parsed
+			}
+		} else { // full deploy copy state oplog if possible
+			if err == nil && parsed != nil {
+				if config.Debug {
+					log.Print("Preserving operations history loaded from existing state")
+				}
+				operationsHistory = parsed.Operations
+				if parsed.Meta.Name != "" && parsed.Meta.Name != stackManifest.Meta.Name {
+					util.Warn("State meta.name = `%s` does not match elaborate meta.name = `%s`",
+						parsed.Meta.Name, stackManifest.Meta.Name)
 				}
 			}
 		}
@@ -157,6 +170,7 @@ func Execute(request *Request) {
 				Kind: stackManifest.Kind,
 				Name: stackManifest.Meta.Name,
 			},
+			Operations: operationsHistory,
 		}
 	}
 	addLockedParameter(stackParameters, deploymentIdParameterName, "DEPLOYMENT_ID", deploymentId)
