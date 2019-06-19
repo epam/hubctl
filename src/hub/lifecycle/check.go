@@ -175,7 +175,7 @@ func checkStateMatch(state *state.StateManifest, elaborate *manifest.Manifest, s
 		for stateComponent := range state.Components {
 			stateComponents = append(stateComponents, stateComponent)
 			if util.Contains(stackComponents, stateComponent) {
-				found += 1
+				found++
 			}
 		}
 		if found < len(stateComponents)/2 {
