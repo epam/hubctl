@@ -375,7 +375,7 @@ NEXT_COMPONENT:
 			parameters.MergeOutputs(allOutputs, componentOutputs)
 
 			if request.GitOutputs {
-				if config.Verbose {
+				if config.Debug || (config.Verbose && request.GitOutputsStatus) {
 					log.Print("Checking Git status")
 				}
 				git := gitOutputs(componentName, componentDir, request.GitOutputsStatus)
@@ -522,7 +522,7 @@ func addLockedParameter(params parameters.LockedParameters, name, env, value str
 		if exist && p.Env != "" {
 			env = p.Env
 		}
-		if config.Verbose {
+		if config.Debug {
 			log.Printf("Adding implicit parameter %s = `%s` (env: %s)", name, value, env)
 		}
 		params[name] = parameters.LockedParameter{Name: name, Value: value, Env: env}
@@ -542,7 +542,7 @@ func addLockedParameter2(params []parameters.LockedParameter, name, env, value s
 			return params
 		}
 	}
-	if config.Verbose {
+	if config.Debug {
 		log.Printf("Adding implicit parameter %s = `%s` (env: %s)", name, value, env)
 	}
 	return append(params, parameters.LockedParameter{Name: name, Value: value, Env: env})
