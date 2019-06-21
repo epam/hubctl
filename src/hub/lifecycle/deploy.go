@@ -353,12 +353,9 @@ NEXT_COMPONENT:
 				updateStateComponentFailed)
 			failedComponents = append(failedComponents, componentName)
 		} else if isDeploy {
-			var componentOutputs parameters.CapturedOutputs
-			var dynamicProvides []string
-			var errs []error
-			rawOutputs, componentOutputs, dynamicProvides, errs =
+			rawOutputsCaptured, componentOutputs, dynamicProvides, errs :=
 				captureOutputs(componentName, componentParameters, stdout, componentDir, componentManifest.Outputs)
-
+			rawOutputs = rawOutputsCaptured
 			if len(errs) > 0 {
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
@@ -472,7 +469,8 @@ NEXT_COMPONENT:
 		}
 	}
 
-	if request.SyncStackInstance && request.StackInstance != "" {
+	// TODO sync status if no state manifest on undeploy
+	if stateManifest != nil && request.SyncStackInstance && request.StackInstance != "" {
 		patch := api.TransformStateToApi(stateManifest)
 		remoteStatePaths := storage.RemoteStoragePaths(request.StateFilenames)
 		if len(remoteStatePaths) > 0 {
