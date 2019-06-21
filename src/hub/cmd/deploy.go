@@ -52,7 +52,7 @@ func setOsEnvForNestedCli(manifests []string, stateManifests []string, component
 			os.Setenv(envVarNameComponentsBaseDir, componentsBaseDir)
 		}
 	} else {
-		util.Warn("Unable to determine path to Hub CLI executable - `hub invoke / render` are broken: %v", err)
+		util.Warn("Unable to determine path to Hub CLI executable - `hub invoke / render / util otp` are broken: %v", err)
 	}
 }
 

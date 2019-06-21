@@ -182,7 +182,7 @@ func getParameter(resource string, parameters []Parameter, name, component strin
 
 func createSecretParameter(environment, environmentId, name, component string) (string, error) {
 	kind := "password"
-	value, err := util.RandomString(8)
+	value, _, err := util.Random(8)
 	if err != nil {
 		return "", err
 	}

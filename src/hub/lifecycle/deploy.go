@@ -17,7 +17,10 @@ import (
 	"hub/util"
 )
 
-const HubEnvVarNameComponentName = "HUB_COMPONENT"
+const (
+	HubEnvVarNameComponentName = "HUB_COMPONENT"
+	HubEnvVarNameRandom        = "HUB_RANDOM"
+)
 
 func Execute(request *Request) {
 	isDeploy := strings.HasPrefix(request.Verb, "deploy")
@@ -337,10 +340,14 @@ NEXT_COMPONENT:
 			stateUpdater("sync")
 		}
 
+		randomStr, random, err := util.Random(128) // TODO parameter
+		if err != nil {
+			util.Warn("Unable to set %s: %v", HubEnvVarNameRandom, err)
+		}
 		componentDir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		stdout, stderr, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
 			component, componentManifest, componentParameters,
-			componentDir, osEnv, request.PipeOutputInRealtime)
+			componentDir, osEnv, randomStr, request.PipeOutputInRealtime)
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
@@ -354,7 +361,8 @@ NEXT_COMPONENT:
 			failedComponents = append(failedComponents, componentName)
 		} else if isDeploy {
 			rawOutputsCaptured, componentOutputs, dynamicProvides, errs :=
-				captureOutputs(componentName, componentParameters, stdout, componentDir, componentManifest.Outputs)
+				captureOutputs(componentName, componentDir, componentParameters, componentManifest.Outputs,
+					stdout, random)
 			rawOutputs = rawOutputsCaptured
 			if len(errs) > 0 {
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
@@ -559,7 +567,7 @@ func maybeTestVerb(verb string, test bool) string {
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
 	componentParameters parameters.LockedParameters,
-	dir string, osEnv []string, pipeOutputInRealtime bool) ([]byte, []byte, error) {
+	dir string, osEnv []string, random string, pipeOutputInRealtime bool) ([]byte, []byte, error) {
 
 	if config.Debug && len(componentParameters) > 0 {
 		log.Print("Component parameters:")
@@ -583,7 +591,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 		}
 		return nil, nil, err
 	}
-	impl.Env = mergeOsEnviron(osEnv, processEnv)
+	impl.Env = mergeOsEnviron(osEnv, processEnv, randomEnv(random))
 	if config.Debug && len(processEnv) > 0 {
 		log.Print("Component environment:")
 		printEnvironment(processEnv)
@@ -598,6 +606,13 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 		log.Print(formatStdoutStderr(stdout, stderr))
 	}
 	return stdout, stderr, err
+}
+
+func randomEnv(random string) []string {
+	if random == "" {
+		return nil
+	}
+	return []string{fmt.Sprintf("%s=%s", HubEnvVarNameRandom, random)}
 }
 
 func parametersInEnv(componentName string, componentParameters parameters.LockedParameters) []string {

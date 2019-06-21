@@ -1,8 +1,6 @@
 package util
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
@@ -434,15 +432,6 @@ func Basedir(paths []string) string {
 		log.Fatalf("Unable to determine current working directory: %v", err)
 	}
 	return cwd
-}
-
-func RandomString(randomBytesLen int) (string, error) {
-	buf := make([]byte, randomBytesLen)
-	read, err := rand.Read(buf)
-	if err != nil {
-		return "", fmt.Errorf("Unable to generate random string: random read error (read %d bytes): %v", read, err)
-	}
-	return base64.RawStdEncoding.EncodeToString(buf), nil
 }
 
 func PlainName(name string) string {

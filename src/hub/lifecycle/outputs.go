@@ -15,14 +15,46 @@ import (
 	"hub/util"
 )
 
-func captureOutputs(componentName string, componentParameters parameters.LockedParameters,
-	textOutput []byte, componentDir string,
-	requestedOutputs []manifest.Output) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
+var outputsMarker = []byte("Outputs:\n")
+
+func captureOutputs(componentName, componentDir string,
+	componentParameters parameters.LockedParameters, requestedOutputs []manifest.Output,
+	textOutput []byte, random []byte) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
 
 	tfOutputs := parseTextOutput(textOutput)
+	secrets := extractSecrets(tfOutputs, random)
+	if len(secrets) > 0 {
+		if config.Trace {
+			log.Printf("Parsing secrets chunk:\n%s", secrets)
+		}
+		outputs := make(map[string][]string)
+		parseTextKV(secrets, outputs)
+		if config.Trace {
+			log.Print("Parsed secret outputs:")
+			util.PrintMap2(outputs)
+		}
+		for k, v := range toRawOutputs(outputs) {
+			tfOutputs[k] = v
+		}
+	}
 	dynamicProvides := extractDynamicProvides(tfOutputs)
-	kv := parameters.ParametersKV(componentParameters)
+	outputs, errs := expandRequestedOutputs(componentName, componentDir, componentParameters, requestedOutputs, tfOutputs)
+	if len(errs) > 0 {
+		if len(tfOutputs) > 0 {
+			log.Print("Raw outputs:")
+			util.PrintMap(tfOutputs)
+		} else {
+			log.Print("No raw outputs captured")
+		}
+	}
+	return tfOutputs, outputs, dynamicProvides, errs
+}
 
+func expandRequestedOutputs(componentName, componentDir string,
+	componentParameters parameters.LockedParameters, requestedOutputs []manifest.Output,
+	tfOutputs parameters.RawOutputs) (parameters.CapturedOutputs, []error) {
+
+	kv := parameters.ParametersKV(componentParameters)
 	outputs := make(parameters.CapturedOutputs)
 	errs := make([]error, 0)
 	for _, requestedOutput := range requestedOutputs {
@@ -107,33 +139,20 @@ func captureOutputs(componentName string, componentParameters parameters.LockedP
 		outputs[output.QName()] = output
 		kv[requestedOutput.Name] = output.Value
 	}
-	if len(errs) > 0 {
-		if len(tfOutputs) > 0 {
-			log.Print("Raw outputs:")
-			util.PrintMap(tfOutputs)
-		} else {
-			log.Print("No raw outputs captured")
-		}
-	}
-	return tfOutputs, outputs, dynamicProvides, errs
+	return outputs, errs
 }
 
 func parseTextOutput(textOutput []byte) parameters.RawOutputs {
 	outputs := make(map[string][]string)
-	outputsMarker := []byte("Outputs:\n")
 	chunk := 1
 	for {
 		i := bytes.Index(textOutput, outputsMarker)
 		if i == -1 {
-			if config.Debug && len(outputs) > 0 {
+			if config.Trace && len(outputs) > 0 {
 				log.Print("Parsed raw outputs:")
 				util.PrintMap2(outputs)
 			}
-			rawOutputs := make(parameters.RawOutputs)
-			for k, list := range outputs {
-				rawOutputs[k] = strings.Join(list, ",")
-			}
-			return rawOutputs
+			return toRawOutputs(outputs)
 		}
 		markerFound := i == 0 || (i > 0 && textOutput[i-1] == '\n')
 		textOutput = textOutput[i+len(outputsMarker):]
@@ -149,36 +168,61 @@ func parseTextOutput(textOutput []byte) parameters.RawOutputs {
 			log.Printf("Parsing output chunk #%d:\n%s", chunk, textFragment)
 			chunk++
 		}
-		lines := strings.Split(string(textFragment), "\n")
-		for _, line := range lines {
-			if strings.HasPrefix(line, "#") {
-				continue
+		parseTextKV(textFragment, outputs)
+	}
+}
+
+func parseTextKV(text []byte, outputs map[string][]string) {
+	lines := strings.Split(string(text), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+		kv := strings.SplitN(line, "=", 2)
+		if len(kv) != 2 {
+			continue
+		}
+		key := util.TrimColor(util.Trim(kv[0]))
+		value := util.TrimColor(util.Trim(kv[1]))
+		// accumulate repeating keys
+		list, exist := outputs[key]
+		if exist {
+			if !util.Contains(list, value) {
+				outputs[key] = append(list, value)
 			}
-			kv := strings.SplitN(line, "=", 2)
-			if len(kv) != 2 {
-				continue
-			}
-			key := util.TrimColor(util.Trim(kv[0]))
-			value := util.TrimColor(util.Trim(kv[1]))
-			// accumulate repeating keys
-			list, exist := outputs[key]
-			if exist {
-				if !util.Contains(list, value) {
-					outputs[key] = append(list, value)
-				}
-			} else {
-				outputs[key] = []string{value}
-			}
+		} else {
+			outputs[key] = []string{value}
 		}
 	}
 }
 
+func toRawOutputs(outputs map[string][]string) parameters.RawOutputs {
+	rawOutputs := make(parameters.RawOutputs)
+	for k, list := range outputs {
+		rawOutputs[k] = strings.Join(list, ",")
+	}
+	return rawOutputs
+}
+
 func extractDynamicProvides(rawOutputs parameters.RawOutputs) []string {
 	key := "provides"
-	if v, exist := rawOutputs[key]; exist {
+	if v, exist := rawOutputs[key]; exist && len(v) > 0 {
 		return strings.Split(v, ",")
 	}
-	return []string{}
+	return nil
+}
+
+func extractSecrets(rawOutputs parameters.RawOutputs, random []byte) []byte {
+	key := "secrets"
+	if v, exist := rawOutputs[key]; exist && len(v) > 0 {
+		decoded, err := util.OtpDecode(v, random)
+		if err != nil {
+			util.Warn("Unable to decode secret outputs: %v", err)
+			return nil
+		}
+		return decoded
+	}
+	return nil
 }
 
 func gitOutputs(componentName, dir string, status bool) parameters.CapturedOutputs {
