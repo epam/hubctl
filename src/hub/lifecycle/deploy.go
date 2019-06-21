@@ -469,9 +469,10 @@ NEXT_COMPONENT:
 
 	if config.Verbose {
 		if isDeploy {
-			if len(provides) > 0 {
+			provides2 := noEnvironmentProvides(provides)
+			if len(provides2) > 0 {
 				log.Printf("%s provides:", strings.Title(stackManifest.Kind))
-				util.PrintDeps(noEnvironmentProvides(provides))
+				util.PrintDeps(provides2)
 			}
 			printStackOutputs(stackOutputs)
 		}
