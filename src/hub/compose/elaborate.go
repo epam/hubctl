@@ -52,7 +52,7 @@ func Elaborate(manifestFilename string,
 		}
 		state := ""
 		if len(stateManifests) > 0 {
-			state = fmt.Sprintf(" with state outputs from %v", stateManifests)
+			state = fmt.Sprintf(" with state from %v", stateManifests)
 		}
 		log.Printf("Assembling %v from `%s`%s%s%s", elaborateManifests, manifestFilename,
 			parametersFrom, overrides, state)
@@ -88,7 +88,7 @@ func Elaborate(manifestFilename string,
 						apiParameters = append(apiParameters, output.Name)
 					}
 				}
-				return manifest.MakeParameters(apiParameters)
+				return manifest.MakeParameters(util.Uniq(apiParameters))
 			}
 		}
 		return nil
@@ -109,6 +109,9 @@ func Elaborate(manifestFilename string,
 		sort.Strings(platformProvides)
 	}
 	if st != nil {
+		// we might get in trouble here setting `dns.domain` from Kubernetes state on empty
+		// `kind: user` parameter with `fromEnv:`
+		// at least there will be a warning for mismatched values
 		setValuesFromState(stackManifest.Parameters, st)
 		stackManifest.Requires = connectStateProvides(stackManifest.Requires, st.Provides)
 		platformProvides = util.MergeUnique(platformProvides, util.SortedKeys2(st.Provides))
@@ -373,6 +376,23 @@ func checkParameters(parametersAssorti [][]manifest.Parameter) {
 }
 
 func findKubernetesProvider(st *state.StateManifest) []parameters.CapturedOutput {
+	apiParameters := make([]parameters.CapturedOutput, 0, len(kube.KubernetesParameters))
+	// first check stack outputs
+	for _, output := range st.StackOutputs {
+		name := output.Name
+		if i := strings.Index(name, ":"); i > 0 && i < len(name)-1 {
+			name = name[i+1:]
+		}
+		if util.Contains(kube.KubernetesParameters, name) {
+			apiParameters = append(apiParameters,
+				parameters.CapturedOutput{Name: name, Value: output.Value})
+		}
+	}
+	if len(apiParameters) >= 2 {
+		return apiParameters
+	}
+	// then check components providing `kubernetes`
+	// it might be `*platform*` though
 	var providers []string
 	if st.Provides != nil {
 		providers = st.Provides["kubernetes"]
@@ -383,6 +403,17 @@ func findKubernetesProvider(st *state.StateManifest) []parameters.CapturedOutput
 			return provider.CapturedOutputs
 		}
 	}
+	// then it's either `*platform*` or user-supplied parameters
+	apiParameters = apiParameters[:0]
+	for _, param := range st.StackParameters {
+		if util.Contains(kube.KubernetesParameters, param.Name) {
+			apiParameters = append(apiParameters,
+				parameters.CapturedOutput{Name: param.Name, Value: param.Value})
+		}
+	}
+	if len(apiParameters) >= 1 {
+		return apiParameters
+	}
 	return nil
 }
 
@@ -390,7 +421,8 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 	stateStackOutputs := make(map[string]string)
 
 	// rely on explicit stack outputs only?
-	// currently, only `cloud.kind` is a showstopper
+	// for apps installed on overlay stack we must look into
+	// stack parameters to obtain kubernetes credentials
 	for _, parameter := range st.StackParameters {
 		// should we filter out `link` parameters?
 		if parameter.Component == "" && parameter.Value != "" {
