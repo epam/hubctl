@@ -30,8 +30,8 @@ type CapturedOutputs map[string]CapturedOutput
 type ExpandedOutput struct {
 	Name  string
 	Value string
-	Brief string
-	Kind  string
+	Brief string `yaml:",omitempty"`
+	Kind  string `yaml:",omitempty"`
 }
 
 func (p *LockedParameter) QName() string {
