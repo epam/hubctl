@@ -95,6 +95,7 @@ type BaseStack struct {
 	Brief      string
 	Tags       []string
 	Components []StackComponent
+	Parameters []Parameter
 }
 
 type StackRef struct {

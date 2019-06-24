@@ -36,6 +36,17 @@ func BaseStacks(selector string) {
 					fmt.Printf("\t\t\t%s - %s - %s\n", comp.Name, comp.Brief, comp.Description)
 				}
 			}
+			if len(stack.Parameters) > 0 {
+				fmt.Print("\t\tParameters:\n")
+			}
+			resource := fmt.Sprintf("%s/%s", stacksResource, stack.Id)
+			for _, param := range sortParameters(stack.Parameters) {
+				formatted, err := formatParameter(resource, param, false)
+				fmt.Printf("\t\t%s\n", formatted)
+				if err != nil {
+					errors = append(errors, err)
+				}
+			}
 		}
 		if len(errors) > 0 {
 			fmt.Print("Errors encountered:\n")
