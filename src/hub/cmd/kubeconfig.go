@@ -14,6 +14,7 @@ import (
 var (
 	kubeconfigProviderComponent string
 	kubeconfigContextName       string
+	kubeconfigKeepPems          bool
 )
 
 var kubeconfigCmd = &cobra.Command{
@@ -43,7 +44,7 @@ func kubeconfig(args []string) error {
 		providerComponents = strings.Split(kubeconfigProviderComponent, ",")
 	}
 
-	kube.Kubeconfig(stateFiles, providerComponents, kubeconfigContextName)
+	kube.Kubeconfig(stateFiles, providerComponents, kubeconfigContextName, kubeconfigKeepPems)
 
 	return nil
 }
@@ -53,7 +54,9 @@ func init() {
 	kubeconfigCmd.Flags().StringVarP(&kubeconfigProviderComponent, "providers", "p", "",
 		fmt.Sprintf("Component name(s) providing Kubernetes outputs (default to %s)", providers))
 	kubeconfigCmd.Flags().StringVarP(&kubeconfigContextName, "context", "c", "",
-		fmt.Sprintf("Context name (default to dns.domain output of %s)", providers))
+		"Context name (default to dns.domain output of kubernetes component)")
+	kubeconfigCmd.Flags().BoolVarP(&kubeconfigKeepPems, "keep-tls-pems", "", false,
+		"Keep TLS PEM files")
 	kubeconfigCmd.Flags().BoolVarP(&config.SwitchKubeconfigContext, "switch-kube-context", "k", false,
 		"Switch current Kubeconfig context to new context")
 	RootCmd.AddCommand(kubeconfigCmd)

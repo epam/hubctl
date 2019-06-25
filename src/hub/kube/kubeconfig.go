@@ -16,7 +16,7 @@ import (
 	"hub/util"
 )
 
-func Kubeconfig(filenames []string, providers []string, context string) {
+func Kubeconfig(filenames []string, providers []string, context string, keepPems bool) {
 	state := state.MustParseStateFiles(filenames)
 
 	providerState, provider := findState(state, providers)
@@ -34,7 +34,7 @@ func Kubeconfig(filenames []string, providers []string, context string) {
 	for _, p := range state.StackParameters {
 		params[p.QName()] = p
 	}
-	SetupKubernetes(params, provider, outputs, context, config.Force)
+	SetupKubernetes(params, provider, outputs, context, config.Force, keepPems)
 }
 
 func findState(state *state.StateManifest, providers []string) (*state.StateStep, string) {

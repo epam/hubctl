@@ -169,7 +169,7 @@ func captureFile(filename string) string {
 
 func SetupKubernetes(params parameters.LockedParameters,
 	provider string, outputs parameters.CapturedOutputs,
-	context string, overwrite bool) {
+	context string, overwrite, keepPems bool) {
 
 	kubectl := "kubectl"
 
@@ -254,14 +254,17 @@ func SetupKubernetes(params parameters.LockedParameters,
 	} else {
 		caCert, caCertExist = mayOutput(params, outputs, provider, kubernetesApiCaCertOutput)
 	}
+	var pemsWritten []string
 	if caCertExist {
 		writeFile(caCertFile, caCert)
+		pemsWritten = append(pemsWritten, caCertFile)
 	}
-	if flavor != "eks" && flavor != "openshift" && flavor != "gke" && flavor != "aks" {
+	if util.Contains([]string{"k8s-aws", "metal"}, flavor) {
 		writeFile(clientCertFile,
 			mustOutput(params, outputs, provider, kubernetesApiClientCertOutput))
 		writeFile(clientKeyFile,
 			mustOutput(params, outputs, provider, kubernetesApiClientKeyOutput))
+		pemsWritten = append(pemsWritten, clientCertFile, clientKeyFile)
 	}
 
 	apiEndpoint := domain
@@ -286,7 +289,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	case "eks":
 		user = "eks-" + eksClusterName
 		addHeptioUser(configFilename, user, eksClusterName)
-		// Pending issue
+		// TODO
 		// Add cli support to "exec" auth plugin
 		// https://github.com/kubernetes/kubernetes/issues/64751
 		// https://github.com/kubernetes/kubernetes/pull/73230
@@ -309,6 +312,15 @@ func SetupKubernetes(params parameters.LockedParameters,
 		"--namespace=kube-system")
 	if config.SwitchKubeconfigContext {
 		mustExec(kubectl, "config", "use-context", context)
+	}
+	if !keepPems {
+		for _, filename := range pemsWritten {
+			if err := os.Remove(filename); err != nil {
+				util.WarnOnce("Unable to remove `%s`: %v", filename, err)
+			} else if config.Debug {
+				log.Printf("Removed `%s`", filename)
+			}
+		}
 	}
 }
 
@@ -361,7 +373,7 @@ func writeFile(filename string, content string) {
 		log.Fatalf("Unable to write `%s`: %v", filename, err)
 	}
 	file.Close()
-	if config.Verbose {
+	if config.Debug {
 		log.Printf("Wrote `%s`", filename)
 	}
 }
