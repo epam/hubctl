@@ -45,15 +45,21 @@ type ReadyCondition struct {
 	WaitSeconds  int    `yaml:"waitSeconds,omitempty"`
 	PauseSeconds int    `yaml:"pauseSeconds,omitempty"`
 }
+type LifecycleOptions struct {
+	Random *struct {
+		Bytes int `yaml:",omitempty"`
+	} `yaml:",omitempty"`
+}
 
 type Lifecycle struct {
-	Bare            string           `yaml:",omitempty"`
-	Verbs           []string         `yaml:",omitempty"`
-	Order           []string         `yaml:",omitempty"`
-	Mandatory       []string         `yaml:",omitempty"`
-	Optional        []string         `yaml:",omitempty"`
-	Requires        RequiresTuning   `yaml:",omitempty"`
-	ReadyConditions []ReadyCondition `yaml:"readyConditions,omitempty"`
+	Bare            string            `yaml:",omitempty"`
+	Verbs           []string          `yaml:",omitempty"`
+	Order           []string          `yaml:",omitempty"`
+	Mandatory       []string          `yaml:",omitempty"`
+	Optional        []string          `yaml:",omitempty"`
+	Requires        RequiresTuning    `yaml:",omitempty"` // TODO use pointer?
+	ReadyConditions []ReadyCondition  `yaml:"readyConditions,omitempty"`
+	Options         *LifecycleOptions `yaml:",omitempty"`
 }
 
 type Output struct {

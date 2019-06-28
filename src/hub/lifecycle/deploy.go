@@ -340,7 +340,13 @@ NEXT_COMPONENT:
 			stateUpdater("sync")
 		}
 
-		randomStr, random, err := util.Random(128) // TODO parameter
+		randomSize := 128
+		if opts := componentManifest.Lifecycle.Options; opts != nil {
+			if rnd := opts.Random; rnd != nil && rnd.Bytes > 0 {
+				randomSize = rnd.Bytes
+			}
+		}
+		randomStr, random, err := util.Random(randomSize)
 		if err != nil {
 			util.Warn("Unable to set %s: %v", HubEnvVarNameRandom, err)
 		}

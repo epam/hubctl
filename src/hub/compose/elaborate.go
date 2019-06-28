@@ -543,6 +543,7 @@ func transformApplicationIntoComponent(stack *manifest.Manifest, components []ma
 			Verbs:           stack.Lifecycle.Verbs,
 			ReadyConditions: stack.Lifecycle.ReadyConditions,
 			Requires:        stack.Lifecycle.Requires,
+			Options:         stack.Lifecycle.Options,
 		},
 		Provides:   stack.Provides,
 		Requires:   stack.Requires,
@@ -959,6 +960,7 @@ func mergeLifecycle(parent, child manifest.Lifecycle) manifest.Lifecycle {
 		Mandatory:       util.MergeUnique(parent.Mandatory, child.Mandatory),
 		Optional:        util.MergeUnique(parent.Optional, child.Optional),
 		Requires:        mergeRequiresTuning(parent.Requires, child.Requires),
+		// Options:
 	}
 }
 
