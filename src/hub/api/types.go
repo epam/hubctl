@@ -78,6 +78,8 @@ type Environment struct {
 
 type EnvironmentRequest struct {
 	Name         string      `json:"name"`
+	Description  string      `json:"description,omitempty"`
+	Tags         []string    `json:"tags,omitempty"`
 	CloudAccount string      `json:"cloudAccount"`
 	Parameters   []Parameter `json:"parameters"` // TODO omitempty as soon as API is ready
 	Providers    []Provider  `json:"providers"`
