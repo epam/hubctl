@@ -53,16 +53,16 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 		var value string
 		kind := requestedOutput.Kind
 		valueExist := false
-		// plain output from specific component
-		plainOutputRequested := strings.Contains(requestedOutput.Name, ":")
+		// output from a specific component
+		componentOutputRequested := strings.Contains(requestedOutput.Name, ":")
 
-		if !plainOutputRequested && requestedOutput.Value == "" && requestedOutput.Name != "" {
+		if !componentOutputRequested && requestedOutput.Value == "" && requestedOutput.Name != "" {
 			requestedOutput.Value = fmt.Sprintf("${%s}", requestedOutput.Name)
 		}
 
-		if plainOutputRequested {
+		if componentOutputRequested {
 			if requestedOutput.Value != "" {
-				util.Warn("Stack output `%s` refer to value `%s`, but it will be expanded from raw component outputs",
+				util.Warn("Stack output `%s` refer to value `%s`, but it will be derived from component outputs",
 					requestedOutput.Name, requestedOutput.Value)
 			}
 			var exist bool
@@ -98,9 +98,9 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 							requestedOutput.Name, requestedOutput.Value, variable)
 						return "(unsupported)"
 					}
-					substitution, exist := kvParameters[variable]
+					substitution, exist := kvOutputs[variable]
 					if !exist {
-						substitution, exist = kvOutputs[variable]
+						substitution, exist = kvParameters[variable]
 					}
 					if !exist {
 						if mustExist {
