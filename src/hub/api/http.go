@@ -20,8 +20,7 @@ import (
 	"hub/util"
 )
 
-var authApi = &http.Client{Timeout: 30 * time.Second}
-var hubApi = &http.Client{Timeout: 30 * time.Second}
+var hubApi = util.RobustHttpClient(30*time.Second, false)
 var wsApi = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
 
 const (
