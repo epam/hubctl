@@ -44,7 +44,7 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 	requestedOutputs []manifest.Output, mustExist bool) []ExpandedOutput {
 
 	kvParameters := ParametersKV(parameters)
-	kvOutputs := outputsKV(outputs)
+	kvOutputs := OutputsKV(outputs)
 
 	expanded := make([]ExpandedOutput, 0, len(outputs))
 	debugPrinted := false

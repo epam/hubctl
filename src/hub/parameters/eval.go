@@ -157,13 +157,13 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 func ParametersKV(parameters LockedParameters) map[string]string {
 	kv := make(map[string]string)
 	for _, parameter := range parameters {
-		fqName := lockedParameterQualifiedName(&parameter)
-		kv[fqName] = parameter.Value
+		qName := parameter.QName()
+		kv[qName] = parameter.Value
 	}
 	return kv
 }
 
-func outputsKV(outputs CapturedOutputs) map[string]string {
+func OutputsKV(outputs CapturedOutputs) map[string]string {
 	kv := make(map[string]string)
 	for _, output := range outputs {
 		kv[output.QName()] = output.Value
@@ -283,20 +283,20 @@ func ExpandParameters(componentName string, componentDepends []string,
 }
 
 func mergeParameter(parameters LockedParameters, add LockedParameter) {
-	fqName := lockedParameterQualifiedName(&add)
-	current, exists := parameters[fqName]
+	qName := add.QName()
+	current, exists := parameters[qName]
 	if exists {
 		if current.Value != add.Value && current.Value != "" {
 			util.Warn("Parameter `%s` current value `%s` does not match new value `%s`",
-				fqName, current.Value, add.Value)
+				qName, current.Value, add.Value)
 		}
 		if current.Env != "" && add.Env != "" && current.Env != add.Env {
 			util.Warn("Parameter `%s` environment variable setup `%s` does not match new setup `%s`",
-				fqName, current.Env, add.Env)
+				qName, current.Env, add.Env)
 		}
 
 	}
-	parameters[fqName] = add
+	parameters[qName] = add
 }
 
 func MergeParameters(parameters LockedParameters, toMerge ...[]LockedParameter) LockedParameters {
