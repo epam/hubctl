@@ -1,0 +1,19 @@
+{
+    "name": "AzureStorage",
+    "description": "Standalone Azure Storage Account",
+    "stack": "scratch:1",
+    "componentsEnabled": ["azure-storage"],
+    "tags": [],
+    "parameters": [{
+        "name": "dns.domain"
+    }],
+    "teamsPermissions": [{
+        "id": "00gacz985cO16vjdO0h7",
+        "name": "ASI.Admin",
+        "role": "admin"
+    }, {
+        "id": "00gaczclwocEL4a2E0h7",
+        "name": "ASI.Dev",
+        "role": "write"
+    }]
+}

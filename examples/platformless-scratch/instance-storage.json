@@ -1,0 +1,9 @@
+{
+    "name": "arkadi-storage-01",
+    "template": "20",
+    "environment": "15",
+    "parameters": [{
+        "name": "dns.domain",
+        "value": "arkadi-storage-01.arkadi-azure01.dev.superhub.io"
+    }]
+}

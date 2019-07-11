@@ -1,0 +1,9 @@
+{
+    "name": "arkadi-gcs-01",
+    "template": "19",
+    "environment": "14",
+    "parameters": [{
+        "name": "dns.domain",
+        "value": "arkadi-gcs-01.arkadi-gcp01.dev.superhub.io"
+    }]
+}

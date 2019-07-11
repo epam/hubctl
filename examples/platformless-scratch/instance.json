@@ -1,0 +1,9 @@
+{
+    "name": "arkadi-s3-01",
+    "template": "18",
+    "environment": "12",
+    "parameters": [{
+        "name": "dns.domain",
+        "value": "arkadi-s3-01.arkadi-demo01.dev.superhub.io"
+    }]
+}
