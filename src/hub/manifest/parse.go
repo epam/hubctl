@@ -144,27 +144,3 @@ func ParseComponentsManifestsWithExclusion(components []ComponentRef, excludedCo
 
 	return ParseComponentsManifests(filtered, stackBaseDir, componentsBaseDir)
 }
-
-func ParseKvList(list string) (map[string]string, error) {
-	parsed := make(map[string]string)
-	if list == "" {
-		return parsed, nil
-	}
-	vars := strings.Split(list, ",")
-	for _, v := range vars {
-		kv := strings.SplitN(v, "=", 2)
-		if len(kv) != 2 {
-			return nil, fmt.Errorf("`%s` cannot be split into key/value pair", v)
-		}
-		parsed[kv[0]] = kv[1]
-	}
-
-	if config.Debug {
-		log.Print("Parsed:")
-		for k, v := range parsed {
-			log.Printf("\t%s => %s", k, v)
-		}
-	}
-
-	return parsed, nil
-}

@@ -58,7 +58,7 @@ func Elaborate(manifestFilename string,
 			parametersFrom, overrides, state)
 	}
 
-	environment, err := manifest.ParseKvList(environmentOverrides)
+	environment, err := util.ParseKvList(environmentOverrides)
 	if err != nil {
 		log.Fatalf("Unable to parse environment settings `%s`: %v", environmentOverrides, err)
 	}

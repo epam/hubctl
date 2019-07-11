@@ -18,7 +18,7 @@ func Invoke(request *Request) {
 		log.Fatalf("Unable to parse: %v", err)
 	}
 
-	additionalEnvironment, err := manifest.ParseKvList(request.EnvironmentOverrides)
+	additionalEnvironment, err := util.ParseKvList(request.EnvironmentOverrides)
 	if err != nil {
 		log.Fatalf("Unable to parse additional environment variables `%s`: %v", request.EnvironmentOverrides, err)
 	}

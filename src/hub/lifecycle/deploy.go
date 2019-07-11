@@ -32,7 +32,7 @@ func Execute(request *Request) {
 		log.Fatalf("Unable to %s: %s", request.Verb, err)
 	}
 
-	environment, err := manifest.ParseKvList(request.EnvironmentOverrides)
+	environment, err := util.ParseKvList(request.EnvironmentOverrides)
 	if err != nil {
 		log.Fatalf("Unable to parse environment settings `%s`: %v", request.EnvironmentOverrides, err)
 	}

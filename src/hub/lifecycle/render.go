@@ -25,7 +25,7 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 		}
 	}
 
-	additionalKV, err := manifest.ParseKvList(additionalParametersStr)
+	additionalKV, err := util.ParseKvList(additionalParametersStr)
 	if err != nil {
 		log.Fatalf("Unable to parse additional parameters `%s`: %v", additionalParametersStr, err)
 	}
