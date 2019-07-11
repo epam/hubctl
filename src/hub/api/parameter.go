@@ -194,7 +194,7 @@ func createSecretParameter(environment, environmentId, name, component string) (
 		return "", fmt.Errorf("Unable to create secret `%s` in environment `%s`: %v", name, environment, err)
 	}
 	if config.Verbose {
-		log.Printf("Secret `%s` created in environment `%s` with id `%s`", name, environment, secretId)
+		log.Printf("Secret `%s` created in environment `%s` with secret id `%s`", name, environment, secretId)
 	}
 	return value, nil
 }
