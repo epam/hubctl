@@ -11,7 +11,9 @@ import (
 	"hub/util"
 )
 
-var CurlyReplacement = regexp.MustCompile("[\\$#][^}]+}")
+// ${var.name} or
+// #{cel - expression {optionaly one nested level of braces for maps}}
+var CurlyReplacement = regexp.MustCompile("\\$\\{[^}]+\\}|#\\{(?:[^}{]|\\{[^}{]+\\})*\\}")
 
 func StripCurly(match string) (string, bool) {
 	return match[2 : len(match)-1], match[0] == '#'
