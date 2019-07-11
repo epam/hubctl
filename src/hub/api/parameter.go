@@ -73,6 +73,8 @@ func GetParameterOrMaybeCreateSecret(environment, stackInstance, application,
 				value, err = createSecretParameter(environment, env.Id, name, component)
 				if err != nil {
 					errors = append(errors, err)
+				} else {
+					found = true
 				}
 			}
 		}

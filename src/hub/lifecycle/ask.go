@@ -62,7 +62,7 @@ func AskParameter(parameter manifest.Parameter,
 
 	if hubEnvironment != "" || hubStackInstance != "" || hubApplication != "" {
 		found, v, errs := api.GetParameterOrMaybeCreateSecret(hubEnvironment, hubStackInstance, hubApplication,
-			parameter.Name, parameter.Component, isDeploy)
+			parameter.Name, parameter.Component, isDeploy && parameter.Empty != "allow")
 		if len(errs) > 0 {
 			where := make([]string, 0, 3)
 			if hubEnvironment != "" {
