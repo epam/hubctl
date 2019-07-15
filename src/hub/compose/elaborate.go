@@ -28,6 +28,9 @@ var globalEnvVarsAllowed = []string{
 	"STATE_REGION",
 	"NAME",
 	"BASE_DOMAIN",
+	"DOMAIN",
+	"KUBECONTEXT",
+	"NAMESPACE",
 }
 
 // this must match to lifecycle.checkRequires()
