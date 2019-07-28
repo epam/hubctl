@@ -126,8 +126,8 @@ type Manifest struct {
 }
 
 type ParametersManifest struct {
-	Parameters []Parameter
-	Outputs    []Output
+	Parameters []Parameter `yaml:",omitempty"`
+	Outputs    []Output    `yaml:",omitempty"`
 }
 
 type ParametersBundle struct {
