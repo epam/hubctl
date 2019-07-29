@@ -76,7 +76,7 @@ func setupRequirement(requirement string, provider string,
 	case "kubectl", "kubernetes":
 		kube.SetupKubernetes(parameters, provider, outputs, "", false, false)
 
-	case "aws", "azure", "gcp", "gcs", "tiller", "helm", "vault", "ingress", "tls-ingress":
+	case "aws", "azure", "gcp", "gcs", "tiller", "helm", "etcd", "vault", "ingress", "tls-ingress":
 		wellKnown, err := checkRequire(requirement)
 		if wellKnown {
 			if err != nil {
@@ -100,6 +100,7 @@ var bins = map[string][]string{
 	"kubectl":    {"kubectl", "version", "--client"},
 	"kubernetes": {"kubectl", "version", "--client"},
 	"helm":       {"helm", "version", "--client"},
+	"etcd":       {"etcdctl", "--version"},
 }
 
 type BinVersion struct {
@@ -155,7 +156,7 @@ func checkRequire(require string) (bool, error) {
 		}
 		setupTerraformAzureOsEnv()
 
-	case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault":
+	case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault": // "etcd"
 		bin, exist := bins[require]
 		if !exist {
 			bin = []string{require, "version"}
