@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"strings"
 	"time"
 
@@ -115,6 +116,9 @@ func waitForUrl(url string, waitSeconds int) error {
 	}
 	interval := time.Duration(10) * time.Second
 	client := util.RobustHttpClient(interval, true)
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
 	start := time.Now()
 	for time.Since(start) < time.Duration(waitSeconds)*time.Second {
 		response, err := client.Get(url)
