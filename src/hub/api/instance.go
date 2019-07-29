@@ -398,11 +398,10 @@ func commandStackInstance(selector, verb string, waitAndTailDeployLogs, dryRun b
 		log.Printf("Instance %s automation task id: %s", verb, jsResp.JobId)
 	}
 	if waitAndTailDeployLogs {
-		// TODO wait for stackInstance status update and exit on success of failure
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
-		Logs([]string{instance.Domain})
+		Logs([]string{instance.Domain}, true)
 	}
 	return nil
 }

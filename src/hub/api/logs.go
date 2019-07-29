@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arkadijs/golang-socketio"
+	gosocketio "github.com/arkadijs/golang-socketio"
 	"github.com/logrusorgru/aurora"
 
 	"hub/config"
@@ -26,11 +26,14 @@ type WsMessage struct {
 }
 
 type Filter struct {
-	Id     string
-	Entity string
+	Id        string
+	Entity    string
+	Completed bool
 }
 
-func Logs(selectors []string) {
+var opCompletedActions = []string{"onboard", "deploy", "undeploy", "delete"}
+
+func Logs(selectors []string, exitOnCompletedOperation bool) {
 	filters := parseFilters(selectors)
 	if len(selectors) > 0 && len(filters) == 0 {
 		msg := fmt.Sprintf("No entities found by %v", selectors)
@@ -121,7 +124,7 @@ func Logs(selectors []string) {
 
 	for {
 		m := <-updates
-		if len(filters) > 0 && !entityMatch(filters, &m) {
+		if len(filters) > 0 && !filterMatch(filters, &m) {
 			continue
 		}
 		if m.Logs != "" {
@@ -138,17 +141,49 @@ func Logs(selectors []string) {
 				m.Entity,
 				aurora.Cyan(m.Action).String(),
 				success)
+
+			if exitOnCompletedOperation && util.Contains(opCompletedActions, m.Action) {
+				exit := true
+				if len(filters) > 0 {
+					markCompletedFilters(filters, &m)
+					exit = allFiltersCompleted(filters)
+				}
+				if exit {
+					if config.Debug {
+						log.Print("Logs completed, exiting")
+					}
+					return
+				}
+			}
 		}
 	}
 }
 
-func entityMatch(filters []Filter, msg *WsMessage) bool {
+func filterMatch(filters []Filter, msg *WsMessage) bool {
 	for _, filter := range filters {
 		if msg.Id == filter.Id && (msg.Entity == "" || msg.Entity == filter.Entity) {
 			return true
 		}
 	}
 	return false
+}
+
+func markCompletedFilters(filters []Filter, msg *WsMessage) {
+	for i := range filters {
+		filter := &filters[i]
+		if msg.Id == filter.Id && (msg.Entity == "" || msg.Entity == filter.Entity) {
+			filter.Completed = true
+		}
+	}
+}
+
+func allFiltersCompleted(filters []Filter) bool {
+	for _, filter := range filters {
+		if !filter.Completed {
+			return false
+		}
+	}
+	return true
 }
 
 func parseFilters(selectors []string) []Filter {

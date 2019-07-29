@@ -383,11 +383,10 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	}
 	CloudAccounts(account.Id, false, false, false)
 	if waitAndTailDeployLogs {
-		// TODO wait for cloudAccount status update and exit on success of failure
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
-		Logs([]string{"cloudAccount/" + domain})
+		Logs([]string{"cloudAccount/" + domain}, true)
 	}
 }
 
@@ -457,7 +456,7 @@ func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
-		Logs([]string{"cloudAccount/" + selector})
+		Logs([]string{"cloudAccount/" + selector}, true)
 	}
 }
 
