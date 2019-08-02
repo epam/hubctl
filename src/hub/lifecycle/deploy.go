@@ -502,7 +502,7 @@ NEXT_COMPONENT:
 				printStackInstancePatch(patch)
 			}
 		}
-		_, err := api.PatchStackInstance(request.StackInstance, patch)
+		_, err := api.PatchStackInstance(request.StackInstance, patch, true)
 		if err != nil {
 			util.Warn("Unable to sync stack instance to SuperHub: %v\n\ttry running sync manually: hub api instance sync %s -s %s ",
 				err, request.StackInstance, strings.Join(request.StateFilenames, ","))

@@ -32,7 +32,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	if config.Verbose {
 		log.Print("Syncing Stack Instance state to SuperHub")
 	}
-	patched, err := PatchStackInstance(selector, patch)
+	patched, err := PatchStackInstance(selector, patch, true)
 	if err != nil {
 		log.Fatalf("Unable to sync Stack Instance: %v", err)
 	}

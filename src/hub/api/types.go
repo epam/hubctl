@@ -232,14 +232,26 @@ type StackInstanceDeployResponse struct {
 	JobId string `json:jobId`
 }
 
+type GitRefPatch struct {
+	Template *struct {
+		Ref string `json:"ref"`
+	} `json:"template,omitempty"`
+	K8s *struct {
+		Ref string `json:"ref"`
+	} `json:"k8s,omitempty"`
+}
+
 type StackInstancePatch struct {
-	ComponentsEnabled  []string             `json:"componentsEnabled,omitempty"`
-	Parameters         []Parameter          `json:"parameters,omitempty"`
-	StateFiles         []string             `json:"stateFiles,omitempty"`
-	Status             *StackInstanceStatus `json:"status,omitempty"`
-	InflightOperations []InflightOperation  `json:"inflightOperations,omitempty"`
-	Outputs            []Output             `json:"outputs,omitempty"`
-	Provides           map[string][]string  `json:"provides,omitempty"`
+	Verbs              []string               `json:"verbs,omitempty"`
+	ComponentsEnabled  []string               `json:"componentsEnabled,omitempty"`
+	StateFiles         []string               `json:"stateFiles,omitempty"`
+	Parameters         []Parameter            `json:"parameters,omitempty"`
+	GitRemote          *GitRefPatch           `json:"gitRemote,omitempty"`
+	Status             *StackInstanceStatus   `json:"status,omitempty"`
+	InflightOperations []InflightOperation    `json:"inflightOperations,omitempty"`
+	Outputs            []Output               `json:"outputs,omitempty"`
+	Provides           map[string][]string    `json:"provides,omitempty"`
+	UI                 map[string]interface{} `json:"ui,omitempty"`
 }
 
 type Application struct {

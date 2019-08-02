@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -13,6 +16,7 @@ import (
 var (
 	instanceShowLogs     bool
 	instancePatchReplace bool
+	instancePatchRaw     bool
 	kubeconfigOutput     string
 )
 
@@ -169,7 +173,21 @@ func patchInstance(args []string) error {
 		return errors.New("Patch Instance command has one mandatory argument - id or full domain name of the Instance")
 	}
 
-	api.RawPatchStackInstance(args[0], os.Stdin, instancePatchReplace)
+	selector := args[0]
+	if instancePatchRaw {
+		api.RawPatchStackInstance(selector, os.Stdin, instancePatchReplace)
+	} else {
+		patchBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil || len(patchBytes) < 3 {
+			return fmt.Errorf("Unable to read patch data (read %d bytes): %v", len(patchBytes), err)
+		}
+		var patch api.StackInstancePatch
+		err = json.Unmarshal(patchBytes, &patch)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshal patch data: %v", err)
+		}
+		api.PatchStackInstance(selector, patch, instancePatchReplace)
+	}
 
 	return nil
 }
@@ -241,10 +259,12 @@ func init() {
 		"Show secrets")
 	instanceGetCmd.Flags().BoolVarP(&instanceShowLogs, "logs", "l", false,
 		"Show logs")
-	instancePatchCmd.Flags().BoolVarP(&instancePatchReplace, "replace", "r", false,
 	instanceGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
+	instancePatchCmd.Flags().BoolVarP(&instancePatchReplace, "replace", "", true,
 		"Replace patched fields, do not merge")
+	instancePatchCmd.Flags().BoolVarP(&instancePatchRaw, "raw", "r", false,
+		"Send patch data as is, do not trim non-PATCH-able API object fields")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceDeployCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,

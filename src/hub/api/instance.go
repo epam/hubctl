@@ -517,7 +517,7 @@ func kubeconfigStackInstance(selector, filename string) error {
 	return nil
 }
 
-func PatchStackInstance(selector string, change StackInstancePatch) (*StackInstance, error) {
+func PatchStackInstance(selector string, change StackInstancePatch, replace bool) (*StackInstance, error) {
 	instance, err := stackInstanceBy(selector)
 	if err != nil {
 		return nil, err
@@ -525,7 +525,16 @@ func PatchStackInstance(selector string, change StackInstancePatch) (*StackInsta
 	if instance == nil {
 		return nil, error404
 	}
-	path := fmt.Sprintf("%s/%s?replace=1", stackInstancesResource, url.PathEscape(instance.Id))
+	// reset `gitRemote` as we may have unmarshalled empty struct due to presence of `public` field
+	// which is not allowed in patch
+	if change.GitRemote != nil && change.GitRemote.Template == nil && change.GitRemote.K8s == nil {
+		change.GitRemote = nil
+	}
+	maybeReplace := ""
+	if replace {
+		maybeReplace = "?replace=1"
+	}
+	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), maybeReplace)
 	var jsResp StackInstance
 	code, err := patch(hubApi, path, &change, &jsResp)
 	if err != nil {
