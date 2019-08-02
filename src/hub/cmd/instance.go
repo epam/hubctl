@@ -149,7 +149,7 @@ func instance(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.StackInstances(selector, showSecrets, instanceShowLogs)
+	api.StackInstances(selector, showSecrets, instanceShowLogs, jsonFormat)
 
 	return nil
 }
@@ -242,6 +242,8 @@ func init() {
 	instanceGetCmd.Flags().BoolVarP(&instanceShowLogs, "logs", "l", false,
 		"Show logs")
 	instancePatchCmd.Flags().BoolVarP(&instancePatchReplace, "replace", "r", false,
+	instanceGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+		"JSON output")
 		"Replace patched fields, do not merge")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")

@@ -28,4 +28,5 @@ var (
 	outputFiles           string
 	waitAndTailDeployLogs bool
 	showSecrets           bool
+	jsonFormat            bool
 )

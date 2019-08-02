@@ -101,18 +101,18 @@ type BaseStack struct {
 }
 
 type StackRef struct {
-	Id   string
-	Name string
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type GitRef struct {
-	Public   string
-	Template struct {
-		Ref string
-	}
-	K8s struct {
-		Ref string
-	}
+	Public   string `json:"public"`
+	Template *struct {
+		Ref string `json:"ref"`
+	} `json:"template,omitempty"`
+	K8s *struct {
+		Ref string `json:"ref"`
+	} `json:"k8s,omitempty"`
 }
 
 type StackTemplate struct {
@@ -141,20 +141,20 @@ type StackTemplateRequest struct {
 }
 
 type EnvironmentRef struct {
-	Id     string
-	Name   string
-	Domain string
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Domain string `json:"domain,omitempty"`
 }
 
 type StackTemplateRef struct {
-	Id   string
-	Name string
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type PlatformRef struct {
-	Id     string
-	Name   string
-	Domain string
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Domain string `json:"domain"`
 }
 
 type ComponentStatus struct {
@@ -197,22 +197,23 @@ type StackInstanceStatus struct {
 }
 
 type StackInstance struct {
-	Id                 string
-	Name               string
-	Domain             string
-	Description        string
-	Tags               []string
-	Environment        EnvironmentRef
-	Stack              StackRef
-	Template           StackTemplateRef
-	Platform           PlatformRef
-	ComponentsEnabled  []string `json:"componentsEnabled"`
-	GitRemote          GitRef   `json:"gitRemote"`
-	Parameters         []Parameter
-	Outputs            []Output
-	Provides           map[string][]string
-	StateFiles         []string `json:"stateFiles"`
-	Status             StackInstanceStatus
+	Id                 string              `json:"id"`
+	Name               string              `json:"name"`
+	Domain             string              `json:"domain"`
+	Description        string              `json:"description,omitempty"`
+	Verbs              []string            `json:"verbs,omitempty"`
+	Tags               []string            `json:"tags,omitempty"`
+	Environment        EnvironmentRef      `json:"environment,omitempty"`
+	Stack              StackRef            `json:"stack,omitempty"`
+	Template           StackTemplateRef    `json:"template,omitempty"`
+	Platform           *PlatformRef        `json:"platform,omitempty"`
+	ComponentsEnabled  []string            `json:"componentsEnabled,omitempty"`
+	GitRemote          GitRef              `json:"gitRemote,omitempty"`
+	Parameters         []Parameter         `json:"parameters,omitempty"`
+	Outputs            []Output            `json:"outputs,omitempty"`
+	Provides           map[string][]string `json:"provides,omitempty"`
+	StateFiles         []string            `json:"stateFiles,omitempty"`
+	Status             StackInstanceStatus `json:"status"`
 	InflightOperations []InflightOperation `json:"inflightOperations,omitempty"`
 }
 

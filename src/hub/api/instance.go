@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -18,23 +19,42 @@ const stackInstancesResource = "hub/api/v1/instances"
 
 var stackInstancesCache = make(map[string]*StackInstance)
 
-func StackInstances(selector string, showSecrets, showLogs bool) {
+func StackInstances(selector string, showSecrets, showLogs, jsonFormat bool) {
 	instances, err := stackInstancesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 	}
 	if len(instances) == 0 {
-		fmt.Print("No Stack Instances\n")
-	} else {
-		fmt.Print("Stack Instances:\n")
-		errors := make([]error, 0)
-		for _, instance := range instances {
-			errors = formatStackInstanceEntity(&instance, showSecrets, showLogs, errors)
+		if jsonFormat {
+			log.Print("No Stack Instances\n")
+		} else {
+			fmt.Print("No Stack Instances\n")
 		}
-		if len(errors) > 0 {
-			fmt.Print("Errors encountered:\n")
-			for _, err := range errors {
-				fmt.Printf("\t%v\n", err)
+	} else {
+		if jsonFormat {
+			var toMarshal interface{}
+			if len(instances) == 1 {
+				toMarshal = &instances[0]
+			} else {
+				toMarshal = instances
+			}
+			out, err := json.MarshalIndent(toMarshal, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshalling JSON response for output: %v", err)
+			}
+			os.Stdout.Write(out)
+			os.Stdout.Write([]byte("\n"))
+		} else {
+			fmt.Print("Stack Instances:\n")
+			errors := make([]error, 0)
+			for _, instance := range instances {
+				errors = formatStackInstanceEntity(&instance, showSecrets, showLogs, errors)
+			}
+			if len(errors) > 0 {
+				fmt.Print("Errors encountered:\n")
+				for _, err := range errors {
+					fmt.Printf("\t%v\n", err)
+				}
 			}
 		}
 	}
@@ -53,7 +73,7 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 		fmt.Printf("\t\tEnvironment: %s\n", formatEnvironmentRef(&instance.Environment))
 	}
 	if instance.Platform.Name != "" {
-		fmt.Printf("\t\tPlatform: %s\n", formatPlatformRef(&instance.Platform))
+		fmt.Printf("\t\tPlatform: %s\n", formatPlatformRef(instance.Platform))
 	}
 	if instance.Stack.Name != "" {
 		fmt.Printf("\t\tStack: %s\n", formatStackRef(&instance.Stack))
