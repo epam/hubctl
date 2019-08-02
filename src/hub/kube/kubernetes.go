@@ -379,7 +379,7 @@ func writeFile(filename string, content string) {
 }
 
 func mustExec(name string, args ...string) {
-	if config.Debug {
+	if config.Trace {
 		log.Printf("Executing %s %v", name, args)
 	}
 	cmd := exec.Command(name, args...)
