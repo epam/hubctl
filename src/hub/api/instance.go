@@ -75,7 +75,7 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 	if instance.Environment.Name != "" {
 		fmt.Printf("\t\tEnvironment: %s\n", formatEnvironmentRef(&instance.Environment))
 	}
-	if instance.Platform.Name != "" {
+	if instance.Platform != nil && instance.Platform.Name != "" {
 		fmt.Printf("\t\tPlatform: %s\n", formatPlatformRef(instance.Platform))
 	}
 	if instance.Stack.Name != "" {
@@ -87,14 +87,13 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 	if len(instance.ComponentsEnabled) > 0 {
 		fmt.Printf("\t\tComponents: %s\n", strings.Join(instance.ComponentsEnabled, ", "))
 	}
-	if instance.GitRemote.Public != "" {
-		g := instance.GitRemote
+	if g := instance.GitRemote; g.Public != "" {
 		templateRef := ""
-		if g.Template.Ref != "" {
+		if g.Template != nil && g.Template.Ref != "" {
 			templateRef = fmt.Sprintf("\n\t\t\tRef: %s", g.Template.Ref)
 		}
 		k8sRef := ""
-		if g.K8s.Ref != "" {
+		if g.K8s != nil && g.K8s.Ref != "" {
 			k8sRef = fmt.Sprintf("\n\t\t\tstack-k8s-aws ref: %s", g.K8s.Ref)
 		}
 		fmt.Printf("\t\tGit: %s%s%s\n", g.Public, templateRef, k8sRef)
