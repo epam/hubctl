@@ -69,6 +69,9 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 	if len(instance.Tags) > 0 {
 		fmt.Printf("\t\tTags: %s\n", strings.Join(instance.Tags, ", "))
 	}
+	if len(instance.Verbs) > 0 {
+		fmt.Printf("\t\tVerbs: %s\n", strings.Join(instance.Verbs, ", "))
+	}
 	if instance.Environment.Name != "" {
 		fmt.Printf("\t\tEnvironment: %s\n", formatEnvironmentRef(&instance.Environment))
 	}
