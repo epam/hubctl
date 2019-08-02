@@ -379,6 +379,9 @@ func writeFile(filename string, content string) {
 }
 
 func mustExec(name string, args ...string) {
+	if config.Debug {
+		log.Printf("Executing %s %v", name, args)
+	}
 	cmd := exec.Command(name, args...)
 	outBytes, err := cmd.CombinedOutput()
 	if err != nil || config.Debug {
