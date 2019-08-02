@@ -209,16 +209,19 @@ func parameterQName(param Parameter) string {
 
 func sortParameters(params []Parameter) []Parameter {
 	keys := make([]string, 0, len(params))
-	indx := make(map[string]int)
+	indx := make(map[string][]int)
 	for i := range params {
 		name := parameterQName(params[i])
 		keys = append(keys, name)
-		indx[name] = i
+		indx[name] = append(indx[name], i)
 	}
+	keys = util.Uniq(keys)
 	sort.Strings(keys)
 	sorted := make([]Parameter, 0, len(params))
 	for _, name := range keys {
-		sorted = append(sorted, params[indx[name]])
+		for _, i := range indx[name] {
+			sorted = append(sorted, params[i])
+		}
 	}
 	return sorted
 }
