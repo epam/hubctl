@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/arkadijs/golang-socketio"
+	gosocketio "github.com/arkadijs/golang-socketio"
 	gosocketiotransport "github.com/arkadijs/golang-socketio/transport"
 	"github.com/gorilla/websocket"
 
@@ -156,7 +156,8 @@ func ppp(client *http.Client, method, path string, req interface{}, jsResp inter
 		return 0, err
 	}
 	if config.Trace {
-		log.Printf(">>>\n%s", identJson(reqBody))
+		addr := fmt.Sprintf("%s/%s", config.ApiBaseUrl, path)
+		log.Printf(">>> %s %s\n%s", method, addr, identJson(reqBody))
 	}
 	code, err, _ := doWithAuthorization(client, method, path, bytes.NewReader(reqBody), jsResp)
 	return code, err
