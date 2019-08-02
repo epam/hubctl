@@ -516,6 +516,20 @@ func kubeconfigStackInstance(selector, filename string) error {
 	return nil
 }
 
+func PatchStackInstanceForCmd(selector string, change StackInstancePatch, replace bool) {
+	stackInstance, err := PatchStackInstance(selector, change, replace)
+	if err != nil {
+		log.Fatalf("Unable to patch SuperHub Stack Instance: %v", err)
+	}
+	errors := formatStackInstanceEntity(stackInstance, false, false, make([]error, 0))
+	if len(errors) > 0 {
+		fmt.Print("Errors encountered formatting response:\n")
+		for _, err := range errors {
+			fmt.Printf("\t%v\n", err)
+		}
+	}
+}
+
 func PatchStackInstance(selector string, change StackInstancePatch, replace bool) (*StackInstance, error) {
 	instance, err := stackInstanceBy(selector)
 	if err != nil {

@@ -186,7 +186,7 @@ func patchInstance(args []string) error {
 		if err != nil {
 			return fmt.Errorf("Unable to unmarshal patch data: %v", err)
 		}
-		api.PatchStackInstance(selector, patch, instancePatchReplace)
+		api.PatchStackInstanceForCmd(selector, patch, instancePatchReplace)
 	}
 
 	return nil
