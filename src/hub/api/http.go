@@ -198,16 +198,12 @@ func do(client *http.Client, req *http.Request, jsResp interface{}) (int, error,
 		resp.Body.Close()
 		bResp := body.Bytes()
 		if config.Trace {
-			pretty := identIfJson(resp, bResp)
+			pretty := indentIfJson(resp, bResp)
 			if pretty != "" {
 				log.Printf("<<<\n%s", pretty)
 			}
 		}
 		return bResp, read, err
-	}
-	respBodyIfDebug := func() string {
-		b, _, _ := respBody()
-		return identIfDebugAndJson(resp, b)
 	}
 	if config.Trace {
 		log.Printf("<<< %s %s: %s", req.Method, req.URL.String(), resp.Status)
@@ -216,51 +212,114 @@ func do(client *http.Client, req *http.Request, jsResp interface{}) (int, error,
 		return resp.StatusCode, error404, nil
 	}
 	if resp.StatusCode >= 300 {
-		return resp.StatusCode, fmt.Errorf("%d HTTP%s", resp.StatusCode, respBodyIfDebug()), nil
+		b, _, _ := respBody()
+		maybeErrors := decodeIfApiErrorsAndVerbose(resp, b)
+		maybeJson := ""
+		if maybeErrors == "" {
+			maybeJson = indentIfJsonAndDebug(resp, b)
+		}
+		return resp.StatusCode, fmt.Errorf("%d HTTP%s%s", resp.StatusCode, maybeErrors, maybeJson), nil
 	}
 	body, read, err := respBody()
 	if err != nil || (read < 2 && resp.StatusCode != 202 && resp.StatusCode != 204 && jsResp != nil) {
 		return resp.StatusCode, fmt.Errorf("%d HTTP, error reading response (read %d bytes): %s%s",
-			resp.StatusCode, read, util.Errors2(err), identIfDebugAndJson(resp, body)), body
+			resp.StatusCode, read, util.Errors2(err), indentIfJsonAndDebug(resp, body)), body
 	}
 	if jsResp != nil && read >= 2 {
 		err = json.Unmarshal(body, jsResp)
 		if err != nil {
 			return resp.StatusCode, fmt.Errorf("%d HTTP, error unmarshalling response (read %d bytes): %v%s",
-				resp.StatusCode, read, err, identIfDebugAndJson(resp, body)), body
+				resp.StatusCode, read, err, indentIfJsonAndDebug(resp, body)), body
 		}
 	}
 	return resp.StatusCode, nil, body
 }
 
-func identJson(in []byte) string {
+func identJson(in []byte) []byte {
 	js := in
 	var pretty bytes.Buffer
 	err := json.Indent(&pretty, in, "", "  ")
 	if err != nil {
-		log.Printf("Unable to ident JSON: %v", err)
+		log.Printf("Unable to indent JSON: %v", err)
 	} else {
 		js = pretty.Bytes()
 	}
-	return string(js)
+	return js
 }
 
-func identIfJson(resp *http.Response, in []byte) string {
+func indentIfJson(resp *http.Response, in []byte) string {
 	ct := resp.Header.Get("Content-type")
 	aj := "application/json"
+	js := in
 	if strings.HasPrefix(ct, aj) {
-		return identJson(in)
+		js = identJson(in)
 	} else {
 		if config.Trace && resp.StatusCode != 204 {
 			log.Printf("Response Content-type is not `%s`, but `%s`", aj, ct)
 		}
 	}
-	return string(in)
+	return string(js)
 }
 
-func identIfDebugAndJson(resp *http.Response, b []byte) string {
+func indentIfJsonAndDebug(resp *http.Response, b []byte) string {
 	if !config.Debug {
 		return ""
 	}
-	return "\n" + identIfJson(resp, b)
+	return "\n" + indentIfJson(resp, b)
+}
+
+func decodeIfApiErrorsAndVerbose(resp *http.Response, b []byte) string {
+	if !config.Verbose {
+		return ""
+	}
+	return "\n\t" + strings.Join(unmarshalAndDecodeApiErrors(resp, b), "\n\t")
+}
+
+func unmarshalAndDecodeApiErrors(resp *http.Response, in []byte) []string {
+	ct := resp.Header.Get("Content-type")
+	aj := "application/json"
+	if !strings.HasPrefix(ct, aj) {
+		return nil
+	}
+	var js ApiErrors
+	err := json.Unmarshal(in, &js)
+	if err != nil {
+		if config.Verbose {
+			log.Printf("Error response doesn't look like informative API error: %v", err)
+		}
+		return nil
+	}
+	return decodeApiErrors(js.Errors, "")
+}
+
+func decodeApiErrors(es []ApiError, indent string) []string {
+	errs := make([]string, 0, len(es))
+	for _, e := range es {
+		errs = append(errs, decodeApiError(e, indent))
+	}
+	return errs
+}
+
+func decodeApiError(e ApiError, indent string) string {
+	source := ""
+	if e.Source != "" {
+		source = fmt.Sprintf(" at %s", e.Source)
+	}
+	meta := e.Meta
+	nested := ""
+	if len(meta.Data.Errors) > 0 {
+		nested = fmt.Sprintf("\n%s\tNested API error:\n%s\t%s",
+			indent, indent,
+			strings.Join(decodeApiErrors(meta.Data.Errors, indent+"\t"), "\n\t"+indent))
+	}
+	validation := ""
+	if meta.SchemaPath != "" && config.Debug {
+		validation = fmt.Sprintf("\n%s\tValidation: %s %+v", indent, meta.Message, meta.Params)
+	}
+	stack := ""
+	if meta.Stack != "" && config.Debug {
+		frames := strings.Split(meta.Stack, "\n")
+		stack = fmt.Sprintf("\n%s\tStack: %s", indent, strings.Join(frames, "\n\t"+indent))
+	}
+	return fmt.Sprintf("%s%s%s: %s%s%s%s", indent, e.Type, source, e.Detail, stack, validation, nested)
 }

@@ -2,6 +2,24 @@ package api
 
 import "time"
 
+type ApiErrors struct {
+	Errors []ApiError
+}
+
+type ApiError struct {
+	Type   string
+	Source string
+	Detail string
+	Meta   struct {
+		Stack string
+		Data  ApiErrors // nested API call
+		// validation error
+		SchemaPath string `json:"schemaPath"`
+		Message    string
+		Params     map[string]interface{}
+	}
+}
+
 type CloudAccount struct {
 	Id               string
 	Name             string
