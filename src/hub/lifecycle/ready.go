@@ -87,13 +87,19 @@ func waitForFqdn(fqdn string, waitSeconds int) error {
 		log.Printf("Waiting for `%s` in DNS to resolve to an accessible address", fqdn)
 	}
 	start := time.Now()
+	lastMsg := ""
 	for time.Since(start) < time.Duration(waitSeconds)*time.Second {
 		addrs, err := net.LookupHost(fqdn)
-		if config.Debug {
+		if config.Verbose {
+			msg := ""
 			if err != nil {
-				log.Printf("%v", err)
+				msg = fmt.Sprintf("%v", err)
 			} else {
-				log.Printf("Resolved `%s` into: %v", fqdn, addrs)
+				msg = fmt.Sprintf("Resolved `%s` into: %v", fqdn, addrs)
+			}
+			if config.Debug || (config.Verbose && lastMsg != msg) {
+				log.Print(msg)
+				lastMsg = msg
 			}
 		}
 		if err == nil && len(addrs) > 0 {
@@ -120,17 +126,23 @@ func waitForUrl(url string, waitSeconds int) error {
 		return http.ErrUseLastResponse
 	}
 	start := time.Now()
+	lastMsg := ""
 	for time.Since(start) < time.Duration(waitSeconds)*time.Second {
 		response, err := client.Get(url)
-		if config.Debug {
+		if config.Verbose {
+			msg := ""
 			if err != nil {
-				log.Printf("%v", err)
+				msg = fmt.Sprintf("%v", err)
 			} else {
 				if config.Trace {
-					log.Printf("`%s` responded with:\n\t%+v", url, response)
+					msg = fmt.Sprintf("`%s` responded with:\n\t%+v", url, response)
 				} else {
-					log.Printf("`%s` responded with: %s", url, response.Status)
+					msg = fmt.Sprintf("`%s` responded with: %s", url, response.Status)
 				}
+			}
+			if config.Debug || (config.Verbose && lastMsg != msg) {
+				log.Print(msg)
+				lastMsg = msg
 			}
 		}
 		if err == nil {
