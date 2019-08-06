@@ -12,11 +12,12 @@ var (
 	ApiBaseUrl    string
 	ApiLoginToken string
 
-	AwsProfile               string
-	AwsRegion                string
-	AwsUseIamRoleCredentials bool
-	GcpCredentialsFile       string
-	AzureCredentialsFile     string
+	AwsProfile                  string
+	AwsRegion                   string
+	AwsPreferProfileCredentials bool
+	AwsUseIamRoleCredentials    bool
+	GcpCredentialsFile          string
+	AzureCredentialsFile        string
 
 	Verbose bool
 	Debug   bool

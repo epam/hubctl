@@ -44,13 +44,14 @@ func DefaultCredentials(purpose string) *awscredentials.Credentials {
 		log.Printf("Asking `%s` AWS profile%s for credentials%s",
 			profile, printEC2Metadata, purpose)
 	}
-	shared := awscredentials.SharedCredentialsProvider{}
+	shared := &awscredentials.SharedCredentialsProvider{}
 	if profile != "" {
 		shared.Profile = profile
 	}
-	providers := []awscredentials.Provider{
-		&awscredentials.EnvProvider{},
-		&shared,
+	env := &awscredentials.EnvProvider{}
+	providers := []awscredentials.Provider{env, shared}
+	if config.AwsPreferProfileCredentials {
+		providers = []awscredentials.Provider{shared, env}
 	}
 	if config.AwsUseIamRoleCredentials {
 		providers = append(providers, &awsec2rolecreds.EC2RoleProvider{Client: awsec2metadata.New(awssession.New())})

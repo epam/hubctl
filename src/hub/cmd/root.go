@@ -67,6 +67,7 @@ func init() {
 	}
 	RootCmd.PersistentFlags().StringVar(&config.AwsRegion, "aws_region", awsRegion, "AWS region hint (for S3 state access), AWS_DEFAULT_REGION")
 	RootCmd.PersistentFlags().BoolVar(&config.AwsUseIamRoleCredentials, "aws_use_iam_role_credentials", true, "Try EC2 instance credentials")
+	RootCmd.PersistentFlags().BoolVar(&config.AwsPreferProfileCredentials, "aws_prefer_profile_credentials", false, "Try AWS CLI config profile credentials first, before OS env")
 
 	RootCmd.PersistentFlags().StringVar(&config.GcpCredentialsFile, "gcp_credentials_file", "", "Path to GCP Service Account keys JSON file, GOOGLE_APPLICATION_CREDENTIALS, see https://cloud.google.com/docs/authentication/getting-started")
 	RootCmd.PersistentFlags().StringVar(&config.AzureCredentialsFile, "azure_credentials_file", "", "Path to Azure Service Principal auth JSON file, AZURE_AUTH_LOCATION, see https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization")
