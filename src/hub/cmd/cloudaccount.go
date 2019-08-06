@@ -33,18 +33,21 @@ the particular Cloud Account (specify Id or search by full domain name)`,
 }
 
 var cloudAccounOnboardCmd = &cobra.Command{
-	Use:   "onboard <domain> <aws | azure | gcp> <region> <credentials...>",
+	Use:   "onboard <domain> <aws | azure | gcp> <region> [credentials...]",
 	Short: "Onboard Cloud Account",
 	Long: `Onboard Cloud Account to SuperHub:
 <domain> must be a sub-domain of superhub.io or prefix, for example dev-01.superhub.io, dev-01
 
 AWS:
 	$ hub api onboard dev-01.superhub.io aws <access key> <secret key>
+	$ hub api onboard dev-01.superhub.io aws <profile>
+	$ hub api onboard dev-01.superhub.io aws  # credentials from OS environment, default profile, or EC2 metadata
 
 A cross account role will be created in your AWS account. The keys are not stored in SuperHub.
 
 Azure:
 	$ hub api onboard dev-01.superhub.io azure creds.json
+	$ hub api onboard dev-01.superhub.io azure  # credentials from $AZURE_AUTH_LOCATION
 
 where creds.json is a file with Service Principal credentials created by:
 
@@ -57,6 +60,7 @@ https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
 
 GCP:
 	$ hub api onboard gcp dev-01.superhub.io gcp creds.json
+	$ hub api onboard gcp dev-01.superhub.io gcp  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
 
 where creds.json is a file with Service Account credentials usually used via GOOGLE_APPLICATION_CREDENTIALS environment variable.
 For details please consult
@@ -90,12 +94,13 @@ func cloudAccount(args []string) error {
 }
 
 func onboardCloudAccount(args []string) error {
-	if len(args) < 4 || len(args) > 5 || (len(args) == 4 && args[1] == "aws") {
-		return fmt.Errorf(`Onboard CloudAccount command at least four mandatory arguments:
+	if len(args) < 2 || !((args[1] == "aws" && len(args) > 2 && len(args) < 6) ||
+		(util.Contains([]string{"gcp", "azure"}, args[1]) && len(args) > 2 && len(args) < 5)) {
+		return fmt.Errorf(`Onboard Cloud Account command has at least three mandatory arguments:
 - domain of the cloud account;
 - cloud kind - one of %s;
-- region;
-- cloud-specific credentials.
+- default region;
+- explicit cloud-specific credentials (optional).
 `, strings.Join(supportedCloudAccountKinds, ", "))
 	}
 

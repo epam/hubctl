@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"hub/aws"
 	"hub/config"
 	"hub/util"
 )
@@ -393,10 +395,50 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 func cloudSpecificCredentials(provider string, args []string) (map[string]string, error) {
 	switch provider {
 	case "aws":
-		return map[string]string{"accessKey": args[1], "secretKey": args[2]}, nil
+		if len(args) == 3 {
+			return map[string]string{"accessKey": args[1], "secretKey": args[2]}, nil
+		}
+		profile := ""
+		if len(args) == 2 {
+			profile = args[1]
+		}
+		if profile != "" {
+			config.AwsProfile = profile
+			config.AwsPreferProfileCredentials = true
+		}
+		factory := aws.DefaultCredentials("cloud account onboarding")
+		creds, err := factory.Get()
+		if err != nil {
+			maybeProfile := ""
+			if profile != "" {
+				maybeProfile = fmt.Sprintf(" (profile `%s`)", profile)
+			}
+			return nil, fmt.Errorf("Unable to retrieve AWS credentials%s: %v", maybeProfile, err)
+		}
+		return map[string]string{"accessKey": creds.AccessKeyID, "secretKey": creds.SecretAccessKey,
+			"sessionToken": creds.SessionToken}, nil
 
 	case "azure", "gcp":
-		credentialsFile := args[1]
+		credentialsFile := ""
+		if len(args) == 2 {
+			credentialsFile = args[1]
+		}
+		if credentialsFile == "" {
+			if provider == "gcp" {
+				credentialsFile = config.GcpCredentialsFile
+				if credentialsFile == "" {
+					credentialsFile = os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+				}
+			} else if provider == "azure" {
+				credentialsFile = config.AzureCredentialsFile
+				if credentialsFile == "" {
+					credentialsFile = os.Getenv("AZURE_AUTH_LOCATION")
+				}
+			}
+		}
+		if credentialsFile == "" {
+			return nil, errors.New("No credentials file specified")
+		}
 		file, err := os.Open(credentialsFile)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to open credentials file: %v", err)
