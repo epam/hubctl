@@ -39,7 +39,7 @@ func CelEval(expr string, component string, depends []string, kv map[string]stri
 	if err != nil {
 		return "(eval error)", fmt.Errorf("CEL evaluation error `%s`: %v", expr, err)
 	}
-	return fmt.Sprintf("%s", out), nil
+	return fmt.Sprintf("%+v", out), nil
 }
 
 type celActivation struct {
