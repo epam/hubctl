@@ -195,6 +195,9 @@ var headColor = func(str string) string {
 func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
 	fmt.Printf("-- Timestamp: %v\n", step.Timestamp)
 	fmt.Printf("-- Status: %v\n", step.Status)
+	if step.Version != "" {
+		fmt.Printf("-- Version: %v\n", step.Version)
+	}
 	if step.Message != "" {
 		fmt.Printf("-- Message: %v\n", step.Message)
 	}

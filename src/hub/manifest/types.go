@@ -19,6 +19,8 @@ type Metadata struct {
 	Name        string
 	Brief       string            `yaml:",omitempty"`
 	Description string            `yaml:",omitempty"`
+	Version     string            `yaml:",omitempty"`
+	Maturity    string            `yaml:",omitempty"`
 	Source      SourceLocation    `yaml:",omitempty"`
 	FromStack   string            `yaml:"fromStack,omitempty"`
 	Annotations map[string]string `yaml:",omitempty"`
@@ -45,6 +47,7 @@ type ReadyCondition struct {
 	WaitSeconds  int    `yaml:"waitSeconds,omitempty"`
 	PauseSeconds int    `yaml:"pauseSeconds,omitempty"`
 }
+
 type LifecycleOptions struct {
 	Random *struct {
 		Bytes int `yaml:",omitempty"`
@@ -79,8 +82,6 @@ type Parameter struct {
 	Brief       string `yaml:",omitempty"`
 	Description string `yaml:",omitempty"`
 
-	// Default interface{} `yaml:",omitempty"`
-	// Value   interface{} `yaml:",omitempty"`
 	Default string `yaml:",omitempty"`
 	Value   string `yaml:",omitempty"`
 	Empty   string `yaml:",omitempty"` // "allow"

@@ -255,7 +255,7 @@ NEXT_COMPONENT:
 		var updateStateComponentFailed func(string, bool)
 		if stateManifest != nil {
 			updateStateComponentFailed = func(msg string, final bool) {
-				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, "error", msg)
+				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, componentManifest.Meta.Version, "error", msg)
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "error")
 				if !config.Force && !optionalComponent(&stackManifest.Lifecycle, componentName) {
 					stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", msg)
@@ -333,7 +333,7 @@ NEXT_COMPONENT:
 					noEnvironmentProvides(provides),
 					false)
 			}
-			stateManifest = state.UpdateComponentStatus(stateManifest, componentName, status, "")
+			stateManifest = state.UpdateComponentStatus(stateManifest, componentName, componentManifest.Meta.Version, status, "")
 			stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "in-progress")
 			stateUpdater(stateManifest)
@@ -434,7 +434,8 @@ NEXT_COMPONENT:
 
 		if stateManifest != nil {
 			if !util.Contains(failedComponents, componentName) {
-				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, fmt.Sprintf("%sed", request.Verb), "")
+				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, componentManifest.Meta.Version,
+					fmt.Sprintf("%sed", request.Verb), "")
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "success")
 				stateUpdater(stateManifest)
 			}

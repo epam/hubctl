@@ -295,11 +295,15 @@ func formatStackOutputs(resource string, outputs []Output, showSecrets bool) (st
 
 func formatComponentStatus(comp ComponentStatus) string {
 	ident := "\t\t\t"
+	version := ""
+	if comp.Version != "" {
+		version = fmt.Sprintf(" [%s]", comp.Version)
+	}
 	message := ""
 	if comp.Message != "" {
 		message = fmt.Sprintf(": %s", comp.Message)
 	}
-	str := fmt.Sprintf("%s%s - %s%s\n", ident, comp.Name, comp.Status, message)
+	str := fmt.Sprintf("%s%s%s - %s%s\n", ident, comp.Name, version, comp.Status, message)
 	if len(comp.Outputs) > 0 {
 		str = fmt.Sprintf("%s%s\t%s\n", str, ident, formatComponentOutputs(comp.Outputs, ident))
 	}

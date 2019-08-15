@@ -18,6 +18,7 @@ type Lifecycle struct {
 type StateStep struct {
 	Timestamp       time.Time
 	Status          string                       `yaml:",omitempty"`
+	Version         string                       `yaml:",omitempty"`
 	Message         string                       `yaml:",omitempty"`
 	Parameters      []parameters.LockedParameter `yaml:",omitempty"`
 	RawOutputs      []parameters.RawOutput       `yaml:"rawOutputs,omitempty"`
