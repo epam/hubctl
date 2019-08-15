@@ -248,7 +248,7 @@ type StackInstanceRequest struct {
 }
 
 type StackInstanceDeployResponse struct {
-	JobId string `json:jobId`
+	JobId string `json:"jobId"`
 }
 
 type GitRefPatch struct {

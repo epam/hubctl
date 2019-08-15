@@ -1115,7 +1115,7 @@ func mergeRequiresTuning(parent, child manifest.RequiresTuning) manifest.Require
 			merged = append(merged, req)
 		}
 	}
-	return manifest.RequiresTuning{util.Reverse(merged)}
+	return manifest.RequiresTuning{Optional: util.Reverse(merged)}
 }
 
 func mergeOutputs(parent, child []manifest.Output) []manifest.Output {

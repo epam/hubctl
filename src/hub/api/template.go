@@ -26,7 +26,7 @@ func Templates(selector string, showSecrets, showGitRemote, wildcardSecret, show
 			if wildcardSecret {
 				key, err := userDeploymentKey("")
 				if err != nil {
-					log.Fatalf("Unable to retrieve deployment key: ", err)
+					log.Fatalf("Unable to retrieve deployment key: %v", err)
 				}
 				deploymentKey = key
 			}
@@ -39,7 +39,7 @@ func Templates(selector string, showSecrets, showGitRemote, wildcardSecret, show
 				if !wildcardSecret {
 					key, err := userDeploymentKey("git:" + template.Id)
 					if err != nil {
-						errors = append(errors, fmt.Errorf("Unable to retrieve deployment key: ", err))
+						errors = append(errors, fmt.Errorf("Unable to retrieve deployment key: %v", err))
 						deploymentKey = "(error)"
 					} else {
 						deploymentKey = key
