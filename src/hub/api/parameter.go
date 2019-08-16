@@ -298,10 +298,14 @@ func formatParameterValue(resource string, kind string, value interface{}, showS
 				err = err2
 				value2 = "<error>"
 			} else if s != nil {
+				secretValue, secretKind := formatSecret(s)
 				if showSecret {
-					value2 = formatSecret(s)
+					value2 = secretValue
 				} else {
 					value2 = "<hidden>"
+				}
+				if secretKind != "" && !strings.HasPrefix(annotation, secretKind+", ") {
+					annotation = fmt.Sprintf("%s, %s", secretKind, annotation)
 				}
 			} else {
 				value2 = "<nil>"

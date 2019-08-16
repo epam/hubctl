@@ -120,9 +120,11 @@ func secret(resource, id string) (map[string]string, error) {
 	return jsResp, nil
 }
 
-func formatSecret(s map[string]string) string {
+func formatSecret(s map[string]string) (string, string) {
 	str := ""
+	k := ""
 	if kind, ok := s["kind"]; ok {
+		k = kind
 		switch kind {
 		case "text", "password", "certificate", "sshKey", "privateKey",
 			"token", "bearerToken", "accessToken", "refreshToken", "loginToken":
@@ -142,5 +144,5 @@ func formatSecret(s map[string]string) string {
 	if str == "" {
 		str = fmt.Sprintf("%+v", s)
 	}
-	return str
+	return str, k
 }
