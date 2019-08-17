@@ -22,6 +22,9 @@
         "name": "component.ingress.staticIp",
         "value": ""
     }, {
+        "name": "component.ingress.staticHost",
+        "value": ""
+    }, {
         "name": "component.ingress.urlPrefix",
         "value": "app"
     }, {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"strings"
 
@@ -65,14 +66,15 @@ var importConfigs = map[string]ImportConfig{
 func ImportKubernetes(kind, name, environment, template string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
 	pems io.Reader, clusterBearerToken,
-	nativeRegion, nativeEndpoint, nativeClusterName, ingressIp, azureResourceGroup string) {
+	nativeRegion, nativeEndpoint, nativeClusterName,
+	ingressIpOrHost, azureResourceGroup string) {
 
 	err := errors.New("Not implemented")
 	if importConfig, exist := importConfigs[kind]; exist {
 		err = importK8s(importConfig, kind, name, environment, template,
 			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
 			pems, clusterBearerToken,
-			nativeRegion, nativeEndpoint, nativeClusterName, ingressIp, azureResourceGroup)
+			nativeRegion, nativeEndpoint, nativeClusterName, ingressIpOrHost, azureResourceGroup)
 	}
 	if err != nil {
 		log.Fatalf("Unable to import `%s` Kubernetes: %v", kind, err)
@@ -82,7 +84,8 @@ func ImportKubernetes(kind, name, environment, template string,
 func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templateSelector string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
 	pems io.Reader, clusterBearerToken,
-	nativeRegion, nativeEndpoint, nativeClusterName, ingressIp, azureResourceGroup string) error {
+	nativeRegion, nativeEndpoint, nativeClusterName,
+	ingressIpOrHost, azureResourceGroup string) error {
 
 	environment, err := environmentBy(environmentSelector)
 	if err != nil {
@@ -102,6 +105,9 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		name = name[:i]
 	}
 	fqdn := fmt.Sprintf("%s.%s", name, cloudAccount.BaseDomain)
+
+	ingressIp := ""
+	ingressHost := ""
 
 	if kind == "eks" {
 		if !strings.HasPrefix(cloudAccount.Kind, "aws") {
@@ -151,14 +157,19 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 			}
 		}
 	} else if kind == "metal" {
-		if ingressIp == "" {
+		if ingressIpOrHost == "" {
 			parts := strings.Split(nativeEndpoint, ":")
 			if len(parts) > 0 {
-				ingressIp = parts[0]
+				ingressIpOrHost = parts[0]
 			}
-			if ingressIp == "" {
-				log.Fatalf("Cannot determine ingress IP from API endpoint `%s`", nativeEndpoint)
+			if ingressIpOrHost == "" {
+				log.Fatalf("Cannot determine ingress IP/hostname from API endpoint `%s`", nativeEndpoint)
 			}
+		}
+		if net.ParseIP(ingressIpOrHost) != nil {
+			ingressIp = ingressIpOrHost
+		} else {
+			ingressHost = ingressIpOrHost
 		}
 	}
 
@@ -273,6 +284,8 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 			p.Value = nativeClusterName
 		case "component.ingress.staticIp":
 			p.Value = ingressIp
+		case "component.ingress.staticHost":
+			p.Value = ingressHost
 		case "cloud.azureResourceGroupName":
 			if azureResourceGroup != "" {
 				p.Value = azureResourceGroup

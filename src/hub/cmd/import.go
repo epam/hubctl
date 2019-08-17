@@ -27,7 +27,7 @@ var (
 	aksClusterName     string
 	azureResourceGroup string
 	metalEndpoint      string
-	metalIngressIp     string
+	metalIngress       string
 	bearerToken        string
 )
 
@@ -158,7 +158,8 @@ func importKubernetes(args []string) error {
 	api.ImportKubernetes(kind, name, environmentSelector, templateSelector,
 		autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
 		os.Stdin, bearerToken,
-		importRegion, nativeEndpoint, nativeClusterName, metalIngressIp, azureResourceGroup)
+		importRegion, nativeEndpoint, nativeClusterName,
+		metalIngress, azureResourceGroup)
 
 	return nil
 }
@@ -183,9 +184,9 @@ func init() {
 	importCmd.Flags().StringVarP(&azureResourceGroup, "azure-resource-group", "", "",
 		"Azure resource group name")
 	importCmd.Flags().StringVarP(&metalEndpoint, "metal-endpoint", "", "",
-		"Bare-metal cluster API endpoint (ip[:port])")
-	importCmd.Flags().StringVarP(&metalIngressIp, "metal-ingress-ip", "", "",
-		"Bare-metal cluster static ingress IP (default to IP of endpoint)")
+		"Bare-metal cluster Kubernetes API endpoint (IP or hostname [:port])")
+	importCmd.Flags().StringVarP(&metalIngress, "metal-ingress", "", "",
+		"Bare-metal cluster static ingress (IP or hostname, default to IP or hostname of the API endpoint)")
 	importCmd.Flags().StringVarP(&bearerToken, "bearer-token", "b", "",
 		"Use Bearer token to authenticate (to the OpenShift cluster)")
 	importCmd.Flags().BoolVarP(&autoCreateTemplate, "create-template", "", true,
