@@ -261,6 +261,9 @@ type GitRefPatch struct {
 }
 
 type StackInstancePatch struct {
+	Description        string                 `json:"description,omitempty"`
+	Tags               []string               `json:"tags,omitempty"`
+	UI                 map[string]interface{} `json:"ui,omitempty"`
 	Verbs              []string               `json:"verbs,omitempty"`
 	ComponentsEnabled  []string               `json:"componentsEnabled,omitempty"`
 	StateFiles         []string               `json:"stateFiles,omitempty"`
@@ -270,7 +273,6 @@ type StackInstancePatch struct {
 	InflightOperations []InflightOperation    `json:"inflightOperations,omitempty"`
 	Outputs            []Output               `json:"outputs,omitempty"`
 	Provides           map[string][]string    `json:"provides,omitempty"`
-	UI                 map[string]interface{} `json:"ui,omitempty"`
 }
 
 type Application struct {
