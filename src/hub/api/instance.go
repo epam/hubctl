@@ -157,6 +157,16 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 	return errors
 }
 
+func formatStackInstance(instance *StackInstance) {
+	errors := formatStackInstanceEntity(instance, false, false, make([]error, 0))
+	if len(errors) > 0 {
+		fmt.Print("Errors encountered formatting response:\n")
+		for _, err := range errors {
+			fmt.Printf("\t%v\n", err)
+		}
+	}
+}
+
 func cachedStackInstanceBy(selector string) (*StackInstance, error) {
 	instance, cached := stackInstancesCache[selector]
 	if !cached {
@@ -363,13 +373,7 @@ func CreateStackInstance(body io.Reader) {
 	if err != nil {
 		log.Fatalf("Unable to create SuperHub Stack Instance: %v", err)
 	}
-	errors := formatStackInstanceEntity(stackInstance, false, false, make([]error, 0))
-	if len(errors) > 0 {
-		fmt.Print("Errors encountered formatting response:\n")
-		for _, err := range errors {
-			fmt.Printf("\t%v\n", err)
-		}
-	}
+	formatStackInstance(stackInstance)
 }
 
 func createStackInstance(body io.Reader) (*StackInstance, error) {
@@ -525,13 +529,7 @@ func PatchStackInstanceForCmd(selector string, change StackInstancePatch, replac
 	if err != nil {
 		log.Fatalf("Unable to patch SuperHub Stack Instance: %v", err)
 	}
-	errors := formatStackInstanceEntity(stackInstance, false, false, make([]error, 0))
-	if len(errors) > 0 {
-		fmt.Print("Errors encountered formatting response:\n")
-		for _, err := range errors {
-			fmt.Printf("\t%v\n", err)
-		}
-	}
+	formatStackInstance(stackInstance)
 }
 
 func PatchStackInstance(selector string, change StackInstancePatch, replace bool) (*StackInstance, error) {
@@ -568,13 +566,7 @@ func RawPatchStackInstance(selector string, body io.Reader, replace bool) {
 	if err != nil {
 		log.Fatalf("Unable to patch SuperHub Stack Instance: %v", err)
 	}
-	errors := formatStackInstanceEntity(stackInstance, false, false, make([]error, 0))
-	if len(errors) > 0 {
-		fmt.Print("Errors encountered formatting response:\n")
-		for _, err := range errors {
-			fmt.Printf("\t%v\n", err)
-		}
-	}
+	formatStackInstance(stackInstance)
 }
 
 func rawPatchStackInstance(selector string, body io.Reader, replace bool) (*StackInstance, error) {
