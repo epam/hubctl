@@ -95,12 +95,14 @@ type Environment struct {
 }
 
 type EnvironmentRequest struct {
-	Name         string      `json:"name"`
-	Description  string      `json:"description,omitempty"`
-	Tags         []string    `json:"tags,omitempty"`
-	CloudAccount string      `json:"cloudAccount"`
-	Parameters   []Parameter `json:"parameters"` // TODO omitempty as soon as API is ready
-	Providers    []Provider  `json:"providers"`
+	Name             string                 `json:"name"`
+	Description      string                 `json:"description,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
+	UI               map[string]interface{} `json:"ui,omitempty"`
+	CloudAccount     string                 `json:"cloudAccount"`
+	Parameters       []Parameter            `json:"parameters,omitempty"`
+	Providers        []Provider             `json:"providers,omitempty"`
+	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
 }
 
 type EnvironmentPatch struct {
