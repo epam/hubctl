@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -79,6 +83,78 @@ func createEnvironment(args []string) error {
 	return nil
 }
 
+var environmentPatchCmd = &cobra.Command{
+	Use:   "patch <id | name> < environment-patch.json",
+	Short: "Patch Environment",
+	Long: `Patch Environment by sending JSON via stdin, for example:
+	{
+		"name": "GCP01",
+		"providers": [],
+		"parameters": [
+			{
+				"name": "component.dex.okta.appId",
+				"value": "0oamwj4fg1Ih1oL0g0h7"
+			},
+			{
+				"name": "component.dex.okta.issuer",
+				"value": "https://dev-458481.oktapreview.com"
+			},
+			{
+				"name": "component.dex.okta.clientId",
+				"value": "0oamwj4fg1Ih1oL0g0h7"
+			},
+			{
+				"kind": "secret",
+				"name": "component.dex.okta.clientSecret",
+				"value": {
+					"kind": "token",
+					"secret": "5ab6b047-ec15-4ddf-aefc-19903e6e58ed"
+				}
+			}
+		],
+		"teamsPermissions": [
+			{
+				"name": "ASI.Admin",
+				"role": "admin"
+			},
+			{
+				"name": "ASI.Dev",
+				"role": "write"
+			},
+			{
+				"name": "ASI.Test",
+				"role": "write"
+			}
+		]
+	}`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return patchEnvironment(args)
+	},
+}
+
+func patchEnvironment(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Patch Environment command has one mandatory argument - id or ame of the Environment")
+	}
+
+	selector := args[0]
+	if patchRaw {
+		api.RawPatchEnvironment(selector, os.Stdin)
+	} else {
+		patchBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil || len(patchBytes) < 3 {
+			return fmt.Errorf("Unable to read patch data (read %d bytes): %v", len(patchBytes), err)
+		}
+		var patch api.EnvironmentPatch
+		err = json.Unmarshal(patchBytes, &patch)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshal patch data: %v", err)
+		}
+		api.PatchEnvironment(selector, patch)
+	}
+
+	return nil
+}
 func deleteEnvironment(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Delete Environment command has one mandatory argument - id or name of the environment")
@@ -102,8 +178,11 @@ func init() {
 		"Request Temporary Security Credentials")
 	environmentGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
+	environmentPatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
+		"Send patch data as is, do not trim non-PATCH-able API object fields")
 	environmentCmd.AddCommand(environmentGetCmd)
 	environmentCmd.AddCommand(environmentCreateCmd)
+	environmentCmd.AddCommand(environmentPatchCmd)
 	environmentCmd.AddCommand(environmentDeleteCmd)
 	apiCmd.AddCommand(environmentCmd)
 }

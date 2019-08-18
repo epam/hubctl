@@ -103,6 +103,16 @@ type EnvironmentRequest struct {
 	Providers    []Provider  `json:"providers"`
 }
 
+type EnvironmentPatch struct {
+	Name             string                 `json:"name,omitempty"`
+	Description      string                 `json:"description,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
+	UI               map[string]interface{} `json:"ui,omitempty"`
+	Parameters       []Parameter            `json:"parameters,omitempty"`
+	Providers        []Provider             `json:"providers,omitempty"`
+	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
+}
+
 type StackComponent struct {
 	Name        string
 	Brief       string

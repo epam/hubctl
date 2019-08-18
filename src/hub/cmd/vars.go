@@ -29,4 +29,6 @@ var (
 	waitAndTailDeployLogs bool
 	showSecrets           bool
 	jsonFormat            bool
+	patchReplace          bool
+	patchRaw              bool
 )

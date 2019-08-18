@@ -360,3 +360,59 @@ func deleteEnvironment(selector string) error {
 	}
 	return nil
 }
+
+func PatchEnvironment(selector string, change EnvironmentPatch) {
+	environment, err := patchEnvironment(selector, change)
+	if err != nil {
+		log.Fatalf("Unable to patch SuperHub Environment: %v", err)
+	}
+	formatEnvironment(environment)
+}
+
+func patchEnvironment(selector string, change EnvironmentPatch) (*Environment, error) {
+	environment, err := environmentBy(selector)
+	if err != nil {
+		return nil, err
+	}
+	if environment == nil {
+		return nil, error404
+	}
+	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
+	var jsResp Environment
+	code, err := patch(hubApi, path, &change, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Environment, expected 200 HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func RawPatchEnvironment(selector string, body io.Reader) {
+	environment, err := rawPatchEnvironment(selector, body)
+	if err != nil {
+		log.Fatalf("Unable to patch SuperHub Environment: %v", err)
+	}
+	formatEnvironment(environment)
+}
+
+func rawPatchEnvironment(selector string, body io.Reader) (*Environment, error) {
+	environment, err := environmentBy(selector)
+	if err != nil {
+		return nil, err
+	}
+	if environment == nil {
+		return nil, error404
+	}
+	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
+	var jsResp Environment
+	code, err := patch2(hubApi, path, body, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Environment, expected 200 HTTP", code)
+	}
+	return &jsResp, nil
+}

@@ -14,10 +14,8 @@ import (
 )
 
 var (
-	instanceShowLogs     bool
-	instancePatchReplace bool
-	instancePatchRaw     bool
-	kubeconfigOutput     string
+	instanceShowLogs bool
+	kubeconfigOutput string
 )
 
 var instanceCmd = &cobra.Command{
@@ -174,8 +172,8 @@ func patchInstance(args []string) error {
 	}
 
 	selector := args[0]
-	if instancePatchRaw {
-		api.RawPatchStackInstance(selector, os.Stdin, instancePatchReplace)
+	if patchRaw {
+		api.RawPatchStackInstance(selector, os.Stdin, patchReplace)
 	} else {
 		patchBytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil || len(patchBytes) < 3 {
@@ -186,7 +184,7 @@ func patchInstance(args []string) error {
 		if err != nil {
 			return fmt.Errorf("Unable to unmarshal patch data: %v", err)
 		}
-		api.PatchStackInstanceForCmd(selector, patch, instancePatchReplace)
+		api.PatchStackInstanceForCmd(selector, patch, patchReplace)
 	}
 
 	return nil
@@ -261,9 +259,9 @@ func init() {
 		"Show logs")
 	instanceGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
-	instancePatchCmd.Flags().BoolVarP(&instancePatchReplace, "replace", "", true,
+	instancePatchCmd.Flags().BoolVarP(&patchReplace, "replace", "", true,
 		"Replace patched fields, do not merge")
-	instancePatchCmd.Flags().BoolVarP(&instancePatchRaw, "raw", "r", false,
+	instancePatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
 		"Send patch data as is, do not trim non-PATCH-able API object fields")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
