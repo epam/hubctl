@@ -237,14 +237,15 @@ type StackInstance struct {
 }
 
 type StackInstanceRequest struct {
-	Name              string      `json:"name"`
-	Description       string      `json:"description,omitempty"`
-	Tags              []string    `json:"tags,omitempty"`
-	Environment       string      `json:"environment"`
-	Template          string      `json:"template"`
-	Platform          string      `json:"platform,omitempty"`
-	ComponentsEnabled []string    `json:"componentsEnabled,omitempty"`
-	Parameters        []Parameter `json:"parameters,omitempty"`
+	Name              string                 `json:"name"`
+	Description       string                 `json:"description,omitempty"`
+	Tags              []string               `json:"tags,omitempty"`
+	UI                map[string]interface{} `json:"ui,omitempty"`
+	Environment       string                 `json:"environment"`
+	Template          string                 `json:"template"`
+	Platform          string                 `json:"platform,omitempty"`
+	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
+	Parameters        []Parameter            `json:"parameters,omitempty"`
 }
 
 type StackInstanceDeployResponse struct {
