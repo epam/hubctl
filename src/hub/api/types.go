@@ -78,20 +78,20 @@ type Provider struct {
 }
 
 type Team struct {
-	Id   string `json:"id"`
+	Id   string `json:"id,omitempty"`
 	Name string `json:"name"`
 	Role string `json:"role"`
 }
 
 type Environment struct {
-	Id               string
-	Name             string
-	Description      string
-	Tags             []string
-	CloudAccount     string `json:"cloudAccount"`
-	Parameters       []Parameter
-	Providers        []Provider
-	TeamsPermissions []Team `json:"teamsPermissions"`
+	Id               string      `json:"id"`
+	Name             string      `json:"name"`
+	Description      string      `json:"description,omitempty"`
+	Tags             []string    `json:"tags,omitempty"`
+	CloudAccount     string      `json:"cloudAccount"`
+	Parameters       []Parameter `json:"parameters,omitempty"`
+	Providers        []Provider  `json:"providers,omitempty"`
+	TeamsPermissions []Team      `json:"teamsPermissions"`
 }
 
 type EnvironmentRequest struct {

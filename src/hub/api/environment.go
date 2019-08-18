@@ -1,9 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -13,115 +16,152 @@ const environmentsResource = "hub/api/v1/environments"
 var environmentsCache = make(map[string]*Environment)
 
 func Environments(selector string, showSecrets, showMyTeams,
-	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials bool) {
+	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, jsonFormat bool) {
 
 	envs, err := environmentsBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Environment(s): %v", err)
 	}
 	if len(envs) == 0 {
-		fmt.Print("No Environments\n")
+		if jsonFormat {
+			log.Print("No Environments\n")
+		} else {
+			fmt.Print("No Environments\n")
+		}
 	} else {
-		fmt.Print("Environments:\n")
-		errors := make([]error, 0)
-		for _, env := range envs {
-			title := fmt.Sprintf("%s [%s]", env.Name, env.Id)
-			if env.Description != "" {
-				title = fmt.Sprintf("%s - %s", title, env.Description)
+		if jsonFormat {
+			var toMarshal interface{}
+			if len(envs) == 1 {
+				toMarshal = &envs[0]
+			} else {
+				toMarshal = envs
 			}
-			fmt.Printf("\n\t%s\n", title)
-			if len(env.Tags) > 0 {
-				fmt.Printf("\t\tTags: %s\n", strings.Join(env.Tags, ", "))
+			out, err := json.MarshalIndent(toMarshal, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshalling JSON response for output: %v", err)
 			}
-			if env.CloudAccount != "" {
-				account, err := cloudAccountById(env.CloudAccount)
+			os.Stdout.Write(out)
+			os.Stdout.Write([]byte("\n"))
+		} else {
+			fmt.Print("Environments:\n")
+			errors := make([]error, 0)
+			for _, env := range envs {
+				errors = formatEnvironmentEntity(&env, showSecrets, showMyTeams,
+					showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, errors)
+			}
+			if len(errors) > 0 {
+				fmt.Print("Errors encountered:\n")
+				for _, err := range errors {
+					fmt.Printf("\t%v\n", err)
+				}
+			}
+		}
+	}
+}
+
+func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
+	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials bool, errors []error) []error {
+
+	title := fmt.Sprintf("%s [%s]", env.Name, env.Id)
+	if env.Description != "" {
+		title = fmt.Sprintf("%s - %s", title, env.Description)
+	}
+	fmt.Printf("\n\t%s\n", title)
+	if len(env.Tags) > 0 {
+		fmt.Printf("\t\tTags: %s\n", strings.Join(env.Tags, ", "))
+	}
+	if env.CloudAccount != "" {
+		account, err := cloudAccountById(env.CloudAccount)
+		if err != nil {
+			errors = append(errors, err)
+		} else {
+			fmt.Printf("\t\tCloud Account: %s\n", formatCloudAccount(account))
+		}
+		if getCloudCredentials {
+			keys, err := cloudAccountCredentials(account.Id, account.Kind)
+			if err != nil {
+				errors = append(errors, err)
+			} else {
+				formatted, err := formatCloudAccountCredentials(keys)
 				if err != nil {
 					errors = append(errors, err)
 				} else {
-					fmt.Printf("\t\tCloud Account: %s\n", formatCloudAccount(account))
-				}
-				if getCloudCredentials {
-					keys, err := cloudAccountCredentials(account.Id, account.Kind)
-					if err != nil {
-						errors = append(errors, err)
-					} else {
-						formatted, err := formatCloudAccountCredentials(keys)
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							fmt.Printf("\t\tSecurity Credentials: %s\n", formatted)
-						}
-					}
+					fmt.Printf("\t\tSecurity Credentials: %s\n", formatted)
 				}
 			}
-			resource := fmt.Sprintf("%s/%s", environmentsResource, env.Id)
-			if len(env.Parameters) > 0 {
-				fmt.Print("\t\tParameters:\n")
-				for _, param := range sortParameters(env.Parameters) {
+		}
+	}
+	resource := fmt.Sprintf("%s/%s", environmentsResource, env.Id)
+	if len(env.Parameters) > 0 {
+		fmt.Print("\t\tParameters:\n")
+		for _, param := range sortParameters(env.Parameters) {
+			formatted, err := formatParameter(resource, param, showSecrets)
+			fmt.Printf("\t\t%s\n", formatted)
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+	if len(env.Providers) > 0 {
+		fmt.Print("\t\tProviders:\n")
+		for i, provider := range env.Providers {
+			fmt.Printf("\t\t    %02d  %s [%s]\n", i, provider.Name, provider.Kind)
+			provides := "(none)"
+			if len(provider.Provides) > 0 {
+				provides = strings.Join(provider.Provides, ", ")
+			}
+			fmt.Printf("\t\t\tProvides: %s\n", provides)
+			if len(provider.Parameters) > 0 {
+				fmt.Print("\t\t\tParameters:\n")
+				for _, param := range sortParameters(provider.Parameters) {
 					formatted, err := formatParameter(resource, param, showSecrets)
-					fmt.Printf("\t\t%s\n", formatted)
+					fmt.Printf("\t\t\t%s\n", formatted)
 					if err != nil {
 						errors = append(errors, err)
-					}
-				}
-			}
-			if len(env.Providers) > 0 {
-				fmt.Print("\t\tProviders:\n")
-				for i, provider := range env.Providers {
-					fmt.Printf("\t\t    %02d  %s [%s]\n", i, provider.Name, provider.Kind)
-					provides := "(none)"
-					if len(provider.Provides) > 0 {
-						provides = strings.Join(provider.Provides, ", ")
-					}
-					fmt.Printf("\t\t\tProvides: %s\n", provides)
-					if len(provider.Parameters) > 0 {
-						fmt.Print("\t\t\tParameters:\n")
-						for _, param := range sortParameters(provider.Parameters) {
-							formatted, err := formatParameter(resource, param, showSecrets)
-							fmt.Printf("\t\t\t%s\n", formatted)
-							if err != nil {
-								errors = append(errors, err)
-							}
-						}
-					}
-				}
-			}
-			if len(env.TeamsPermissions) > 0 {
-				formatted := formatTeams(env.TeamsPermissions)
-				fmt.Printf("\t\tTeams: %s\n", formatted)
-				if showMyTeams {
-					teams, err := myTeams(env.Id)
-					formatted := formatTeams(teams)
-					fmt.Printf("\t\tMy Teams: %s\n", formatted)
-					if err != nil {
-						errors = append(errors, err)
-					}
-				}
-			}
-			if showServiceAccount {
-				teams, err := myTeams(env.Id)
-				if err != nil {
-					errors = append(errors, err)
-				} else {
-					if len(teams) > 0 {
-						for _, team := range teams {
-							account, err := serviceAccount(env.Id, team.Id)
-							if err != nil {
-								errors = append(errors, err)
-							} else {
-								formatted := formatServiceAccount(team, account, showServiceAccountLoginToken)
-								fmt.Printf("\t\tService Account: %s\n", formatted)
-							}
-						}
 					}
 				}
 			}
 		}
-		if len(errors) > 0 {
-			fmt.Print("Errors encountered:\n")
-			for _, err := range errors {
-				fmt.Printf("\t%v\n", err)
+	}
+	if len(env.TeamsPermissions) > 0 {
+		formatted := formatTeams(env.TeamsPermissions)
+		fmt.Printf("\t\tTeams: %s\n", formatted)
+		if showMyTeams {
+			teams, err := myTeams(env.Id)
+			formatted := formatTeams(teams)
+			fmt.Printf("\t\tMy Teams: %s\n", formatted)
+			if err != nil {
+				errors = append(errors, err)
 			}
+		}
+	}
+	if showServiceAccount {
+		teams, err := myTeams(env.Id)
+		if err != nil {
+			errors = append(errors, err)
+		} else {
+			if len(teams) > 0 {
+				for _, team := range teams {
+					account, err := serviceAccount(env.Id, team.Id)
+					if err != nil {
+						errors = append(errors, err)
+					} else {
+						formatted := formatServiceAccount(team, account, showServiceAccountLoginToken)
+						fmt.Printf("\t\tService Account: %s\n", formatted)
+					}
+				}
+			}
+		}
+	}
+	return errors
+}
+
+func formatEnvironment(environment *Environment) {
+	errors := formatEnvironmentEntity(environment, false, false, false, false, false, make([]error, 0))
+	if len(errors) > 0 {
+		fmt.Print("Errors encountered formatting response:\n")
+		for _, err := range errors {
+			fmt.Printf("\t%v\n", err)
 		}
 	}
 }
@@ -280,7 +320,7 @@ func CreateEnvironment(name, cloudAccountSelector string) {
 	if err != nil {
 		log.Fatalf("Unable to create SuperHub Environment: %v", err)
 	}
-	Environments(environment.Id, false, false, false, false, false)
+	formatEnvironment(environment)
 }
 
 func createEnvironment(environment *EnvironmentRequest) (*Environment, error) {

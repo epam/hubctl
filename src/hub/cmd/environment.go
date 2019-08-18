@@ -62,7 +62,7 @@ func environment(args []string) error {
 		showServiceAccount = true
 	}
 	api.Environments(selector, showSecrets, showMyTeams,
-		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials)
+		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, jsonFormat)
 
 	return nil
 }
@@ -100,6 +100,8 @@ func init() {
 		"Show Service Account login token")
 	environmentGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
 		"Request Temporary Security Credentials")
+	environmentGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+		"JSON output")
 	environmentCmd.AddCommand(environmentGetCmd)
 	environmentCmd.AddCommand(environmentCreateCmd)
 	environmentCmd.AddCommand(environmentDeleteCmd)

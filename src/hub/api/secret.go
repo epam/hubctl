@@ -74,9 +74,10 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 			name, entityKind, selector, secretId)
 	}
 	if config.Verbose {
+		// TODO switch to format*() functions
 		switch entityKind {
 		case "environment":
-			Environments(selector, false, false, false, false, false)
+			Environments(selector, false, false, false, false, false, false)
 		case "stackTemplate":
 			Templates(selector, false, false, false, false)
 		case "stackInstance":
