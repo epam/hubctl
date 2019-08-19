@@ -431,7 +431,7 @@ func commandStackInstance(selector, verb string, waitAndTailDeployLogs, dryRun b
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
-		Logs([]string{instance.Domain}, true)
+		os.Exit(Logs([]string{instance.Domain}, true))
 	}
 	return nil
 }

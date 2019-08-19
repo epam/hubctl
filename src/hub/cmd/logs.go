@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"hub/api"
@@ -33,7 +35,7 @@ completion on any entity.
 
 func logs(args []string) error {
 	selectors := args
-	api.Logs(selectors, logsExitOnCompletedOperation)
+	os.Exit(api.Logs(selectors, logsExitOnCompletedOperation))
 
 	return nil
 }

@@ -29,11 +29,12 @@ type Filter struct {
 	Id        string
 	Entity    string
 	Completed bool
+	Success   bool
 }
 
 var opCompletedActions = []string{"onboard", "deploy", "undeploy", "delete"}
 
-func Logs(selectors []string, exitOnCompletedOperation bool) {
+func Logs(selectors []string, exitOnCompletedOperation bool) int {
 	filters := parseFilters(selectors)
 	if len(selectors) > 0 && len(filters) == 0 {
 		msg := fmt.Sprintf("No entities found by %v", selectors)
@@ -144,15 +145,20 @@ func Logs(selectors []string, exitOnCompletedOperation bool) {
 
 			if exitOnCompletedOperation && util.Contains(opCompletedActions, m.Action) {
 				exit := true
+				success := m.Success
 				if len(filters) > 0 {
 					markCompletedFilters(filters, &m)
-					exit = allFiltersCompleted(filters)
+					exit, success = allFiltersCompleted(filters)
 				}
 				if exit {
 					if config.Debug {
 						log.Print("Logs completed, exiting")
 					}
-					return
+					code := 0
+					if !success {
+						code = 2
+					}
+					return code
 				}
 			}
 		}
@@ -173,17 +179,20 @@ func markCompletedFilters(filters []Filter, msg *WsMessage) {
 		filter := &filters[i]
 		if msg.Id == filter.Id && (msg.Entity == "" || msg.Entity == filter.Entity) {
 			filter.Completed = true
+			filter.Success = msg.Success
 		}
 	}
 }
 
-func allFiltersCompleted(filters []Filter) bool {
+func allFiltersCompleted(filters []Filter) (bool, bool) {
+	success := true
 	for _, filter := range filters {
+		success = success && filter.Success
 		if !filter.Completed {
-			return false
+			return false, false
 		}
 	}
-	return true
+	return true, success
 }
 
 func parseFilters(selectors []string) []Filter {
