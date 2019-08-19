@@ -20,7 +20,7 @@ const cloudAccountsResource = "hub/api/v1/cloud-accounts"
 
 var cloudAccountsCache = make(map[string]*CloudAccount)
 
-func CloudAccounts(selector string,
+func CloudAccounts(selector string, showSecrets,
 	getCloudCredentials, shFormat, nativeConfigFormat bool) {
 
 	cloudAccounts, err := cloudAccountsBy(selector)
@@ -101,7 +101,7 @@ func CloudAccounts(selector string,
 			}
 			resource := fmt.Sprintf("%s/%s", cloudAccountsResource, cloudAccount.Id)
 			for _, param := range sortParameters(cloudAccount.Parameters) {
-				formatted, err := formatParameter(resource, param, false)
+				formatted, err := formatParameter(resource, param, showSecrets)
 				fmt.Printf("\t\t%s\n", formatted)
 				if err != nil {
 					errors = append(errors, err)
@@ -383,7 +383,7 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
-	CloudAccounts(account.Id, false, false, false)
+	CloudAccounts(account.Id, false, false, false, false)
 	if waitAndTailDeployLogs {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")

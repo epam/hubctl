@@ -88,7 +88,7 @@ func cloudAccount(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.CloudAccounts(selector, getCloudCredentials, cloudCredentialsShell, cloudCredentialsNativeConfig)
+	api.CloudAccounts(selector, showSecrets, getCloudCredentials, cloudCredentialsShell, cloudCredentialsNativeConfig)
 
 	return nil
 }
@@ -133,12 +133,14 @@ func deleteCloudAccount(args []string) error {
 }
 
 func init() {
+	cloudAccountGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
+		"Show secrets")
 	cloudAccountGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
 		"Request (Temporary) Security Credentials")
 	cloudAccountGetCmd.Flags().BoolVarP(&cloudCredentialsShell, "sh", "", false,
 		"Output (Temporary) Security Credentials in shell format")
 	cloudAccountGetCmd.Flags().BoolVarP(&cloudCredentialsNativeConfig, "native-config", "", false,
-		"Output (Temporary) Security Credentials in cloud-specific native format: AWS CLI config or JSON")
+		"Output (Temporary) Security Credentials in cloud-specific native format: AWS CLI config or GCP/Azure JSON")
 	cloudAccounOnboardCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	cloudAccounDeleteCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,

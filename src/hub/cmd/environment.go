@@ -175,7 +175,7 @@ func init() {
 	environmentGetCmd.Flags().BoolVarP(&showServiceAccountLoginToken, "service-account-login-token", "l", false,
 		"Show Service Account login token")
 	environmentGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
-		"Request Temporary Security Credentials")
+		"Request Cloud (Temporary) Security Credentials")
 	environmentGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
 	environmentPatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
