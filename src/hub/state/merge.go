@@ -84,8 +84,8 @@ func chooseStateOutputsToMerge(state *StateManifest, componentName string, order
 			}
 			for found >= 0 {
 				componentStateName = order[found]
-				_, exist := state.Components[componentStateName]
-				if exist {
+				st, exist := state.Components[componentStateName]
+				if exist && len(st.CapturedOutputs) > 0 {
 					break
 				}
 				found--
@@ -159,6 +159,7 @@ func mergeStateParameter(parameters parameters.LockedParameters, add parameters.
 		}
 		parameters[qName] = current
 	} else {
+		// TODO review: should we really merge stack-level parameters from state?
 		parameters[qName] = add
 	}
 }
