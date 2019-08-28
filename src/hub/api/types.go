@@ -172,6 +172,15 @@ type StackTemplateRequest struct {
 	TeamsPermissions  []Team      `json:"teamsPermissions,omitempty"`
 }
 
+type StackTemplatePatch struct {
+	Description       string      `json:"description,omitempty"`
+	Tags              []string    `json:"tags,omitempty"`
+	ComponentsEnabled []string    `json:"componentsEnabled,omitempty"`
+	Verbs             []string    `json:"verbs,omitempty"`
+	Parameters        []Parameter `json:"parameters,omitempty"`
+	TeamsPermissions  []Team      `json:"teamsPermissions,omitempty"`
+}
+
 type EnvironmentRef struct {
 	Id     string `json:"id"`
 	Name   string `json:"name"`

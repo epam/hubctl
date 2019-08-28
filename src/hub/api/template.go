@@ -142,6 +142,16 @@ func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bo
 	return errors
 }
 
+func formatTemplate(template *StackTemplate) {
+	errors := formatTemplateEntity(template, false, false, make([]error, 0))
+	if len(errors) > 0 {
+		fmt.Print("Errors encountered formatting response:\n")
+		for _, err := range errors {
+			fmt.Printf("\t%v\n", err)
+		}
+	}
+}
+
 func cachedTemplateBy(selector string) (*StackTemplate, error) {
 	template, cached := templatesCache[selector]
 	if !cached {
@@ -261,13 +271,7 @@ func CreateTemplate(body io.Reader) {
 	if err != nil {
 		log.Fatalf("Unable to create SuperHub Template: %v", err)
 	}
-	errors := formatTemplateEntity(template, false, false, make([]error, 0))
-	if len(errors) > 0 {
-		fmt.Print("Errors encountered formatting response:\n")
-		for _, err := range errors {
-			fmt.Printf("\t%v\n", err)
-		}
-	}
+	formatTemplate(template)
 }
 
 func createTemplate(body io.Reader) (*StackTemplate, error) {
@@ -332,4 +336,60 @@ func deleteTemplate(selector string) error {
 		return fmt.Errorf("Got %d HTTP deleting SuperHub Template, expected [202, 204] HTTP", code)
 	}
 	return nil
+}
+
+func PatchTemplate(selector string, change StackTemplatePatch) {
+	template, err := patchTemplate(selector, change)
+	if err != nil {
+		log.Fatalf("Unable to patch SuperHub Template: %v", err)
+	}
+	formatTemplate(template)
+}
+
+func patchTemplate(selector string, change StackTemplatePatch) (*StackTemplate, error) {
+	template, err := templateBy(selector)
+	if err != nil {
+		return nil, err
+	}
+	if template == nil {
+		return nil, error404
+	}
+	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(template.Id))
+	var jsResp StackTemplate
+	code, err := patch(hubApi, path, &change, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Template, expected 200 HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func RawPatchTemplate(selector string, body io.Reader) {
+	template, err := rawPatchTemplate(selector, body)
+	if err != nil {
+		log.Fatalf("Unable to patch SuperHub Template: %v", err)
+	}
+	formatTemplate(template)
+}
+
+func rawPatchTemplate(selector string, body io.Reader) (*StackTemplate, error) {
+	template, err := templateBy(selector)
+	if err != nil {
+		return nil, err
+	}
+	if template == nil {
+		return nil, error404
+	}
+	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(template.Id))
+	var jsResp StackTemplate
+	code, err := patch2(hubApi, path, body, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Template, expected 200 HTTP", code)
+	}
+	return &jsResp, nil
 }

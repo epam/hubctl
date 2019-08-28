@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -83,6 +86,40 @@ var templateInitCmd = &cobra.Command{
 	},
 }
 
+var templatePatchCmd = &cobra.Command{
+	Use:   "patch <id | name> < template-patch.json",
+	Short: "Patch Stack Template",
+	Long: `Patch Template by sending JSON via stdin, for example:
+	{
+		"description": "",
+		"verbs": [
+			"deploy",
+			"undeploy"
+		],
+		"tags": [
+			"kind=platform"
+		],
+		"componentsEnabled": [
+			"flannel",
+			"traefik",
+			"dex",
+			"cluster-autoscaler",
+			"cert-manager",
+			"kube-dashboard"
+		],
+		"parameters": [
+			{
+				"name": "component.kubernetes.worker.count",
+				"value": 1
+			}
+		],
+		"teamsPermissions": []
+	}`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return patchTemplate(args)
+	},
+}
+
 var templateDeleteCmd = &cobra.Command{
 	Use:   "delete <id | name>",
 	Short: "Delete Stack Template by Id or name",
@@ -129,6 +166,30 @@ func initTemplate(args []string) error {
 	return nil
 }
 
+func patchTemplate(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Patch Stack Template command has one mandatory argument - id or name of the Template")
+	}
+
+	selector := args[0]
+	if patchRaw {
+		api.RawPatchTemplate(selector, os.Stdin)
+	} else {
+		patchBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil || len(patchBytes) < 3 {
+			return fmt.Errorf("Unable to read patch data (read %d bytes): %v", len(patchBytes), err)
+		}
+		var patch api.StackTemplatePatch
+		err = json.Unmarshal(patchBytes, &patch)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshal patch data: %v", err)
+		}
+		api.PatchTemplate(selector, patch)
+	}
+
+	return nil
+}
+
 func deleteTemplate(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Delete Template command has one mandatory argument - id or name of the template")
@@ -150,9 +211,12 @@ func init() {
 		"Output template Git ref/heads/master status")
 	templateGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
+	templatePatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
+		"Send patch data as is, do not trim non-PATCH-able API object fields")
 	templateCmd.AddCommand(templateGetCmd)
 	templateCmd.AddCommand(templateCreateCmd)
 	templateCmd.AddCommand(templateInitCmd)
+	templateCmd.AddCommand(templatePatchCmd)
 	templateCmd.AddCommand(templateDeleteCmd)
 	apiCmd.AddCommand(templateCmd)
 }
