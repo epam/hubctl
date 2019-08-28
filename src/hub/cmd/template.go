@@ -104,7 +104,7 @@ func template(args []string) error {
 		templateShowSecretGitRemote = true
 	}
 	api.Templates(selector, showSecrets,
-		templateShowSecretGitRemote, templateWildcardSecret, templateShowGitStatus)
+		templateShowSecretGitRemote, templateWildcardSecret, templateShowGitStatus, jsonFormat)
 
 	return nil
 }
@@ -148,6 +148,8 @@ func init() {
 		"Request a secret which is not template specific")
 	templateGetCmd.Flags().BoolVarP(&templateShowGitStatus, "git-status", "s", false,
 		"Output template Git ref/heads/master status")
+	templateGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+		"JSON output")
 	templateCmd.AddCommand(templateGetCmd)
 	templateCmd.AddCommand(templateCreateCmd)
 	templateCmd.AddCommand(templateInitCmd)

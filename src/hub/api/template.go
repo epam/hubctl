@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -13,51 +15,70 @@ const templatesResource = "hub/api/v1/templates"
 
 var templatesCache = make(map[string]*StackTemplate)
 
-func Templates(selector string, showSecrets, showGitRemote, wildcardSecret, showGitStatus bool) {
+func Templates(selector string, showSecrets, showGitRemote, wildcardSecret, showGitStatus, jsonFormat bool) {
 	templates, err := templatesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Template(s): %v", err)
 	}
 	if len(templates) == 0 {
-		fmt.Print("No Templates\n")
-	} else {
-		deploymentKey := ""
-		if showGitRemote {
-			if wildcardSecret {
-				key, err := userDeploymentKey("")
-				if err != nil {
-					log.Fatalf("Unable to retrieve deployment key: %v", err)
-				}
-				deploymentKey = key
-			}
+		if jsonFormat {
+			log.Print("No Templates")
 		} else {
-			fmt.Print("Templates:\n")
+			fmt.Print("No Templates\n")
 		}
-		errors := make([]error, 0)
-		for _, template := range templates {
-			if showGitRemote {
-				if !wildcardSecret {
-					key, err := userDeploymentKey("git:" + template.Id)
-					if err != nil {
-						errors = append(errors, fmt.Errorf("Unable to retrieve deployment key: %v", err))
-						deploymentKey = "(error)"
-					} else {
-						deploymentKey = key
-					}
-				}
-				title := ""
-				if len(templates) > 1 {
-					title = fmt.Sprintf("%s [%s]: ", template.Name, template.Id)
-				}
-				fmt.Printf("%s%s\n", title, formatGitRemoteWithKey(template.GitRemote.Public, deploymentKey))
+	} else {
+		if jsonFormat {
+			var toMarshal interface{}
+			if len(templates) == 1 {
+				toMarshal = &templates[0]
 			} else {
-				errors = formatTemplateEntity(&template, showSecrets, showGitStatus, errors)
+				toMarshal = templates
 			}
-		}
-		if len(errors) > 0 {
-			fmt.Print("Errors encountered:\n")
-			for _, err := range errors {
-				fmt.Printf("\t%v\n", err)
+			out, err := json.MarshalIndent(toMarshal, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshalling JSON response for output: %v", err)
+			}
+			os.Stdout.Write(out)
+			os.Stdout.Write([]byte("\n"))
+		} else {
+			deploymentKey := ""
+			if showGitRemote {
+				if wildcardSecret {
+					key, err := userDeploymentKey("")
+					if err != nil {
+						log.Fatalf("Unable to retrieve deployment key: %v", err)
+					}
+					deploymentKey = key
+				}
+			} else {
+				fmt.Print("Templates:\n")
+			}
+			errors := make([]error, 0)
+			for _, template := range templates {
+				if showGitRemote {
+					if !wildcardSecret {
+						key, err := userDeploymentKey("git:" + template.Id)
+						if err != nil {
+							errors = append(errors, fmt.Errorf("Unable to retrieve deployment key: %v", err))
+							deploymentKey = "(error)"
+						} else {
+							deploymentKey = key
+						}
+					}
+					title := ""
+					if len(templates) > 1 {
+						title = fmt.Sprintf("%s [%s]: ", template.Name, template.Id)
+					}
+					fmt.Printf("%s%s\n", title, formatGitRemoteWithKey(template.GitRemote.Public, deploymentKey))
+				} else {
+					errors = formatTemplateEntity(&template, showSecrets, showGitStatus, errors)
+				}
+			}
+			if len(errors) > 0 {
+				fmt.Print("Errors encountered:\n")
+				for _, err := range errors {
+					fmt.Printf("\t%v\n", err)
+				}
 			}
 		}
 	}
@@ -72,7 +93,7 @@ func formatGitRemoteWithKey(url, key string) string {
 }
 
 func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bool, errors []error) []error {
-	title := formatTemplate(template)
+	title := formatTemplateTitle(template)
 	if template.Description != "" {
 		title = fmt.Sprintf("%s - %s", title, template.Description)
 	}
@@ -223,7 +244,7 @@ func templateGitStatus(id string) (*TemplateStatus, error) {
 	return &jsResp, nil
 }
 
-func formatTemplate(template *StackTemplate) string {
+func formatTemplateTitle(template *StackTemplate) string {
 	return fmt.Sprintf("%s [%s]", template.Name, template.Id)
 }
 

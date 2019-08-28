@@ -148,17 +148,17 @@ type GitRef struct {
 }
 
 type StackTemplate struct {
-	Id                string
-	Name              string
-	Description       string
-	Status            string
-	Tags              []string
-	Stack             StackRef
-	ComponentsEnabled []string `json:"componentsEnabled"`
-	Verbs             []string
-	GitRemote         GitRef `json:"gitRemote"`
-	Parameters        []Parameter
-	TeamsPermissions  []Team `json:"teamsPermissions"`
+	Id                string      `json:"id"`
+	Name              string      `json:"name"`
+	Description       string      `json:"description,omitempty"`
+	Status            string      `json:"status"`
+	Tags              []string    `json:"tags,omitempty"`
+	Stack             StackRef    `json:"stack"`
+	ComponentsEnabled []string    `json:"componentsEnabled,omitempty"`
+	Verbs             []string    `json:"verbs,omitempty"`
+	GitRemote         GitRef      `json:"gitRemote"`
+	Parameters        []Parameter `json:"parameters,omitempty"`
+	TeamsPermissions  []Team      `json:"teamsPermissions"`
 }
 
 type StackTemplateRequest struct {

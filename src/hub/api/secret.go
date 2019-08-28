@@ -79,7 +79,7 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 		case "environment":
 			Environments(selector, false, false, false, false, false, false)
 		case "stackTemplate":
-			Templates(selector, false, false, false, false)
+			Templates(selector, false, false, false, false, false)
 		case "stackInstance":
 			StackInstances(selector, false, false, false)
 		}
