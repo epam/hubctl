@@ -75,7 +75,7 @@ func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
 		if err != nil {
 			errors = append(errors, err)
 		} else {
-			fmt.Printf("\t\tCloud Account: %s\n", formatCloudAccount(account))
+			fmt.Printf("\t\tCloud Account: %s\n", formatCloudAccountTitle(account))
 		}
 		if getCloudCredentials {
 			keys, err := cloudAccountCredentials(account.Id, account.Kind)

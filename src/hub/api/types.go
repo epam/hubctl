@@ -21,13 +21,14 @@ type ApiError struct {
 }
 
 type CloudAccount struct {
-	Id               string
-	Name             string
-	Kind             string
-	Status           string
-	BaseDomain       string `json:"baseDomain"`
-	Parameters       []Parameter
-	TeamsPermissions []Team `json:"teamsPermissions"`
+	Id               string      `json:"id"`
+	Name             string      `json:"name"`
+	Tags             []string    `json:"tags,omitempty"`
+	Kind             string      `json:"kind"`
+	Status           string      `json:"status"`
+	BaseDomain       string      `json:"baseDomain"`
+	Parameters       []Parameter `json:"parameters,omitempty"`
+	TeamsPermissions []Team      `json:"teamsPermissions"`
 }
 
 type AwsSecurityCredentials struct {
@@ -40,6 +41,7 @@ type AwsSecurityCredentials struct {
 
 type CloudAccountRequest struct {
 	Name        string            `json:"name"`
+	Tags        []string          `json:"tags,omitempty"`
 	Kind        string            `json:"kind"`
 	Parameters  []Parameter       `json:"parameters,omitempty"`
 	Credentials map[string]string `json:"credentials,omitempty"`

@@ -88,7 +88,8 @@ func cloudAccount(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.CloudAccounts(selector, showSecrets, getCloudCredentials, cloudCredentialsShell, cloudCredentialsNativeConfig)
+	api.CloudAccounts(selector, showSecrets,
+		getCloudCredentials, cloudCredentialsShell, cloudCredentialsNativeConfig, jsonFormat)
 
 	return nil
 }
@@ -141,6 +142,8 @@ func init() {
 		"Output (Temporary) Security Credentials in shell format")
 	cloudAccountGetCmd.Flags().BoolVarP(&cloudCredentialsNativeConfig, "native-config", "", false,
 		"Output (Temporary) Security Credentials in cloud-specific native format: AWS CLI config or GCP/Azure JSON")
+	cloudAccountGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+		"JSON output")
 	cloudAccounOnboardCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	cloudAccounDeleteCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,

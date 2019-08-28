@@ -21,7 +21,7 @@ const cloudAccountsResource = "hub/api/v1/cloud-accounts"
 var cloudAccountsCache = make(map[string]*CloudAccount)
 
 func CloudAccounts(selector string, showSecrets,
-	getCloudCredentials, shFormat, nativeConfigFormat bool) {
+	getCloudCredentials, shFormat, nativeConfigFormat, jsonFormat bool) {
 
 	cloudAccounts, err := cloudAccountsBy(selector)
 	if err != nil {
@@ -71,50 +71,74 @@ func CloudAccounts(selector string, showSecrets,
 			}
 		}
 	} else if len(cloudAccounts) == 0 {
-		fmt.Print("No Cloud Accounts\n")
-	} else {
-		fmt.Print("Cloud Accounts:\n")
-		errors := make([]error, 0)
-		for _, cloudAccount := range cloudAccounts {
-			fmt.Printf("\n\t%s\n", formatCloudAccount(&cloudAccount))
-			fmt.Printf("\t\tKind: %s\n", formatCloudAccountKind(cloudAccount.Kind))
-			fmt.Printf("\t\tStatus: %s\n", cloudAccount.Status)
-			if getCloudCredentials {
-				keys, err := cloudAccountCredentials(cloudAccount.Id, cloudAccount.Kind)
-				if err != nil {
-					errors = append(errors, err)
-				} else {
-					formatted, err := formatCloudAccountCredentials(keys)
-					if err != nil {
-						errors = append(errors, err)
-					} else {
-						fmt.Printf("\t\tSecurity Credentials: %s\n", formatted)
-					}
-				}
-			}
-			if len(cloudAccount.TeamsPermissions) > 0 {
-				formatted := formatTeams(cloudAccount.TeamsPermissions)
-				fmt.Printf("\t\tTeams: %s\n", formatted)
-			}
-			if len(cloudAccount.Parameters) > 0 {
-				fmt.Print("\t\tParameters:\n")
-			}
-			resource := fmt.Sprintf("%s/%s", cloudAccountsResource, cloudAccount.Id)
-			for _, param := range sortParameters(cloudAccount.Parameters) {
-				formatted, err := formatParameter(resource, param, showSecrets)
-				fmt.Printf("\t\t%s\n", formatted)
-				if err != nil {
-					errors = append(errors, err)
-				}
-			}
+		if jsonFormat {
+			log.Print("No Cloud Accounts")
+		} else {
+			fmt.Print("No Cloud Accounts\n")
 		}
-		if len(errors) > 0 {
-			fmt.Print("Errors encountered:\n")
-			for _, err := range errors {
-				fmt.Printf("\t%v\n", err)
+	} else {
+		if jsonFormat {
+			var toMarshal interface{}
+			if len(cloudAccounts) == 1 {
+				toMarshal = &cloudAccounts[0]
+			} else {
+				toMarshal = cloudAccounts
+			}
+			out, err := json.MarshalIndent(toMarshal, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshalling JSON response for output: %v", err)
+			}
+			os.Stdout.Write(out)
+			os.Stdout.Write([]byte("\n"))
+		} else {
+			fmt.Print("Cloud Accounts:\n")
+			errors := make([]error, 0)
+			for _, cloudAccount := range cloudAccounts {
+				errors = formatCloudAccountEntity(&cloudAccount, getCloudCredentials, showSecrets, errors)
+			}
+			if len(errors) > 0 {
+				fmt.Print("Errors encountered:\n")
+				for _, err := range errors {
+					fmt.Printf("\t%v\n", err)
+				}
 			}
 		}
 	}
+}
+
+func formatCloudAccountEntity(cloudAccount *CloudAccount, getCloudCredentials, showSecrets bool, errors []error) []error {
+	fmt.Printf("\n\t%s\n", formatCloudAccountTitle(cloudAccount))
+	fmt.Printf("\t\tKind: %s\n", formatCloudAccountKind(cloudAccount.Kind))
+	fmt.Printf("\t\tStatus: %s\n", cloudAccount.Status)
+	if getCloudCredentials {
+		keys, err := cloudAccountCredentials(cloudAccount.Id, cloudAccount.Kind)
+		if err != nil {
+			errors = append(errors, err)
+		} else {
+			formatted, err := formatCloudAccountCredentials(keys)
+			if err != nil {
+				errors = append(errors, err)
+			} else {
+				fmt.Printf("\t\tSecurity Credentials: %s\n", formatted)
+			}
+		}
+	}
+	if len(cloudAccount.TeamsPermissions) > 0 {
+		formatted := formatTeams(cloudAccount.TeamsPermissions)
+		fmt.Printf("\t\tTeams: %s\n", formatted)
+	}
+	if len(cloudAccount.Parameters) > 0 {
+		fmt.Print("\t\tParameters:\n")
+	}
+	resource := fmt.Sprintf("%s/%s", cloudAccountsResource, cloudAccount.Id)
+	for _, param := range sortParameters(cloudAccount.Parameters) {
+		formatted, err := formatParameter(resource, param, showSecrets)
+		fmt.Printf("\t\t%s\n", formatted)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+	return errors
 }
 
 func cachedCloudAccountBy(selector string) (*CloudAccount, error) {
@@ -203,7 +227,7 @@ func cloudAccountsByDomain(domain string) ([]CloudAccount, error) {
 	return jsResp, nil
 }
 
-func formatCloudAccount(account *CloudAccount) string {
+func formatCloudAccountTitle(account *CloudAccount) string {
 	return fmt.Sprintf("%s / %s [%s]", account.Name, account.BaseDomain, account.Id)
 }
 
@@ -383,7 +407,7 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
-	CloudAccounts(account.Id, false, false, false, false)
+	CloudAccounts(account.Id, false, false, false, false, false)
 	if waitAndTailDeployLogs {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
