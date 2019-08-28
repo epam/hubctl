@@ -24,7 +24,7 @@ func Environments(selector string, showSecrets, showMyTeams,
 	}
 	if len(envs) == 0 {
 		if jsonFormat {
-			log.Print("No Environments\n")
+			log.Print("No Environments")
 		} else {
 			fmt.Print("No Environments\n")
 		}

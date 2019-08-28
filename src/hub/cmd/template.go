@@ -25,9 +25,9 @@ var templateCmd = &cobra.Command{
 
 var templateGetCmd = &cobra.Command{
 	Use:   "get [id | name]",
-	Short: "Show a list of templates or details about the template",
-	Long: `Show a list of all user accessible templates or details about
-the particular template (specify Id or search by name)`,
+	Short: "Show a list of Stack  Templates or details about the template",
+	Long: `Show a list of all user accessible Stack Templates or details about
+the particular Template (specify Id or search by name)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return template(args)
 	},
@@ -148,7 +148,7 @@ func template(args []string) error {
 
 func createTemplate(args []string) error {
 	if len(args) > 0 {
-		return errors.New("Create Template command has no arguments")
+		return errors.New("Create Stack Template command has no arguments")
 	}
 
 	api.CreateTemplate(os.Stdin)
@@ -158,7 +158,7 @@ func createTemplate(args []string) error {
 
 func initTemplate(args []string) error {
 	if len(args) != 1 {
-		return errors.New("Init Template command has one mandator argument - id or name of the template")
+		return errors.New("Init Stack Template command has one mandator argument - id or name of the template")
 	}
 
 	api.InitTemplate(args[0])
@@ -192,7 +192,7 @@ func patchTemplate(args []string) error {
 
 func deleteTemplate(args []string) error {
 	if len(args) != 1 {
-		return errors.New("Delete Template command has one mandatory argument - id or name of the template")
+		return errors.New("Delete Stack Template command has one mandatory argument - id or name of the template")
 	}
 
 	api.DeleteTemplate(args[0])

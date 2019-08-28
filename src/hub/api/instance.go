@@ -26,7 +26,7 @@ func StackInstances(selector string, showSecrets, showLogs, jsonFormat bool) {
 	}
 	if len(instances) == 0 {
 		if jsonFormat {
-			log.Print("No Stack Instances\n")
+			log.Print("No Stack Instances")
 		} else {
 			fmt.Print("No Stack Instances\n")
 		}

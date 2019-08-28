@@ -45,44 +45,6 @@ var environmentCreateCmd = &cobra.Command{
 	},
 }
 
-var environmentDeleteCmd = &cobra.Command{
-	Use:   "delete <id | name>",
-	Short: "Delete Environment by Id or name",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return deleteEnvironment(args)
-	},
-}
-
-func environment(args []string) error {
-	if len(args) > 1 {
-		return errors.New("Environment command has one optional argument - id or name of the Environment")
-	}
-
-	selector := ""
-	if len(args) > 0 {
-		selector = args[0]
-	}
-	if showServiceAccountLoginToken {
-		showServiceAccount = true
-	}
-	api.Environments(selector, showSecrets, showMyTeams,
-		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, jsonFormat)
-
-	return nil
-}
-
-func createEnvironment(args []string) error {
-	if len(args) != 2 {
-		return errors.New("Create Environment command has two mandatory arguments - a name and id or domain of cloud account")
-	}
-
-	name := args[0]
-	selector := args[1]
-	api.CreateEnvironment(name, selector)
-
-	return nil
-}
-
 var environmentPatchCmd = &cobra.Command{
 	Use:   "patch <id | name> < environment-patch.json",
 	Short: "Patch Environment",
@@ -132,9 +94,47 @@ var environmentPatchCmd = &cobra.Command{
 	},
 }
 
+var environmentDeleteCmd = &cobra.Command{
+	Use:   "delete <id | name>",
+	Short: "Delete Environment by Id or name",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return deleteEnvironment(args)
+	},
+}
+
+func environment(args []string) error {
+	if len(args) > 1 {
+		return errors.New("Environment command has one optional argument - id or name of the Environment")
+	}
+
+	selector := ""
+	if len(args) > 0 {
+		selector = args[0]
+	}
+	if showServiceAccountLoginToken {
+		showServiceAccount = true
+	}
+	api.Environments(selector, showSecrets, showMyTeams,
+		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, jsonFormat)
+
+	return nil
+}
+
+func createEnvironment(args []string) error {
+	if len(args) != 2 {
+		return errors.New("Create Environment command has two mandatory arguments - a name and id or domain of cloud account")
+	}
+
+	name := args[0]
+	selector := args[1]
+	api.CreateEnvironment(name, selector)
+
+	return nil
+}
+
 func patchEnvironment(args []string) error {
 	if len(args) != 1 {
-		return errors.New("Patch Environment command has one mandatory argument - id or ame of the Environment")
+		return errors.New("Patch Environment command has one mandatory argument - id or name of the Environment")
 	}
 
 	selector := args[0]
@@ -155,6 +155,7 @@ func patchEnvironment(args []string) error {
 
 	return nil
 }
+
 func deleteEnvironment(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Delete Environment command has one mandatory argument - id or name of the environment")
