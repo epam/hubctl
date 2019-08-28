@@ -25,19 +25,21 @@ the particular base stack (specify Id)`,
 
 func stack(args []string) error {
 	if len(args) > 1 {
-		return errors.New("Stack command has one optional argument - id of the base stack")
+		return errors.New("Stack command has one optional argument - name of the base stack")
 	}
 
 	selector := ""
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.BaseStacks(selector)
+	api.BaseStacks(selector, jsonFormat)
 
 	return nil
 }
 
 func init() {
+	stackGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+		"JSON output")
 	stackCmd.AddCommand(stackGetCmd)
 	apiCmd.AddCommand(stackCmd)
 }

@@ -1,9 +1,11 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -11,52 +13,75 @@ const stacksResource = "hub/api/v1/stacks"
 
 var stacksCache = make(map[string]*BaseStack)
 
-func BaseStacks(selector string) {
+func BaseStacks(selector string, jsonFormat bool) {
 	stacks, err := stacksBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Stack(s): %v", err)
 	}
 	if len(stacks) == 0 {
-		fmt.Print("No stacks\n")
-	} else {
-		fmt.Print("Stacks:\n")
-		errors := make([]error, 0)
-		for _, stack := range stacks {
-			title := fmt.Sprintf("%s [%s]", stack.Name, stack.Id)
-			if stack.Brief != "" {
-				title = fmt.Sprintf("%s - %s", title, stack.Brief)
-			}
-			fmt.Printf("\n\t%s\n", title)
-			if len(stack.Tags) > 0 {
-				fmt.Printf("\t\tTags: %s\n", strings.Join(stack.Tags, ", "))
-			}
-			if len(stack.Components) > 0 {
-				fmt.Print("\t\tComponents:\n")
-				for _, comp := range stack.Components {
-					fmt.Printf("\t\t\t%s - %s - %s\n", comp.Name, comp.Brief, comp.Description)
-				}
-			}
-			if len(stack.Parameters) > 0 {
-				fmt.Print("\t\tParameters:\n")
-			}
-			resource := fmt.Sprintf("%s/%s", stacksResource, stack.Id)
-			for _, param := range sortParameters(stack.Parameters) {
-				formatted, err := formatParameter(resource, param, false)
-				fmt.Printf("\t\t%s\n", formatted)
-				if err != nil {
-					errors = append(errors, err)
-				}
-			}
+		if jsonFormat {
+			log.Print("No Stacks")
+		} else {
+			fmt.Print("No Stacks\n")
 		}
-		if len(errors) > 0 {
-			fmt.Print("Errors encountered:\n")
-			for _, err := range errors {
-				fmt.Printf("\t%v\n", err)
+	} else {
+		if jsonFormat {
+			var toMarshal interface{}
+			if len(stacks) == 1 {
+				toMarshal = &stacks[0]
+			} else {
+				toMarshal = stacks
+			}
+			out, err := json.MarshalIndent(toMarshal, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshalling JSON response for output: %v", err)
+			}
+			os.Stdout.Write(out)
+			os.Stdout.Write([]byte("\n"))
+		} else {
+			errors := make([]error, 0)
+			fmt.Print("Stacks:\n")
+			for _, stack := range stacks {
+				formatBaseStackEntity(&stack, errors)
+			}
+			if len(errors) > 0 {
+				fmt.Print("Errors encountered:\n")
+				for _, err := range errors {
+					fmt.Printf("\t%v\n", err)
+				}
 			}
 		}
 	}
 }
 
+func formatBaseStackEntity(stack *BaseStack, errors []error) []error {
+	title := fmt.Sprintf("%s [%s]", stack.Name, stack.Id)
+	if stack.Brief != "" {
+		title = fmt.Sprintf("%s - %s", title, stack.Brief)
+	}
+	fmt.Printf("\n\t%s\n", title)
+	if len(stack.Tags) > 0 {
+		fmt.Printf("\t\tTags: %s\n", strings.Join(stack.Tags, ", "))
+	}
+	if len(stack.Components) > 0 {
+		fmt.Print("\t\tComponents:\n")
+		for _, comp := range stack.Components {
+			fmt.Printf("\t\t\t%s - %s - %s\n", comp.Name, comp.Brief, comp.Description)
+		}
+	}
+	if len(stack.Parameters) > 0 {
+		fmt.Print("\t\tParameters:\n")
+	}
+	resource := fmt.Sprintf("%s/%s", stacksResource, stack.Id)
+	for _, param := range sortParameters(stack.Parameters) {
+		formatted, err := formatParameter(resource, param, false)
+		fmt.Printf("\t\t%s\n", formatted)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+	return errors
+}
 func stacksBy(selector string) ([]BaseStack, error) {
 	if selector != "" {
 		stack, err := stackById(selector)

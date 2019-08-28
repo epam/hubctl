@@ -116,18 +116,18 @@ type EnvironmentPatch struct {
 }
 
 type StackComponent struct {
-	Name        string
-	Brief       string
-	Description string
+	Name        string `json:"name"`
+	Brief       string `json:"brief,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 type BaseStack struct {
-	Id         string
-	Name       string
-	Brief      string
-	Tags       []string
-	Components []StackComponent
-	Parameters []Parameter
+	Id         string           `json:"id"`
+	Name       string           `json:"name"`
+	Brief      string           `json:"brief,omitempty"`
+	Tags       []string         `json:"tags,omitempty"`
+	Components []StackComponent `json:"components,omitempty"`
+	Parameters []Parameter      `json:"parameters,omitempty"`
 }
 
 type StackRef struct {
