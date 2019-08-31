@@ -140,6 +140,16 @@ func formatCloudAccountEntity(cloudAccount *CloudAccount, getCloudCredentials, s
 	return errors
 }
 
+func formatCloudAccount(cloudAccount *CloudAccount) {
+	errors := formatCloudAccountEntity(cloudAccount, false, false, make([]error, 0))
+	if len(errors) > 0 {
+		fmt.Print("Errors encountered:\n")
+		for _, err := range errors {
+			fmt.Printf("\t%v\n", err)
+		}
+	}
+}
+
 func cachedCloudAccountBy(selector string) (*CloudAccount, error) {
 	cloudAccount, cached := cloudAccountsCache[selector]
 	if !cached {
@@ -404,7 +414,7 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
-	CloudAccounts(account.Id, false, false, false, false, false)
+	formatCloudAccount(account)
 	if waitAndTailDeployLogs {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
