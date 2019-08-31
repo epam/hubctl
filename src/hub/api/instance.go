@@ -442,13 +442,20 @@ func DeleteStackInstance(selector string) {
 
 func deleteStackInstance(selector string) error {
 	instance, err := stackInstanceBy(selector)
+	id := ""
 	if err != nil {
-		return err
-	}
-	if instance == nil {
+		if strings.Contains(err.Error(), "json: cannot unmarshal") && util.IsUint(selector) {
+			util.Warn("%v", err)
+			id = selector
+		} else {
+			return err
+		}
+	} else if instance == nil {
 		return error404
+	} else {
+		id = instance.Id
 	}
-	path := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(instance.Id))
+	path := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(id))
 	code, err := delete(hubApi, path)
 	if err != nil {
 		return err
