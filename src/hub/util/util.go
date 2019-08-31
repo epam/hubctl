@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/logrusorgru/aurora"
@@ -507,4 +508,12 @@ func ParseKvList(list string) (map[string]string, error) {
 		}
 	}
 	return parsed, nil
+}
+
+func IsUint(str string) bool {
+	if str == "" {
+		return false
+	}
+	_, err := strconv.ParseUint(str, 10, 32)
+	return err == nil
 }

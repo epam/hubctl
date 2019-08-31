@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"strconv"
 	"strings"
+
+	"hub/util"
 )
 
 const applicationsResource = "hub/api/v1/applications"
@@ -76,16 +77,14 @@ func cachedApplicationBy(selector string) (*Application, error) {
 }
 
 func applicationBy(selector string) (*Application, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return applicationByDomain(selector)
 	}
 	return applicationById(selector)
 }
 
 func applicationsBy(selector string) ([]Application, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return applicationsByDomain(selector)
 	}
 	application, err := applicationById(selector)

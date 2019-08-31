@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 
 	"hub/config"
@@ -181,16 +180,14 @@ func cachedStackInstanceBy(selector string) (*StackInstance, error) {
 }
 
 func stackInstanceBy(selector string) (*StackInstance, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return stackInstanceByDomain(selector)
 	}
 	return stackInstanceById(selector)
 }
 
 func stackInstancesBy(selector string) ([]StackInstance, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return stackInstancesByDomain(selector)
 	}
 	instance, err := stackInstanceById(selector)

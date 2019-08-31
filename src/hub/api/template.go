@@ -7,8 +7,9 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
+
+	"hub/util"
 )
 
 const templatesResource = "hub/api/v1/templates"
@@ -166,16 +167,14 @@ func cachedTemplateBy(selector string) (*StackTemplate, error) {
 }
 
 func templateBy(selector string) (*StackTemplate, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return templateByName(selector)
 	}
 	return templateById(selector)
 }
 
 func templatesBy(selector string) ([]StackTemplate, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return templatesByName(selector)
 	}
 	template, err := templateById(selector)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -255,8 +254,7 @@ func parseFilters(selectors []string) []Filter {
 
 			if len(ids) == 0 {
 				if config.Force {
-					_, err := strconv.ParseUint(selector, 10, 32)
-					if err != nil {
+					if !util.IsUint(selector) {
 						ids = []string{selector}
 					}
 				} else {

@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 
 	"hub/aws"
@@ -155,16 +154,14 @@ func cachedCloudAccountBy(selector string) (*CloudAccount, error) {
 }
 
 func cloudAccountBy(selector string) (*CloudAccount, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return cloudAccountByDomain(selector)
 	}
 	return cloudAccountById(selector)
 }
 
 func cloudAccountsBy(selector string) ([]CloudAccount, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return cloudAccountsByDomain(selector)
 	}
 	cloudAccount, err := cloudAccountById(selector)

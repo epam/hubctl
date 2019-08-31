@@ -7,8 +7,9 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
+
+	"hub/util"
 )
 
 const environmentsResource = "hub/api/v1/environments"
@@ -180,16 +181,14 @@ func cachedEnvironmentBy(selector string) (*Environment, error) {
 }
 
 func environmentBy(selector string) (*Environment, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return environmentByName(selector)
 	}
 	return environmentById(selector)
 }
 
 func environmentsBy(selector string) ([]Environment, error) {
-	_, err := strconv.ParseUint(selector, 10, 32)
-	if err != nil {
+	if !util.IsUint(selector) {
 		return environmentsByName(selector)
 	}
 	environment, err := environmentById(selector)
