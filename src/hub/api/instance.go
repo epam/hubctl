@@ -97,6 +97,9 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 		}
 		fmt.Printf("\t\tGit: %s%s%s\n", g.Public, templateRef, k8sRef)
 	}
+	if instance.Status.Status != "" {
+		fmt.Printf("\t\tStatus: %s\n", instance.Status.Status)
+	}
 	if len(instance.StateFiles) > 0 {
 		fmt.Printf("\t\tState files:\n\t\t\t%s\n", strings.Join(instance.StateFiles, "\n\t\t\t"))
 	}
@@ -121,9 +124,6 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 		if err != nil {
 			errors = append(errors, err)
 		}
-	}
-	if instance.Status.Status != "" {
-		fmt.Printf("\t\tStatus: %s\n", instance.Status.Status)
 	}
 	if instance.Status.Template != nil && instance.Status.Template.Commit != "" {
 		t := instance.Status.Template
