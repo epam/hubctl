@@ -200,7 +200,7 @@ type PlatformRef struct {
 	Id     string `json:"id"`
 	Name   string `json:"name"`
 	Domain string `json:"domain"`
-	// application
+	// application and overlay
 	Provides   map[string][]string `json:"provides,omitempty"`
 	StateFiles []string            `json:"stateFiles,omitempty"`
 }
