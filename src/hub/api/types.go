@@ -86,14 +86,15 @@ type Team struct {
 }
 
 type Environment struct {
-	Id               string      `json:"id"`
-	Name             string      `json:"name"`
-	Description      string      `json:"description,omitempty"`
-	Tags             []string    `json:"tags,omitempty"`
-	CloudAccount     string      `json:"cloudAccount"`
-	Parameters       []Parameter `json:"parameters,omitempty"`
-	Providers        []Provider  `json:"providers,omitempty"`
-	TeamsPermissions []Team      `json:"teamsPermissions"`
+	Id               string                 `json:"id"`
+	Name             string                 `json:"name"`
+	Description      string                 `json:"description,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
+	UI               map[string]interface{} `json:"ui,omitempty"`
+	CloudAccount     string                 `json:"cloudAccount"`
+	Parameters       []Parameter            `json:"parameters,omitempty"`
+	Providers        []Provider             `json:"providers,omitempty"`
+	TeamsPermissions []Team                 `json:"teamsPermissions"`
 }
 
 type EnvironmentRequest struct {
@@ -148,37 +149,40 @@ type GitRef struct {
 }
 
 type StackTemplate struct {
-	Id                string      `json:"id"`
-	Name              string      `json:"name"`
-	Description       string      `json:"description,omitempty"`
-	Status            string      `json:"status"`
-	Tags              []string    `json:"tags,omitempty"`
-	Stack             StackRef    `json:"stack"`
-	ComponentsEnabled []string    `json:"componentsEnabled,omitempty"`
-	Verbs             []string    `json:"verbs,omitempty"`
-	GitRemote         GitRef      `json:"gitRemote"`
-	Parameters        []Parameter `json:"parameters,omitempty"`
-	TeamsPermissions  []Team      `json:"teamsPermissions"`
+	Id                string                 `json:"id"`
+	Name              string                 `json:"name"`
+	Description       string                 `json:"description,omitempty"`
+	Status            string                 `json:"status"`
+	Tags              []string               `json:"tags,omitempty"`
+	UI                map[string]interface{} `json:"ui,omitempty"`
+	Stack             StackRef               `json:"stack"`
+	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
+	Verbs             []string               `json:"verbs,omitempty"`
+	GitRemote         GitRef                 `json:"gitRemote"`
+	Parameters        []Parameter            `json:"parameters,omitempty"`
+	TeamsPermissions  []Team                 `json:"teamsPermissions"`
 }
 
 type StackTemplateRequest struct {
-	Name              string      `json:"name"`
-	Description       string      `json:"description,omitempty"`
-	Tags              []string    `json:"tags,omitempty"`
-	Stack             string      `json:"stack"`
-	ComponentsEnabled []string    `json:"componentsEnabled,omitempty"`
-	Verbs             []string    `json:"verbs,omitempty"`
-	Parameters        []Parameter `json:"parameters,omitempty"`
-	TeamsPermissions  []Team      `json:"teamsPermissions,omitempty"`
+	Name              string                 `json:"name"`
+	Description       string                 `json:"description,omitempty"`
+	Tags              []string               `json:"tags,omitempty"`
+	UI                map[string]interface{} `json:"ui,omitempty"`
+	Stack             string                 `json:"stack"`
+	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
+	Verbs             []string               `json:"verbs,omitempty"`
+	Parameters        []Parameter            `json:"parameters,omitempty"`
+	TeamsPermissions  []Team                 `json:"teamsPermissions,omitempty"`
 }
 
 type StackTemplatePatch struct {
-	Description       string      `json:"description,omitempty"`
-	Tags              []string    `json:"tags,omitempty"`
-	ComponentsEnabled []string    `json:"componentsEnabled,omitempty"`
-	Verbs             []string    `json:"verbs,omitempty"`
-	Parameters        []Parameter `json:"parameters,omitempty"`
-	TeamsPermissions  []Team      `json:"teamsPermissions,omitempty"`
+	Description       string                 `json:"description,omitempty"`
+	Tags              []string               `json:"tags,omitempty"`
+	UI                map[string]interface{} `json:"ui,omitempty"`
+	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
+	Verbs             []string               `json:"verbs,omitempty"`
+	Parameters        []Parameter            `json:"parameters,omitempty"`
+	TeamsPermissions  []Team                 `json:"teamsPermissions,omitempty"`
 }
 
 type EnvironmentRef struct {
@@ -245,24 +249,25 @@ type StackInstanceStatus struct {
 }
 
 type StackInstance struct {
-	Id                 string              `json:"id"`
-	Name               string              `json:"name"`
-	Domain             string              `json:"domain"`
-	Description        string              `json:"description,omitempty"`
-	Verbs              []string            `json:"verbs,omitempty"`
-	Tags               []string            `json:"tags,omitempty"`
-	Environment        EnvironmentRef      `json:"environment,omitempty"`
-	Stack              StackRef            `json:"stack,omitempty"`
-	Template           StackTemplateRef    `json:"template,omitempty"`
-	Platform           *PlatformRef        `json:"platform,omitempty"`
-	ComponentsEnabled  []string            `json:"componentsEnabled,omitempty"`
-	GitRemote          GitRef              `json:"gitRemote,omitempty"`
-	Parameters         []Parameter         `json:"parameters,omitempty"`
-	Outputs            []Output            `json:"outputs,omitempty"`
-	Provides           map[string][]string `json:"provides,omitempty"`
-	StateFiles         []string            `json:"stateFiles,omitempty"`
-	Status             StackInstanceStatus `json:"status"`
-	InflightOperations []InflightOperation `json:"inflightOperations,omitempty"`
+	Id                 string                 `json:"id"`
+	Name               string                 `json:"name"`
+	Domain             string                 `json:"domain"`
+	Description        string                 `json:"description,omitempty"`
+	Verbs              []string               `json:"verbs,omitempty"`
+	Tags               []string               `json:"tags,omitempty"`
+	UI                 map[string]interface{} `json:"ui,omitempty"`
+	Environment        EnvironmentRef         `json:"environment,omitempty"`
+	Stack              StackRef               `json:"stack,omitempty"`
+	Template           StackTemplateRef       `json:"template,omitempty"`
+	Platform           *PlatformRef           `json:"platform,omitempty"`
+	ComponentsEnabled  []string               `json:"componentsEnabled,omitempty"`
+	GitRemote          GitRef                 `json:"gitRemote,omitempty"`
+	Parameters         []Parameter            `json:"parameters,omitempty"`
+	Outputs            []Output               `json:"outputs,omitempty"`
+	Provides           map[string][]string    `json:"provides,omitempty"`
+	StateFiles         []string               `json:"stateFiles,omitempty"`
+	Status             StackInstanceStatus    `json:"status"`
+	InflightOperations []InflightOperation    `json:"inflightOperations,omitempty"`
 }
 
 type StackInstanceRequest struct {
@@ -341,8 +346,8 @@ type ApplicationPatch struct {
 }
 
 type License struct {
-	Component  string
-	LicenseKey string
+	Component  string `json:"component"`
+	LicenseKey string `json:"licenseKey"`
 }
 
 type ServiceAccount struct {
