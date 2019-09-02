@@ -101,8 +101,8 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 		fmt.Printf("\t\tState files:\n\t\t\t%s\n", strings.Join(instance.StateFiles, "\n\t\t\t"))
 	}
 	if len(instance.Provides) > 0 {
-		formatted := formatStackProvides(instance.Provides)
-		fmt.Printf("\t\tProvides:\n%s", formatted)
+		formatted := formatStackProvides(instance.Provides, "\t\t\t")
+		fmt.Printf("\t\tProvides:\n%s\n", formatted)
 	}
 	resource := fmt.Sprintf("%s/%s", stackInstancesResource, instance.Id)
 	if len(instance.Outputs) > 0 {
@@ -251,16 +251,23 @@ func stackInstancesByDomain(domain string) ([]StackInstance, error) {
 }
 
 func formatPlatformRef(ref *PlatformRef) string {
-	return fmt.Sprintf("%s / %s [%s]", ref.Name, ref.Domain, ref.Id)
+	stateFiles := ""
+	if len(ref.StateFiles) > 0 {
+		stateFiles = fmt.Sprintf("\n\t\t\tState files:\n\t\t\t\t%s", strings.Join(ref.StateFiles, "\n\t\t\t\t"))
+	}
+	provides := ""
+	if len(ref.Provides) > 0 {
+		provides = fmt.Sprintf("\n\t\t\tProvides:\n%s", formatStackProvides(ref.Provides, "\t\t\t\t"))
+	}
+	return fmt.Sprintf("%s / %s [%s]%s%s", ref.Name, ref.Domain, ref.Id, stateFiles, provides)
 }
 
-func formatStackProvides(provides map[string][]string) string {
-	ident := "\t\t\t"
+func formatStackProvides(provides map[string][]string, indent string) string {
 	str := make([]string, 0, len(provides))
 	for _, k := range util.SortedKeys2(provides) {
 		str = append(str, fmt.Sprintf("%s => %s", k, strings.Join(provides[k], ", ")))
 	}
-	return fmt.Sprintf("%s%s\n", ident, strings.Join(str, "\n"+ident))
+	return fmt.Sprintf("%s%s", indent, strings.Join(str, "\n"+indent))
 }
 
 func formatStackOutputs(resource string, outputs []Output, showSecrets bool) (string, []error) {
@@ -343,7 +350,11 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	}
 	options := ""
 	if len(op.Options) > 0 {
-		options = fmt.Sprintf("%sOptions: %v\n", ident, op.Options)
+		options = fmt.Sprintf("%s\tOptions: %v\n", ident, op.Options)
+	}
+	platform := ""
+	if len(op.PlatformDomain) > 0 {
+		platform = fmt.Sprintf("%s\tPlatform: %v\n", ident, op.PlatformDomain)
 	}
 	description := ""
 	if op.Description != "" {
@@ -351,10 +362,10 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	}
 	phases := ""
 	if len(op.Phases) > 0 {
-		phases = fmt.Sprintf("%sPhases:\n%s\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident))
+		phases = fmt.Sprintf("%s\tPhases:\n%s\t\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident+"\t"))
 	}
-	return fmt.Sprintf("%sOperation: %s - %s %v%s%s %s\n%s%s%s",
-		ident, op.Operation, op.Status, op.Timestamp, initiator, description, op.Id, options, phases, logs)
+	return fmt.Sprintf("%sOperation: %s - %s %v%s%s %s\n%s%s%s%s",
+		ident, op.Operation, op.Status, op.Timestamp, initiator, description, op.Id, platform, options, phases, logs)
 }
 
 func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {

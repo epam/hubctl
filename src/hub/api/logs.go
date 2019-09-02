@@ -31,7 +31,7 @@ type Filter struct {
 	Success   bool
 }
 
-var opCompletedActions = []string{"onboard", "deploy", "undeploy", "delete"}
+var opCompletedActions = []string{"onboard", "deploy", "install", "undeploy", "uninstall", "delete"}
 
 func Logs(selectors []string, exitOnCompletedOperation bool) int {
 	filters := parseFilters(selectors)
@@ -142,7 +142,9 @@ func Logs(selectors []string, exitOnCompletedOperation bool) int {
 				aurora.Cyan(m.Action).String(),
 				success)
 
-			if exitOnCompletedOperation && util.Contains(opCompletedActions, m.Action) {
+			if exitOnCompletedOperation && (util.Contains(opCompletedActions, m.Action) ||
+				(m.Entity == "application" && m.Action == "update")) {
+
 				exit := true
 				success := m.Success
 				if len(filters) > 0 {
@@ -245,6 +247,16 @@ func parseFilters(selectors []string) []Filter {
 				} else if instances != nil {
 					for _, instance := range instances {
 						ids = append(ids, instance.Id)
+					}
+				}
+
+			case "application":
+				applications, err := applicationsBy(selector)
+				if err != nil {
+					log.Fatalf("Unable to get Application by `%s`: %v", selector, err)
+				} else if applications != nil {
+					for _, application := range applications {
+						ids = append(ids, application.Id)
 					}
 				}
 

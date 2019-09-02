@@ -28,6 +28,7 @@ var (
 	outputFiles           string
 	waitAndTailDeployLogs bool
 	showSecrets           bool
+	showLogs              bool
 	jsonFormat            bool
 	patchReplace          bool
 	patchRaw              bool

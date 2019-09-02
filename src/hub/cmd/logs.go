@@ -19,13 +19,13 @@ var logsCmd = &cobra.Command{
 A filtering list of Ids or domain names may be supplied to limit the output, otherwise
 everything accessible to the current user is shown.
 
-Entity kind is one of cloudAccount, environment, stackTemplate, stackInstance (default).
+Entity kind is one of cloudAccount, environment, stackTemplate, stackInstance (default), application.
 
 When --exit-on-completed-operation / -w is specified, then the command will tail logs
 until all specified entities completes lifecycle operation, then CLI will exit.
 Otherwise it will tail logs indefinitely until interrupted (the default).
 
-If no filter is specified then the command will wait for one lifecycle operation
+If no filter is specified [with -w] then the command will wait for one lifecycle operation
 completion on any entity.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

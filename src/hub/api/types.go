@@ -196,6 +196,9 @@ type PlatformRef struct {
 	Id     string `json:"id"`
 	Name   string `json:"name"`
 	Domain string `json:"domain"`
+	// application
+	Provides   map[string][]string `json:"provides,omitempty"`
+	StateFiles []string            `json:"stateFiles,omitempty"`
 }
 
 type ComponentStatus struct {
@@ -221,6 +224,9 @@ type InflightOperation struct {
 	Initiator   string                 `json:"initiator,omitempty"`
 	Logs        string                 `json:"logs,omitempty"`
 	Phases      []LifecyclePhase       `json:"phases,omitempty"`
+	// applications
+	JobName        string `json:"jobName,omitempty"`
+	PlatformDomain string `json:"platformDomain,omitempty"`
 }
 
 type TemplateStatus struct {
@@ -300,14 +306,38 @@ type StackInstancePatch struct {
 }
 
 type Application struct {
-	Id               string
-	Name             string
-	Description      string
-	Tags             []string
-	Environments     []EnvironmentRef
-	Parameters       []Parameter
-	GitRemote        GitRef `json:"gitRemote"`
-	TeamsPermissions []Team `json:"teamsPermissions"`
+	Id                 string                 `json:"id"`
+	Name               string                 `json:"name"`
+	Description        string                 `json:"description,omitempty"`
+	Tags               []string               `json:"tags,omitempty"`
+	UI                 map[string]interface{} `json:"ui,omitempty"`
+	Application        string                 `json:"application"`
+	Status             string                 `json:"status"`
+	Environment        EnvironmentRef         `json:"environment"`
+	Environments       []EnvironmentRef       `json:"environments,omitempty"` // not implemented
+	Platform           PlatformRef            `json:"platform"`
+	Requires           []string               `json:"requires"`
+	Parameters         []Parameter            `json:"parameters,omitempty"`
+	Outputs            []Output               `json:"outputs,omitempty"`
+	StateFiles         []string               `json:"stateFiles,omitempty"`
+	InflightOperations []InflightOperation    `json:"inflightOperations,omitempty"`
+}
+
+// unused
+type ApplicationRequest struct {
+	Name        string                 `json:"name"`
+	Description string                 `json:"description,omitempty"`
+	Tags        []string               `json:"tags,omitempty"`
+	UI          map[string]interface{} `json:"ui,omitempty"`
+	Application string                 `json:"application"`
+	Requires    []string               `json:"requires"`
+	Platform    string                 `json:"platform"`
+	Parameters  []Parameter            `json:"parameters,omitempty"`
+}
+
+type ApplicationPatch struct {
+	UI         map[string]interface{} `json:"ui,omitempty"`
+	Parameters []Parameter            `json:"parameters,omitempty"`
 }
 
 type License struct {

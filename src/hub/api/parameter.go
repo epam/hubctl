@@ -27,6 +27,9 @@ func GetParameterOrMaybeCreateSecret(environment, stackInstance, application,
 		if err != nil {
 			errors = append(errors, err)
 		} else {
+			if app.Environment.Id != "" {
+				applicationEnvironmentIds = append(applicationEnvironmentIds, app.Environment.Id)
+			}
 			for _, env := range app.Environments {
 				applicationEnvironmentIds = append(applicationEnvironmentIds, env.Id)
 			}
