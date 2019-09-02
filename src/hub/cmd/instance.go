@@ -18,13 +18,13 @@ var (
 )
 
 var instanceCmd = &cobra.Command{
-	Use:   "instance <get | create | delete> ...",
+	Use:   "instance <get | create | patch | deploy | undeploy | delete> ...",
 	Short: "Create and manage Stack Instances",
 }
 
 var instanceGetCmd = &cobra.Command{
 	Use:   "get [id | domain]",
-	Short: "Show a list of instances or details about the instance",
+	Short: "Show a list of stack instances or details about the instance",
 	Long: `Show a list of all user accessible stack instances or details about
 the particular instance (specify Id or search by full domain name)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -103,7 +103,7 @@ var instancePatchCmd = &cobra.Command{
 
 var instanceDeployCmd = &cobra.Command{
 	Use:   "deploy <id | domain>",
-	Short: "Deploy Stack Instance by Id or full domain name",
+	Short: "Deploy Stack Instance",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return deployInstance(args)
 	},
@@ -111,7 +111,7 @@ var instanceDeployCmd = &cobra.Command{
 
 var instanceUndeployCmd = &cobra.Command{
 	Use:   "undeploy <id | domain>",
-	Short: "Undeploy Stack Instance by Id or full domain name",
+	Short: "Undeploy Stack Instance",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return undeployInstance(args)
 	},
@@ -127,7 +127,7 @@ var instanceSyncCmd = &cobra.Command{
 
 var instanceDeleteCmd = &cobra.Command{
 	Use:   "delete <id | domain>",
-	Short: "Delete Stack Instance by Id or full domain name",
+	Short: "Delete Stack Instance",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return deleteInstance(args)
 	},
@@ -135,7 +135,7 @@ var instanceDeleteCmd = &cobra.Command{
 
 var instanceKubeconfigCmd = &cobra.Command{
 	Use:   "kubeconfig <id | domain>",
-	Short: "Download Stack Instance Kubeconfig by Id or full domain name",
+	Short: "Download Stack Instance Kubeconfig",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return kubeconfigInstance(args)
 	},
