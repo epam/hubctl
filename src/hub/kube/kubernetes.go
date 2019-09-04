@@ -259,7 +259,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 		writeFile(caCertFile, caCert)
 		pemsWritten = append(pemsWritten, caCertFile)
 	}
-	if util.Contains([]string{"k8s-aws", "hybrid"}, flavor) {
+	if util.Contains([]string{"k8s-aws", "hybrid", "metal"}, flavor) {
 		writeFile(clientCertFile,
 			mustOutput(params, outputs, provider, kubernetesApiClientCertOutput))
 		writeFile(clientKeyFile,
@@ -279,7 +279,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	mustExec(kubectl, clusterArgs...)
 	user := ""
 	switch flavor {
-	case "k8s-aws", "hybrid":
+	case "k8s-aws", "hybrid", "metal":
 		user = "admin@" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--embed-certs=true",
