@@ -33,7 +33,7 @@ var (
 	KubernetesDefaultProviders = []string{
 		"kubernetes",
 		"stack-k8s-aws", "stack-k8s-eks", "stack-k8s-gke", "stack-k8s-aks",
-		"k8s-aws", "k8s-eks", "k8s-gke", "k8s-aks",
+		"k8s-aws", "k8s-eks", "k8s-gke", "k8s-aks", "k8s-hybrid",
 		"k8s-metal", "k8s-openshift"}
 	kubernetesApiKeysFileSuf = map[string]string{
 		kubernetesApiCaCertOutput:     "-ca.pem",
@@ -259,7 +259,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 		writeFile(caCertFile, caCert)
 		pemsWritten = append(pemsWritten, caCertFile)
 	}
-	if util.Contains([]string{"k8s-aws", "metal"}, flavor) {
+	if util.Contains([]string{"k8s-aws", "hybrid", "metal"}, flavor) {
 		writeFile(clientCertFile,
 			mustOutput(params, outputs, provider, kubernetesApiClientCertOutput))
 		writeFile(clientKeyFile,
@@ -279,7 +279,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	mustExec(kubectl, clusterArgs...)
 	user := ""
 	switch flavor {
-	case "k8s-aws", "metal":
+	case "k8s-aws", "hybrid", "metal":
 		user = "admin@" + domain
 		mustExec(kubectl, "config", "set-credentials", user,
 			"--embed-certs=true",

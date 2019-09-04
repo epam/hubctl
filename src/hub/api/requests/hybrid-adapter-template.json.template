@@ -1,0 +1,33 @@
+{
+    "name": "${name}",
+    "description": "Bare-metal Adapter",
+    "stack": "metal-adapter:1",
+    "componentsEnabled": ["k8s-metal", "tiller", "traefik", "dex", "cert-manager"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["adapter=metal"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "kubernetes.api.endpoint"
+    }, {
+        "name": "kubernetes.api.caCert"
+    }, {
+        "name": "kubernetes.api.clientCert"
+    }, {
+        "name": "kubernetes.api.clientKey"
+    }, {
+        "name": "component.ingress.staticIp"
+    }, {
+        "name": "component.ingress.staticHost"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": "true"
+    }],
+    "teamsPermissions": []
+}

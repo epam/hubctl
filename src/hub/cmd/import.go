@@ -18,7 +18,7 @@ import (
 var (
 	autoCreateTemplate bool
 	createNewTemplate  bool
-	knownImportKinds   = []string{"k8s-aws", "eks", "gke", "aks", "metal", "openshift"}
+	knownImportKinds   = []string{"k8s-aws", "eks", "gke", "aks", "metal", "hybrid", "openshift"}
 	importRegion       string
 	k8sEndpoint        string
 	eksClusterName     string
@@ -42,10 +42,11 @@ Currently supported cluster types are:
 - gke - GCP GKE
 - aks - Azure AKS
 - metal - Bare-metal
+- hybrid - Hybrid bare-metal
 - openshift - OpenShift on AWS
 
 Cluster TLS auth is read from stdin in the order:
-- k8s-aws, metal - Client cert, Client key, CA cert (optional).
+- k8s-aws, hybrid, metal - Client cert, Client key, CA cert (optional).
 - eks - CA cert, optional if --eks-endpoint is omited, then it will be discovered via AWS API
 - openshift - optional CA cert
 GKE and AKS certificates are discovered by import adapter component.
@@ -79,6 +80,12 @@ func importKubernetes(args []string) error {
 			return errors.New("AgileStacks K8S cluster API endpoint must be specified by --k8s-endpoint")
 		}
 		nativeEndpoint = k8sEndpoint
+
+        case "hybrid":
+		if metalEndpoint == "" {
+			return errors.New("Hybrid bare-metal cluster API endpoint must be specified by --metal-endpoint")
+		}
+		nativeEndpoint = metalEndpoint
 
 	case "metal":
 		if metalEndpoint == "" {
