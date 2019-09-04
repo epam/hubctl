@@ -41,6 +41,14 @@ var importConfigs = map[string]ImportConfig{
 			{"kubernetes.api.caCert", "certificate", nil},
 		},
 	},
+	"hybrid": {
+		"Hybrid bare-metal Adapter in %s",
+		[]Secret{
+			{"kubernetes.api.clientCert", "certificate", nil},
+			{"kubernetes.api.clientKey", "privateKey", nil},
+			{"kubernetes.api.caCert", "certificate", nil},
+		},
+	},
 	"eks": {
 		"EKS Adapter in %s",
 		[]Secret{
@@ -156,7 +164,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 				log.Fatal("EKS cluster endpoint (--eks-endpoint) must be provided")
 			}
 		}
-	} else if kind == "metal" {
+	} else if kind == "hybrid" {
 		if ingressIpOrHost == "" {
 			parts := strings.Split(nativeEndpoint, ":")
 			if len(parts) > 0 {
