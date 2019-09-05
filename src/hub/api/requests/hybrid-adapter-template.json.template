@@ -1,10 +1,10 @@
 {
     "name": "${name}",
     "description": "Bare-metal Adapter",
-    "stack": "metal-adapter:1",
-    "componentsEnabled": ["k8s-metal", "tiller", "traefik", "dex", "cert-manager"],
+    "stack": "hybrid-adapter:1",
+    "componentsEnabled": ["k8s-hybrid", "tiller", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
-    "tags": ["adapter=metal"],
+    "tags": ["adapter=hybrid"],
     "parameters": [{
         "name": "dns.domain"
     }, {
