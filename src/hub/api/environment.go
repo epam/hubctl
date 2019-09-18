@@ -71,14 +71,16 @@ func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
 	if len(env.Tags) > 0 {
 		fmt.Printf("\t\tTags: %s\n", strings.Join(env.Tags, ", "))
 	}
+	var dnsDomains []string
 	if env.CloudAccount != "" {
 		account, err := cloudAccountById(env.CloudAccount)
 		if err != nil {
 			errors = append(errors, err)
 		} else {
 			fmt.Printf("\t\tCloud Account: %s\n", formatCloudAccountTitle(account))
+			dnsDomains = append(dnsDomains, account.BaseDomain)
 		}
-		if getCloudCredentials {
+		if getCloudCredentials && account != nil {
 			keys, err := cloudAccountCredentials(account.Id, account.Kind)
 			if err != nil {
 				errors = append(errors, err)
@@ -91,6 +93,32 @@ func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
 				}
 			}
 		}
+	}
+	if len(env.Providers) > 0 {
+		var kubes []string
+		for _, provider := range env.Providers {
+			if provider.Kind == "kubernetes" && provider.Name != "" {
+				kubes = append(kubes, provider.Name)
+			}
+		}
+		for _, provider := range env.Providers {
+			if provider.Kind == "dns-domain" {
+				for _, p := range provider.Parameters {
+					if p.Name == "dns.baseDomain" {
+						if domain, ok := p.Value.(string); ok {
+							faulty := ""
+							if !util.Contains(kubes, domain) {
+								faulty = " (no cluster)"
+							}
+							dnsDomains = append(dnsDomains, domain+faulty)
+						}
+					}
+				}
+			}
+		}
+	}
+	if len(dnsDomains) > 0 {
+		fmt.Printf("\t\tDomains: %s\n", strings.Join(dnsDomains, ", "))
 	}
 	resource := fmt.Sprintf("%s/%s", environmentsResource, env.Id)
 	if len(env.Parameters) > 0 {
