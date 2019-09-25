@@ -256,7 +256,11 @@ func deleteApplication(selector string) error {
 	} else {
 		id = application.Id
 	}
-	path := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(id))
+	force := ""
+	if config.Force {
+		force = "?force=true"
+	}
+	path := fmt.Sprintf("%s/%s%s", applicationsResource, url.PathEscape(id), force)
 	code, err := delete(hubApi, path)
 	if err != nil {
 		return err
