@@ -151,19 +151,23 @@ func patch(client *http.Client, path string, req interface{}, jsResp interface{}
 }
 
 func ppp(client *http.Client, method, path string, req interface{}, jsResp interface{}) (int, error) {
-	reqBody, err := json.Marshal(req)
-	if err != nil {
-		return 0, err
+	var body io.Reader
+	if req != nil {
+		reqBody, err := json.Marshal(req)
+		if err != nil {
+			return 0, err
+		}
+		if config.Trace {
+			addr := fmt.Sprintf("%s/%s", config.ApiBaseUrl, path)
+			log.Printf(">>> %s %s\n%s", method, addr, identJson(reqBody))
+		}
+		body = bytes.NewReader(reqBody)
 	}
-	if config.Trace {
-		addr := fmt.Sprintf("%s/%s", config.ApiBaseUrl, path)
-		log.Printf(">>> %s %s\n%s", method, addr, identJson(reqBody))
-	}
-	code, err, _ := doWithAuthorization(client, method, path, bytes.NewReader(reqBody), jsResp)
+	code, err, _ := doWithAuthorization(client, method, path, body, jsResp)
 	return code, err
 }
 
-// post2() trace no request body as it come from user on stdin
+// post2() trace no request body as it come from CLI user on stdin
 func post2(client *http.Client, path string, req io.Reader, jsResp interface{}) (int, error) {
 	code, err, _ := doWithAuthorization(client, "POST", path, req, jsResp)
 	return code, err
