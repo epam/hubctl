@@ -387,13 +387,22 @@ func DeleteEnvironment(selector string) {
 
 func deleteEnvironment(selector string) error {
 	environment, err := environmentBy(selector)
+	id := ""
 	if err != nil {
-		return err
-	}
-	if environment == nil {
+		str := err.Error()
+		if util.IsUint(selector) &&
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
+			util.Warn("%v", err)
+			id = selector
+		} else {
+			return err
+		}
+	} else if environment == nil {
 		return error404
+	} else {
+		id = environment.Id
 	}
-	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
+	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(id))
 	code, err := delete(hubApi, path)
 	if err != nil {
 		return err

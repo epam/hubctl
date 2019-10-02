@@ -320,13 +320,22 @@ func DeleteTemplate(selector string) {
 
 func deleteTemplate(selector string) error {
 	template, err := templateBy(selector)
+	id := ""
 	if err != nil {
-		return err
-	}
-	if template == nil {
+		str := err.Error()
+		if util.IsUint(selector) &&
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
+			util.Warn("%v", err)
+			id = selector
+		} else {
+			return err
+		}
+	} else if template == nil {
 		return error404
+	} else {
+		id = template.Id
 	}
-	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(template.Id))
+	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(id))
 	code, err := delete(hubApi, path)
 	if err != nil {
 		return err

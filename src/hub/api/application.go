@@ -245,7 +245,9 @@ func deleteApplication(selector string) error {
 	application, err := applicationBy(selector)
 	id := ""
 	if err != nil {
-		if strings.Contains(err.Error(), "json: cannot unmarshal") && util.IsUint(selector) {
+		str := err.Error()
+		if util.IsUint(selector) &&
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
 			util.Warn("%v", err)
 			id = selector
 		} else {

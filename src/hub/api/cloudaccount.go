@@ -535,17 +535,26 @@ func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
 
 func deleteCloudAccount(selector string) error {
 	account, err := cloudAccountBy(selector)
+	id := ""
 	if err != nil {
-		return err
-	}
-	if account == nil {
+		str := err.Error()
+		if util.IsUint(selector) &&
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
+			util.Warn("%v", err)
+			id = selector
+		} else {
+			return err
+		}
+	} else if account == nil {
 		return error404
+	} else {
+		id = account.Id
 	}
 	force := ""
 	if config.Force {
 		force = "?force=true"
 	}
-	path := fmt.Sprintf("%s/%s%s", cloudAccountsResource, url.PathEscape(account.Id), force)
+	path := fmt.Sprintf("%s/%s%s", cloudAccountsResource, url.PathEscape(id), force)
 	code, err := delete(hubApi, path)
 	if err != nil {
 		return err
