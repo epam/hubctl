@@ -45,7 +45,8 @@ func Logs(selectors []string, exitOnCompletedOperation bool) int {
 		}
 	}
 
-	updates := make(chan WsMessage)
+	updates := make(chan WsMessage, 2)
+	exitCode := make(chan int)
 	var names sync.Map
 	key := func(m *WsMessage) string {
 		return m.Entity + ":" + m.Id
@@ -123,13 +124,17 @@ func Logs(selectors []string, exitOnCompletedOperation bool) int {
 	connect()
 
 	for {
-		m := <-updates
-		if len(filters) > 0 && !filterMatch(filters, &m) {
-			continue
-		}
-		if m.Logs != "" {
-			os.Stdout.Write([]byte(m.Logs))
-		} else {
+		select {
+		case code := <-exitCode:
+			return code
+
+		case m := <-updates:
+			if len(filters) > 0 && !filterMatch(filters, &m) {
+				continue
+			}
+			if m.Logs != "" {
+				os.Stdout.Write([]byte(m.Logs))
+			}
 			success := aurora.Green("success").String()
 			if !m.Success {
 				success = aurora.Red("fail").String()
@@ -159,7 +164,11 @@ func Logs(selectors []string, exitOnCompletedOperation bool) int {
 					if !success {
 						code = 2
 					}
-					return code
+					// wait for updates and logs to catch-up
+					go func() {
+						time.Sleep(1 * time.Second)
+						exitCode <- code
+					}()
 				}
 			}
 		}
