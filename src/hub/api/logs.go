@@ -134,6 +134,9 @@ func Logs(selectors []string, exitOnCompletedOperation bool) int {
 			}
 			if m.Logs != "" {
 				os.Stdout.Write([]byte(m.Logs))
+				if strings.HasSuffix(m.Action, "-update") {
+					continue
+				}
 			}
 			success := aurora.Green("success").String()
 			if !m.Success {
