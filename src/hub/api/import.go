@@ -330,7 +330,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		}
 	}
 
-	err = commandStackInstance(instance.Id, "deploy", waitAndTailDeployLogs, dryRun)
+	_, err = commandStackInstance(instance.Id, "deploy", nil, waitAndTailDeployLogs, dryRun)
 	if err != nil {
 		return fmt.Errorf("Unable to deploy adapter Stack Instance: %v", err)
 	}

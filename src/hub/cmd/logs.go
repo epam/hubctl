@@ -19,7 +19,7 @@ var logsCmd = &cobra.Command{
 A filtering list of Ids or domain names may be supplied to limit the output, otherwise
 everything accessible to the current user is shown.
 
-Entity kind is one of cloudAccount, environment, stackTemplate, stackInstance (default), application.
+Entity kind is one of cloudAccount, environment, stackTemplate, stackInstance (default), backup, application.
 
 When --exit-on-completed-operation / -w is specified, then the command will tail logs
 until all specified entities completes lifecycle operation, then CLI will exit.

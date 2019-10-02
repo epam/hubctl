@@ -117,6 +117,14 @@ var instanceUndeployCmd = &cobra.Command{
 	},
 }
 
+var instanceBackupCmd = &cobra.Command{
+	Use:   "backup <id | domain> <backup name>",
+	Short: "Backup Stack Instance",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return backupInstance(args)
+	},
+}
+
 var instanceSyncCmd = &cobra.Command{
 	Use:   "sync <id | domain>",
 	Short: "Sync Stack Instance state from state file",
@@ -212,6 +220,16 @@ func undeployInstance(args []string) error {
 	return nil
 }
 
+func backupInstance(args []string) error {
+	if len(args) != 2 {
+		return errors.New("Backup Instance command has two mandatory arguments - id or full domain name of the Instance, and Backup name")
+	}
+
+	api.BackupStackInstance(args[0], args[1], waitAndTailDeployLogs)
+
+	return nil
+}
+
 func syncInstance(args []string) error {
 	if len(args) != 1 && len(args) != 2 {
 		return errors.New("Sync Instance command has one mandatory argument - id or full domain name of the Instance, and optionally Instance status")
@@ -268,6 +286,8 @@ func init() {
 		"Save parameters and envrc to Template's Git but do not start the deployment")
 	instanceUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	instanceBackupCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
+		"Wait for backup and tail logs")
 	instanceSyncCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",
 		"Path to state files")
 	instanceKubeconfigCmd.Flags().StringVarP(&kubeconfigOutput, "output", "o", "",
@@ -277,6 +297,7 @@ func init() {
 	instanceCmd.AddCommand(instancePatchCmd)
 	instanceCmd.AddCommand(instanceDeployCmd)
 	instanceCmd.AddCommand(instanceUndeployCmd)
+	instanceCmd.AddCommand(instanceBackupCmd)
 	instanceCmd.AddCommand(instanceSyncCmd)
 	instanceCmd.AddCommand(instanceDeleteCmd)
 	instanceCmd.AddCommand(instanceKubeconfigCmd)

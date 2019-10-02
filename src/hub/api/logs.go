@@ -31,7 +31,7 @@ type Filter struct {
 	Success   bool
 }
 
-var opCompletedActions = []string{"onboard", "deploy", "install", "undeploy", "uninstall", "delete"}
+var opCompletedActions = []string{"onboard", "deploy", "install", "backup", "undeploy", "uninstall", "delete"}
 
 func Logs(selectors []string, exitOnCompletedOperation bool) int {
 	filters := parseFilters(selectors)
@@ -256,6 +256,16 @@ func parseFilters(selectors []string) []Filter {
 				} else if instances != nil {
 					for _, instance := range instances {
 						ids = append(ids, instance.Id)
+					}
+				}
+
+			case "backup":
+				backups, err := backupsBy(selector)
+				if err != nil {
+					log.Fatalf("Unable to get Backup by `%s`: %v", selector, err)
+				} else if backups != nil {
+					for _, backup := range backups {
+						ids = append(ids, backup.Id)
 					}
 				}
 

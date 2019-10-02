@@ -117,12 +117,12 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 	}
 	if len(instance.Parameters) > 0 {
 		fmt.Print("\t\tParameters:\n")
-	}
-	for _, param := range sortParameters(instance.Parameters) {
-		formatted, err := formatParameter(resource, param, showSecrets)
-		fmt.Printf("\t\t%s\n", formatted)
-		if err != nil {
-			errors = append(errors, err)
+		for _, param := range sortParameters(instance.Parameters) {
+			formatted, err := formatParameter(resource, param, showSecrets)
+			fmt.Printf("\t\t%s\n", formatted)
+			if err != nil {
+				errors = append(errors, err)
+			}
 		}
 	}
 	if instance.Status.Template != nil && instance.Status.Template.Commit != "" {
@@ -397,39 +397,52 @@ func createStackInstance(body io.Reader) (*StackInstance, error) {
 }
 
 func DeployStackInstance(selector string, waitAndTailDeployLogs, dryRun bool) {
-	err := commandStackInstance(selector, "deploy", waitAndTailDeployLogs, dryRun)
+	_, err := commandStackInstance(selector, "deploy", nil, waitAndTailDeployLogs, dryRun)
 	if err != nil {
 		log.Fatalf("Unable to deploy SuperHub Stack Instance: %v", err)
 	}
 }
 
 func UndeployStackInstance(selector string, waitAndTailDeployLogs bool) {
-	err := commandStackInstance(selector, "undeploy", waitAndTailDeployLogs, false)
+	_, err := commandStackInstance(selector, "undeploy", nil, waitAndTailDeployLogs, false)
 	if err != nil {
 		log.Fatalf("Unable to undeploy SuperHub Stack Instance: %v", err)
 	}
 }
 
-func commandStackInstance(selector, verb string, waitAndTailDeployLogs, dryRun bool) error {
+func BackupStackInstance(selector, name string, waitAndTailDeployLogs bool) {
+	resp, err := commandStackInstance(selector, "backup", &BackupRequest{name}, false, false)
+	if err != nil {
+		log.Fatalf("Unable to backup SuperHub Stack Instance: %v", err)
+	}
+	if waitAndTailDeployLogs {
+		if config.Verbose {
+			log.Print("Tailing automation task logs... ^C to interrupt")
+		}
+		os.Exit(Logs([]string{"backup/" + resp.Id}, true))
+	}
+}
+
+func commandStackInstance(selector, verb string, req interface{}, waitAndTailDeployLogs, dryRun bool) (*StackInstanceLifecycleResponse, error) {
 	instance, err := stackInstanceBy(selector)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if instance == nil {
-		return error404
+		return nil, error404
 	}
 	maybeDryRun := ""
 	if dryRun {
 		maybeDryRun = "?dryRun=1"
 	}
-	var jsResp StackInstanceDeployResponse
+	var jsResp StackInstanceLifecycleResponse
 	path := fmt.Sprintf("%s/%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), verb, maybeDryRun)
-	code, err := post2(hubApi, path, nil, &jsResp)
+	code, err := post(hubApi, path, req, &jsResp)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if code != 200 && code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP in response to %s SuperHub Stack Instance, expected [200, 202, 204] HTTP",
+		return nil, fmt.Errorf("Got %d HTTP in response to %s SuperHub Stack Instance, expected [200, 202, 204] HTTP",
 			code, verb)
 	}
 	if config.Verbose {
@@ -439,9 +452,9 @@ func commandStackInstance(selector, verb string, waitAndTailDeployLogs, dryRun b
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
-		os.Exit(Logs([]string{instance.Domain}, true))
+		os.Exit(Logs([]string{instance.Id}, true))
 	}
-	return nil
+	return &jsResp, nil
 }
 
 func DeleteStackInstance(selector string) {

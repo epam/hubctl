@@ -282,7 +282,8 @@ type StackInstanceRequest struct {
 	Parameters        []Parameter            `json:"parameters,omitempty"`
 }
 
-type StackInstanceDeployResponse struct {
+type StackInstanceLifecycleResponse struct {
+	Id    string `json:"id"`
 	JobId string `json:"jobId"`
 }
 
