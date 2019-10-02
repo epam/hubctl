@@ -143,6 +143,18 @@ func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bo
 	return errors
 }
 
+func formatTemplateTitle(template *StackTemplate) string {
+	return fmt.Sprintf("%s [%s]", template.Name, template.Id)
+}
+
+func formatTemplateRef(ref *StackTemplateRef) string {
+	return fmt.Sprintf("%s [%s]", ref.Name, ref.Id)
+}
+
+func formatStackRef(ref *StackRef) string {
+	return fmt.Sprintf("%s [%s]", ref.Name, ref.Id)
+}
+
 func formatTemplate(template *StackTemplate) {
 	errors := formatTemplateEntity(template, false, false, make([]error, 0))
 	if len(errors) > 0 {
@@ -251,18 +263,6 @@ func templateGitStatus(id string) (*TemplateStatus, error) {
 		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Template Git status, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
-}
-
-func formatTemplateTitle(template *StackTemplate) string {
-	return fmt.Sprintf("%s [%s]", template.Name, template.Id)
-}
-
-func formatTemplateRef(ref *StackTemplateRef) string {
-	return fmt.Sprintf("%s [%s]", ref.Name, ref.Id)
-}
-
-func formatStackRef(ref *StackRef) string {
-	return fmt.Sprintf("%s [%s]", ref.Name, ref.Id)
 }
 
 func CreateTemplate(body io.Reader) {
