@@ -17,7 +17,7 @@ const environmentsResource = "hub/api/v1/environments"
 var environmentsCache = make(map[string]*Environment)
 
 func Environments(selector string, showSecrets, showMyTeams,
-	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, jsonFormat bool) {
+	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, showBackups, jsonFormat bool) {
 
 	envs, err := environmentsBy(selector)
 	if err != nil {
@@ -48,7 +48,7 @@ func Environments(selector string, showSecrets, showMyTeams,
 			errors := make([]error, 0)
 			for _, env := range envs {
 				errors = formatEnvironmentEntity(&env, showSecrets, showMyTeams,
-					showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, errors)
+					showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, showBackups, errors)
 			}
 			if len(errors) > 0 {
 				fmt.Print("Errors encountered:\n")
@@ -61,7 +61,7 @@ func Environments(selector string, showSecrets, showMyTeams,
 }
 
 func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
-	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials bool, errors []error) []error {
+	showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, showBackups bool, errors []error) []error {
 
 	title := fmt.Sprintf("%s [%s]", env.Name, env.Id)
 	if env.Description != "" {
@@ -182,11 +182,27 @@ func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
 			}
 		}
 	}
+	if showBackups {
+		backups, err := backupsByEnvironmentId(env.Id)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		if len(backups) > 0 {
+			fmt.Print("\tBackups:\n")
+			errs := make([]error, 0)
+			for _, backup := range backups {
+				errs = formatBackupEntity(&backup, false, errors)
+			}
+			if len(errs) > 0 {
+				errors = append(errors, errs...)
+			}
+		}
+	}
 	return errors
 }
 
 func formatEnvironment(environment *Environment) {
-	errors := formatEnvironmentEntity(environment, false, false, false, false, false, make([]error, 0))
+	errors := formatEnvironmentEntity(environment, false, false, false, false, false, false, make([]error, 0))
 	if len(errors) > 0 {
 		fmt.Print("Errors encountered formatting response:\n")
 		for _, err := range errors {

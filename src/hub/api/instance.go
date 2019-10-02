@@ -250,6 +250,27 @@ func stackInstancesByDomain(domain string) ([]StackInstance, error) {
 	return jsResp, nil
 }
 
+func formatStackInstanceRef(ref *StackInstanceRef, resource string) (string, []error) {
+	errors := make([]error, 0)
+	parameters := ""
+	if len(ref.Parameters) > 0 {
+		formattedParameters := make([]string, 0, len(ref.Parameters))
+		for _, param := range sortParameters(ref.Parameters) {
+			formatted, err := formatParameter(resource, param, false)
+			formattedParameters = append(formattedParameters, fmt.Sprintf("\n\t\t\t%s", formatted))
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+		parameters = fmt.Sprintf("\t\t\tParameters:%s", strings.Join(formattedParameters, ""))
+	}
+	stack := ""
+	if ref.Stack.Name != "" {
+		stack = fmt.Sprintf("\n\t\t\tStack: %s\n", formatStackRef(&ref.Stack))
+	}
+	return fmt.Sprintf("%s / %s [%s]%s%s", ref.Name, ref.Domain, ref.Id, stack, parameters), errors
+}
+
 func formatPlatformRef(ref *PlatformRef) string {
 	stateFiles := ""
 	if len(ref.StateFiles) > 0 {

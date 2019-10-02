@@ -311,6 +311,51 @@ type StackInstancePatch struct {
 	Provides           map[string][]string    `json:"provides,omitempty"`
 }
 
+type StackInstanceRef struct {
+	Id         string      `json:"id"`
+	Name       string      `json:"name"`
+	Domain     string      `json:"domain"`
+	Stack      StackRef    `json:"stack,omitempty"`
+	Parameters []Parameter `json:"parameters,omitempty"`
+}
+
+type ComponentBackupOutput struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type ComponentBackup struct {
+	Kind      string                  `json:"kind"`
+	Status    string                  `json:"status"`
+	Timestamp time.Time               `json:"timestamp"`
+	Outputs   []ComponentBackupOutput `json:"outputs,omitempty"`
+}
+
+type BackupBundle struct {
+	Kind       string                     `json:"kind"`
+	Status     string                     `json:"status"`
+	Timestamp  time.Time                  `json:"timestamp"`
+	Components map[string]ComponentBackup `json:"components,omitempty"`
+}
+
+type Backup struct {
+	Id            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	Status        string                 `json:"status"`
+	Timestamp     time.Time              `json:"timestamp"`
+	Description   string                 `json:"description,omitempty"`
+	Tags          []string               `json:"tags,omitempty"`
+	UI            map[string]interface{} `json:"ui,omitempty"`
+	Environment   EnvironmentRef         `json:"environment"`
+	StackInstance StackInstanceRef       `json:"stackInstance"`
+	Logs          string                 `json:"logs,omitempty"`
+	Bundle        BackupBundle           `json:"bundle"`
+}
+
+type BackupRequest struct {
+	Name string `json:"name"`
+}
+
 type Application struct {
 	Id                 string                 `json:"id"`
 	Name               string                 `json:"name"`

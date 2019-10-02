@@ -16,6 +16,7 @@ var (
 	showMyTeams                  bool
 	showServiceAccount           bool
 	showServiceAccountLoginToken bool
+	showBackups                  bool
 )
 
 var environmentCmd = &cobra.Command{
@@ -115,7 +116,7 @@ func environment(args []string) error {
 		showServiceAccount = true
 	}
 	api.Environments(selector, showSecrets, showMyTeams,
-		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, jsonFormat)
+		showServiceAccount, showServiceAccountLoginToken, getCloudCredentials, showBackups, jsonFormat)
 
 	return nil
 }
@@ -177,6 +178,8 @@ func init() {
 		"Show Service Account login token")
 	environmentGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
 		"Request Cloud (Temporary) Security Credentials")
+	environmentGetCmd.Flags().BoolVarP(&showBackups, "backups", "b", false,
+		"Show backups")
 	environmentGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
 	environmentPatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
