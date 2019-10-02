@@ -406,3 +406,59 @@ type ServiceAccount struct {
 type DeploymentKey struct {
 	DeploymentKey string `json:"deploymentKey"`
 }
+
+type ComponentGitRef struct {
+	Remote string `json:"remote"`
+	SubDir string `json:"subDir,omitempty"`
+}
+
+type Component struct {
+	Id               string                 `json:"id"`
+	QName            string                 `json:"qname"`
+	Brief            string                 `json:"brief,omitempty"`
+	Description      string                 `json:"description,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
+	UI               map[string]interface{} `json:"ui,omitempty"`
+	Category         string                 `json:"category,omitempty"`
+	License          string                 `json:"license,omitempty"`
+	Icon             string                 `json:"icon,omitempty"`
+	Template         *StackTemplateRef      `json:"template,omitempty"`
+	Git              *ComponentGitRef       `json:"git,omitempty"`
+	Version          string                 `json:"version,omitempty"`
+	Maturity         string                 `json:"maturity,omitempty"`
+	Requires         []string               `json:"requires,omitempty"`
+	Provides         []string               `json:"provides,omitempty"`
+	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
+}
+
+type ComponentRequest struct {
+	QName            string                 `json:"qname"`
+	Brief            string                 `json:"brief,omitempty"`
+	Description      string                 `json:"description,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
+	UI               map[string]interface{} `json:"ui,omitempty"`
+	Category         string                 `json:"category,omitempty"`
+	License          string                 `json:"license,omitempty"`
+	Icon             string                 `json:"icon,omitempty"`
+	Template         string                 `json:"template,omitempty"`
+	Version          string                 `json:"version,omitempty"`
+	Maturity         string                 `json:"maturity,omitempty"`
+	Requires         []string               `json:"requires,omitempty"`
+	Provides         []string               `json:"provides,omitempty"`
+	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
+}
+
+type ComponentPatch struct {
+	Brief            string                 `json:"brief,omitempty"`
+	Description      string                 `json:"description,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
+	UI               map[string]interface{} `json:"ui,omitempty"`
+	Category         string                 `json:"category,omitempty"`
+	License          string                 `json:"license,omitempty"`
+	Icon             string                 `json:"icon,omitempty"`
+	Version          string                 `json:"version,omitempty"`
+	Maturity         string                 `json:"maturity,omitempty"`
+	Requires         []string               `json:"requires,omitempty"`
+	Provides         []string               `json:"provides,omitempty"`
+	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
+}
