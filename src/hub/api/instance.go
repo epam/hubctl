@@ -489,7 +489,9 @@ func deleteStackInstance(selector string) error {
 	instance, err := stackInstanceBy(selector)
 	id := ""
 	if err != nil {
-		if strings.Contains(err.Error(), "json: cannot unmarshal") && util.IsUint(selector) {
+		str := err.Error()
+		if util.IsUint(selector) &&
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
 			util.Warn("%v", err)
 			id = selector
 		} else {
