@@ -211,8 +211,8 @@ func cloudAccountByDomain(domain string) (*CloudAccount, error) {
 	if len(cloudAccounts) > 1 {
 		return nil, fmt.Errorf("More than one Cloud Account returned by domain `%s`", domain)
 	}
-	instance := cloudAccounts[0]
-	return &instance, nil
+	cloudAccount := cloudAccounts[0]
+	return &cloudAccount, nil
 }
 
 func cloudAccountsByDomain(domain string) ([]CloudAccount, error) {

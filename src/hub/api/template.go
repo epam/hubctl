@@ -214,8 +214,8 @@ func templateByName(name string) (*StackTemplate, error) {
 	if len(templates) > 1 {
 		return nil, fmt.Errorf("More than one Template returned by name `%s`", name)
 	}
-	instance := templates[0]
-	return &instance, nil
+	template := templates[0]
+	return &template, nil
 }
 
 func templatesByName(name string) ([]StackTemplate, error) {

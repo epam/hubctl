@@ -179,8 +179,8 @@ func applicationByName(name string) (*Application, error) {
 	if len(applications) > 1 {
 		return nil, fmt.Errorf("More than one Application returned by name `%s`", name)
 	}
-	instance := applications[0]
-	return &instance, nil
+	application := applications[0]
+	return &application, nil
 }
 
 func applicationsByName(name string) ([]Application, error) {
