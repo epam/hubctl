@@ -432,7 +432,7 @@ type Component struct {
 }
 
 type ComponentRequest struct {
-	QName            string                 `json:"qname"`
+	Name             string                 `json:"name"`
 	Brief            string                 `json:"brief,omitempty"`
 	Description      string                 `json:"description,omitempty"`
 	Tags             []string               `json:"tags,omitempty"`
