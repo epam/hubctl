@@ -32,7 +32,7 @@ var componentCreateCmd = &cobra.Command{
 	Short: "Create Component Registration",
 	Long: `Create Component Registration by sending JSON via stdin, for example:
 	{
-		"qname": "org:kube-dashboard/kube-dashboard-456",
+		"name": "kube-dashboard", // generated qname = "org:kube-dashboard/kube-dashboard-456",
 		"brief": "Kubernetes Dashboard",
 		"description": "...",
 		"tags": [],
@@ -40,7 +40,7 @@ var componentCreateCmd = &cobra.Command{
 		"category": "kubernetes-tools",
 		"license": "Apache 2.0",
 		"icon": "data:image/png;base64",
-		"template": "456",
+		"template": "456", // https://git.agilestacks.io/repo/org/kube-dashboard-456
 		"version": "1.10.1",
 		"maturity": "ga",
 		"teamsPermissions": [],
