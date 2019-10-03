@@ -441,6 +441,7 @@ type ComponentRequest struct {
 	License          string                 `json:"license,omitempty"`
 	Icon             string                 `json:"icon,omitempty"`
 	Template         string                 `json:"template,omitempty"`
+	SubDir           string                 `json:"subDir,omitempty"`
 	Version          string                 `json:"version,omitempty"`
 	Maturity         string                 `json:"maturity,omitempty"`
 	Requires         []string               `json:"requires,omitempty"`
