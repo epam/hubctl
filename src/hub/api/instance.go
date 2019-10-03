@@ -417,22 +417,22 @@ func createStackInstance(body io.Reader) (*StackInstance, error) {
 	return &jsResp, nil
 }
 
-func DeployStackInstance(selector string, waitAndTailDeployLogs, dryRun bool) {
-	_, err := commandStackInstance(selector, "deploy", nil, waitAndTailDeployLogs, dryRun)
+func DeployStackInstance(selector string, components []string, waitAndTailDeployLogs, dryRun bool) {
+	_, err := commandStackInstance(selector, "deploy", StackInstanceLifecycleRequest{components}, waitAndTailDeployLogs, dryRun)
 	if err != nil {
 		log.Fatalf("Unable to deploy SuperHub Stack Instance: %v", err)
 	}
 }
 
-func UndeployStackInstance(selector string, waitAndTailDeployLogs bool) {
-	_, err := commandStackInstance(selector, "undeploy", nil, waitAndTailDeployLogs, false)
+func UndeployStackInstance(selector string, components []string, waitAndTailDeployLogs bool) {
+	_, err := commandStackInstance(selector, "undeploy", StackInstanceLifecycleRequest{components}, waitAndTailDeployLogs, false)
 	if err != nil {
 		log.Fatalf("Unable to undeploy SuperHub Stack Instance: %v", err)
 	}
 }
 
-func BackupStackInstance(selector, name string, waitAndTailDeployLogs bool) {
-	resp, err := commandStackInstance(selector, "backup", &BackupRequest{name}, false, false)
+func BackupStackInstance(selector, name string, components []string, waitAndTailDeployLogs bool) {
+	resp, err := commandStackInstance(selector, "backup", &BackupRequest{Name: name, Components: components}, false, false)
 	if err != nil {
 		log.Fatalf("Unable to backup SuperHub Stack Instance: %v", err)
 	}

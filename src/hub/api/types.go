@@ -282,6 +282,10 @@ type StackInstanceRequest struct {
 	Parameters        []Parameter            `json:"parameters,omitempty"`
 }
 
+type StackInstanceLifecycleRequest struct {
+	Components []string `json:"components,omitempty"`
+}
+
 type StackInstanceLifecycleResponse struct {
 	Id    string `json:"id"`
 	JobId string `json:"jobId"`
@@ -343,6 +347,7 @@ type Backup struct {
 	Name          string                 `json:"name"`
 	Status        string                 `json:"status"`
 	Timestamp     time.Time              `json:"timestamp"`
+	Components    []string               `json:"components,omitempty"`
 	Description   string                 `json:"description,omitempty"`
 	Tags          []string               `json:"tags,omitempty"`
 	UI            map[string]interface{} `json:"ui,omitempty"`
@@ -353,7 +358,8 @@ type Backup struct {
 }
 
 type BackupRequest struct {
-	Name string `json:"name"`
+	Name       string   `json:"name"`
+	Components []string `json:"components,omitempty"`
 }
 
 type Application struct {

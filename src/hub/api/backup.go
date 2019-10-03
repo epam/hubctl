@@ -64,6 +64,9 @@ func formatBackupEntity(backup *Backup, showLogs bool, errors []error) []error {
 		fmt.Printf("\t\tTags: %s\n", strings.Join(backup.Tags, ", "))
 	}
 	fmt.Printf("\t\tStatus: %s\n", backup.Status)
+	if len(backup.Components) > 0 {
+		fmt.Printf("\t\tComponents: %s\n", strings.Join(backup.Components, ", "))
+	}
 	if backup.Environment.Name != "" {
 		fmt.Printf("\t\tEnvironment: %s\n", formatEnvironmentRef(&backup.Environment))
 	}

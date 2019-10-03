@@ -205,7 +205,8 @@ func deployInstance(args []string) error {
 	if dryRun {
 		waitAndTailDeployLogs = false
 	}
-	api.DeployStackInstance(args[0], waitAndTailDeployLogs, dryRun)
+	components := util.SplitPaths(componentName)
+	api.DeployStackInstance(args[0], components, waitAndTailDeployLogs, dryRun)
 
 	return nil
 }
@@ -215,7 +216,8 @@ func undeployInstance(args []string) error {
 		return errors.New("Undeploy Instance command has one mandatory argument - id or full domain name of the Instance")
 	}
 
-	api.UndeployStackInstance(args[0], waitAndTailDeployLogs)
+	components := util.SplitPaths(componentName)
+	api.UndeployStackInstance(args[0], components, waitAndTailDeployLogs)
 
 	return nil
 }
@@ -224,8 +226,8 @@ func backupInstance(args []string) error {
 	if len(args) != 2 {
 		return errors.New("Backup Instance command has two mandatory arguments - id or full domain name of the Instance, and Backup name")
 	}
-
-	api.BackupStackInstance(args[0], args[1], waitAndTailDeployLogs)
+	components := util.SplitPaths(componentName)
+	api.BackupStackInstance(args[0], args[1], components, waitAndTailDeployLogs)
 
 	return nil
 }
@@ -280,12 +282,18 @@ func init() {
 		"Replace patched fields, do not merge")
 	instancePatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
 		"Send patch data as is, do not trim non-PATCH-able API object fields")
+	instanceDeployCmd.Flags().StringVarP(&componentName, "components", "c", "",
+		"A list of components to deploy")
 	instanceDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceDeployCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
 		"Save parameters and envrc to Template's Git but do not start the deployment")
+	instanceUndeployCmd.Flags().StringVarP(&componentName, "components", "c", "",
+		"A list of components to undeploy")
 	instanceUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	instanceBackupCmd.Flags().StringVarP(&componentName, "components", "c", "",
+		"A list of components to backup")
 	instanceBackupCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for backup and tail logs")
 	instanceSyncCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",
