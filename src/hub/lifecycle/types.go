@@ -6,6 +6,7 @@ type Request struct {
 	ManifestFilenames          []string
 	StateFilenames             []string
 	LoadFinalState             bool
+	EnabledClouds              []string
 	Component                  string   // invoke
 	Components                 []string // deploy & undeploy, backup
 	OffsetComponent            string   // deploy & undeploy

@@ -517,3 +517,12 @@ func IsUint(str string) bool {
 	_, err := strconv.ParseUint(str, 10, 32)
 	return err == nil
 }
+
+func MaybeEnv(vars []string) bool {
+	for _, v := range vars {
+		if _, exist := os.LookupEnv(v); exist {
+			return true
+		}
+	}
+	return false
+}

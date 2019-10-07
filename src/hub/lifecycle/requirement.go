@@ -25,6 +25,8 @@ const (
 	azureGoSdkAuthHelp     = "https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization"
 )
 
+var supportedCloudRequires = []string{"aws", "azure", "gcp", "gcs"}
+
 func prepareComponentRequires(provided map[string][]string, componentManifest *manifest.Manifest,
 	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs,
 	maybeOptional map[string][]string) ([]string, error) {
@@ -67,6 +69,51 @@ func prepareComponentRequires(provided map[string][]string, componentManifest *m
 		}
 	}
 	return optionalNotProvided, nil
+}
+
+func maybeOmitCloudRequires(stackRequires, enabledClouds []string) []string {
+	if !util.ContainsAny(supportedCloudRequires, stackRequires) {
+		return stackRequires
+	}
+	if len(enabledClouds) == 0 {
+		enabledClouds = guessEnabledClouds()
+	}
+	if len(enabledClouds) == 0 {
+		util.Warn("Unable to autodetect enabled clouds, try `--clouds` if cloud access is failing")
+		return stackRequires
+	}
+	if util.Contains(enabledClouds, "gcp") {
+		enabledClouds = append(enabledClouds, "gcs")
+	}
+	requires := make([]string, 0, len(stackRequires))
+	for _, r := range stackRequires {
+		if !util.Contains(supportedCloudRequires, r) || util.Contains(enabledClouds, r) {
+			requires = append(requires, r)
+		}
+	}
+	return requires
+}
+
+func guessEnabledClouds() []string {
+	var clouds []string
+	// TODO probe meta-data server
+	if util.MaybeEnv([]string{"AWS_PROFILE", "AWS_DEFAULT_REGION", "AWS_ACCESS_KEY_ID"}) {
+		clouds = append(clouds, "aws")
+	}
+	if util.MaybeEnv([]string{"AZURE_AUTH_LOCATION", "AZURE_TENANT_ID", "AZURE_RESOURCE_GROUP_NAME"}) {
+		clouds = append(clouds, "azure")
+	}
+	if util.MaybeEnv([]string{"GOOGLE_APPLICATION_CREDENTIALS"}) {
+		clouds = append(clouds, "gcp")
+	}
+	if config.Debug {
+		detected := "(none)"
+		if len(clouds) > 0 {
+			detected = strings.Join(clouds, ", ")
+		}
+		log.Printf("Autodetected clouds: %s", detected)
+	}
+	return clouds
 }
 
 func setupRequirement(requirement string, provider string,

@@ -16,6 +16,7 @@ import (
 var (
 	noLoadState                   bool
 	loadFinalState                bool
+	enabledClouds                 string
 	offsetComponent               string
 	limitComponent                string
 	guessComponent                bool
@@ -98,6 +99,11 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 	manifests := util.SplitPaths(args[0])
 	stateManifests := util.SplitPaths(stateManifest)
 	components := util.SplitPaths(componentName)
+	clouds := util.SplitPaths(strings.ToLower(enabledClouds))
+	if !util.ContainsAll(supportedClouds, clouds) {
+		return nil, fmt.Errorf("Unsupported cloud specified (--clouds): %s; supported clouds are: %s",
+			strings.Join(clouds, ", "), strings.Join(supportedClouds, ", "))
+	}
 
 	setOsEnvForNestedCli(manifests, stateManifests, componentsBaseDir)
 
@@ -113,6 +119,7 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 		ManifestFilenames:          manifests,
 		StateFilenames:             stateManifests,
 		LoadFinalState:             loadFinalState,
+		EnabledClouds:              clouds,
 		Components:                 components,
 		OffsetComponent:            offsetComponent,
 		LimitComponent:             limitComponent,
@@ -179,6 +186,8 @@ func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 		"OS environment mode for child process, one of: everything, no-tfvars, strict")
 	cmd.Flags().BoolVarP(&config.SwitchKubeconfigContext, "switch-kube-context", "", false,
 		"Switch current Kubeconfig context to new context. Use kubectl --context=domain.name instead")
+	cmd.Flags().StringVarP(&enabledClouds, "clouds", "", "",
+		"A list of enabled clouds: \"aws,azure,gcp\" (default to autodetect from environment)")
 }
 
 func initCommonApiFlags(cmd *cobra.Command) {

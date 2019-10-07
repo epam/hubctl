@@ -10,7 +10,10 @@ const (
 	SuperHubIo                  = ".superhub.io"
 )
 
-var supportedCloudAccountKinds = []string{"aws", "azure", "gcp"}
+var (
+	supportedClouds            = []string{"aws", "azure", "gcp"}
+	supportedCloudAccountKinds = []string{"aws", "azure", "gcp"}
+)
 
 var (
 	name                  string
