@@ -18,10 +18,10 @@ import (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "hub",
-	Short: "Automation Hub is a lifecycle and stack composition tool",
-	Long: `Hub CLI is an interface to Automation Hub.
+	Short: "Hub CLI is a lifecycle and stack composition tool",
+	Long: `Hub CLI is an interface to SuperHub.
 
-Automation Hub is a lifecycle and stack composition tool:
+Hub CLi is a lifecycle and stack composition tool:
 - template and stack creation, stack lifecycle;
 - stack instance parameters, output variables and status;
 - enumeration of templates, stacks, components;
