@@ -314,7 +314,7 @@ NEXT_COMPONENT:
 			componentParameters = allParameters
 		}
 
-		if optionalNotProvided, err := prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires); len(optionalNotProvided) > 0 || err != nil {
+		if optionalNotProvided, err := prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires, request.EnabledClouds); len(optionalNotProvided) > 0 || err != nil {
 			if err != nil {
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName, fmt.Sprintf("%v", err), updateStateComponentFailed)
 				continue NEXT_COMPONENT

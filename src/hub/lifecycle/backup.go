@@ -163,7 +163,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 			parameters.PrintLockedParameters(componentParameters)
 		}
 
-		prepareComponentRequires(provides, componentManifest, stackParameters, allOutputs, optionalRequires)
+		prepareComponentRequires(provides, componentManifest, stackParameters, allOutputs, optionalRequires, request.EnabledClouds)
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		stdout, _, err := delegate(verb, component, componentManifest, componentParameters,

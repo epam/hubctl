@@ -25,17 +25,22 @@ const (
 	azureGoSdkAuthHelp     = "https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization"
 )
 
-var supportedCloudRequires = []string{"aws", "azure", "gcp", "gcs"}
+var (
+	supportedCloudRequires = []string{"aws", "azure", "gcp", "gcs"}
+	guessedEnabledClouds   []string
+)
 
 func prepareComponentRequires(provided map[string][]string, componentManifest *manifest.Manifest,
 	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs,
-	maybeOptional map[string][]string) ([]string, error) {
+	maybeOptional map[string][]string, enabledClouds []string) ([]string, error) {
 
-	setups := make([]util.Tuple2, 0, len(componentManifest.Requires))
+	componentRequires := maybeOmitCloudRequires(componentManifest.Requires, enabledClouds)
+
+	setups := make([]util.Tuple2, 0, len(componentRequires))
 	optionalNotProvided := make([]string, 0)
 
 	componentName := manifest.ComponentQualifiedNameFromMeta(&componentManifest.Meta)
-	for _, req := range componentManifest.Requires {
+	for _, req := range componentRequires {
 		by, exist := provided[req]
 		if !exist || len(by) == 0 {
 			if optionalFor, exist := maybeOptional[req]; exist &&
@@ -48,7 +53,7 @@ func prepareComponentRequires(provided map[string][]string, componentManifest *m
 				continue
 			}
 			err := fmt.Errorf("Component `%s` requires `%s` but only following provides are currently known:\n%s",
-				componentName, strings.Join(componentManifest.Requires, ", "), util.SprintDeps(provided))
+				componentName, strings.Join(componentRequires, ", "), util.SprintDeps(provided))
 			return optionalNotProvided, err
 		}
 		if config.Debug && len(by) == 1 {
@@ -71,30 +76,33 @@ func prepareComponentRequires(provided map[string][]string, componentManifest *m
 	return optionalNotProvided, nil
 }
 
-func maybeOmitCloudRequires(stackRequires, enabledClouds []string) []string {
-	if !util.ContainsAny(supportedCloudRequires, stackRequires) {
-		return stackRequires
+func maybeOmitCloudRequires(requires, enabledClouds []string) []string {
+	if !util.ContainsAny(supportedCloudRequires, requires) {
+		return requires
 	}
 	if len(enabledClouds) == 0 {
 		enabledClouds = guessEnabledClouds()
 	}
 	if len(enabledClouds) == 0 {
-		util.Warn("Unable to autodetect enabled clouds, try `--clouds` if cloud access is failing")
-		return stackRequires
+		util.WarnOnce("Unable to autodetect enabled clouds, try `--clouds` if cloud access is failing")
+		return requires
 	}
 	if util.Contains(enabledClouds, "gcp") {
 		enabledClouds = append(enabledClouds, "gcs")
 	}
-	requires := make([]string, 0, len(stackRequires))
-	for _, r := range stackRequires {
+	modified := make([]string, 0, len(requires))
+	for _, r := range requires {
 		if !util.Contains(supportedCloudRequires, r) || util.Contains(enabledClouds, r) {
-			requires = append(requires, r)
+			modified = append(modified, r)
 		}
 	}
-	return requires
+	return modified
 }
 
 func guessEnabledClouds() []string {
+	if guessedEnabledClouds != nil {
+		return guessedEnabledClouds
+	}
 	var clouds []string
 	// TODO probe meta-data server
 	if util.MaybeEnv([]string{"AWS_PROFILE", "AWS_DEFAULT_REGION", "AWS_ACCESS_KEY_ID"}) {
@@ -113,6 +121,7 @@ func guessEnabledClouds() []string {
 		}
 		log.Printf("Autodetected clouds: %s", detected)
 	}
+	guessedEnabledClouds = clouds
 	return clouds
 }
 
