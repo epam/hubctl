@@ -88,8 +88,9 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	}
 
 	optionalRequires := parseRequiresTunning(stackManifest.Lifecycle.Requires)
+	requiresOfOptionalComponents := calculateRequiresOfOptionalComponents(componentsManifests, &stackManifest.Lifecycle, stackManifest.Requires)
 	stackRequires := maybeOmitCloudRequires(stackManifest.Requires, request.EnabledClouds)
-	stackProvides := checkStackRequires(stackRequires, optionalRequires)
+	stackProvides := checkStackRequires(stackRequires, optionalRequires, requiresOfOptionalComponents)
 
 	stateFiles, errs := storage.Check(request.StateFilenames, "state")
 	if len(errs) > 0 {

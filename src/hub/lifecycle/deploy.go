@@ -57,8 +57,9 @@ func Execute(request *Request) {
 	checkComponentsDepends(components, stackManifest.Lifecycle.Order)
 	manifest.CheckComponentsExist(components, append(request.Components, request.OffsetComponent, request.LimitComponent)...)
 	optionalRequires := parseRequiresTunning(stackManifest.Lifecycle.Requires)
+	requiresOfOptionalComponents := calculateRequiresOfOptionalComponents(componentsManifests, &stackManifest.Lifecycle, stackManifest.Requires)
 	stackRequires := maybeOmitCloudRequires(stackManifest.Requires, request.EnabledClouds)
-	provides := checkStackRequires(stackRequires, optionalRequires)
+	provides := checkStackRequires(stackRequires, optionalRequires, requiresOfOptionalComponents)
 	mergePlatformProvides(provides, stackManifest.Platform.Provides)
 	if config.Debug && len(provides) > 0 {
 		log.Print("Requirements provided by:")

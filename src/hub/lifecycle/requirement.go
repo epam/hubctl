@@ -172,28 +172,30 @@ var binVersion = map[string]BinVersion{
 	"helm":    {"2.14.0", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
 }
 
-func checkStackRequires(requires []string, maybeOptional map[string][]string) map[string][]string {
+func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {
 	provided := make(map[string][]string, len(requires))
 	for _, require := range requires {
-		skip := false
-		wellKnown, err := checkRequire(require)
-		if wellKnown {
-			if err != nil {
-				log.Fatalf("`%s` requirement cannot be satisfied: %v", require, err)
-			}
-		} else {
-			if optionalFor, exist := maybeOptional[require]; !exist {
-				log.Fatalf("Cannot check for `requires: %s`: no implementation", require)
-			} else {
-				skip = true
-				if config.Debug {
-					log.Printf("Requirement `%s` is optional for %v", require, optionalFor)
-				}
-			}
-		}
-		if !skip {
+		_, err := checkRequire(require)
+		if err == nil {
 			provided[require] = []string{providedByEnv}
+			continue
 		}
+		if config.Verbose {
+			log.Printf("`%s` requirement cannot be satisfied: %v", require, err)
+		}
+		if requiredByOptional, exist := requiresOfOptionalComponents[require]; exist {
+			if config.Verbose {
+				log.Printf("Skipping requirement `%s` requested by optional components %v", require, requiredByOptional)
+			}
+			continue
+		}
+		if optionalFor, exist := optional[require]; exist {
+			if config.Verbose {
+				log.Printf("Skipping requirement `%s` as it is optional for %v", require, optionalFor)
+			}
+			continue
+		}
+		os.Exit(1)
 	}
 	return provided
 }
@@ -237,7 +239,7 @@ func checkRequire(require string) (bool, error) {
 		}
 
 	default:
-		return false, nil
+		return false, errors.New("no implementation")
 	}
 	requirementsVerified[require] = struct{}{}
 	return true, nil
@@ -461,4 +463,31 @@ func calculateOptionalFalseParameters(componentName string, params parameters.Lo
 		}
 	}
 	return falseParameters
+}
+
+func calculateRequiresOfOptionalComponents(componentManifests []manifest.Manifest, lifecycle *manifest.Lifecycle, requires []string) map[string][]string {
+	var optionalRequirements []string
+	for _, requirement := range requires {
+		optional := true
+		for _, componentManifest := range componentManifests {
+			if util.Contains(componentManifest.Requires, requirement) {
+				componentName := manifest.ComponentQualifiedNameFromMeta(&componentManifest.Meta)
+				if !optionalComponent(lifecycle, componentName) {
+					optional = false
+					break
+				}
+			}
+		}
+		if optional {
+			optionalRequirements = append(optionalRequirements, requirement)
+		}
+	}
+	requiredBy := make(map[string][]string)
+	for _, componentManifest := range componentManifests {
+		for _, requirement := range util.Union(optionalRequirements, componentManifest.Requires) {
+			componentName := manifest.ComponentQualifiedNameFromMeta(&componentManifest.Meta)
+			util.AppendMapList(requiredBy, requirement, componentName)
+		}
+	}
+	return requiredBy
 }

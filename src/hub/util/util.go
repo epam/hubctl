@@ -233,6 +233,16 @@ func ContainsAny(list []string, values []string) bool {
 	return false
 }
 
+func Union(list, list2 []string) []string {
+	res := make([]string, 0)
+	for _, v := range list2 {
+		if Contains(list, v) {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
 func ContainsAnySubstring(list []string, substrs []string) bool {
 	for _, substr := range substrs {
 		if ContainsSubstring(list, substr) {
