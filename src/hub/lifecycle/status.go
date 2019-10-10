@@ -8,7 +8,7 @@ import (
 	"hub/util"
 )
 
-func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state.StateManifest) (string, string) {
+func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state.StateManifest, verb string) (string, string) {
 	statuses := make(map[string][]string)
 	mandatoryComponents := 0
 	for _, componentName := range stackManifest.Lifecycle.Order {
@@ -23,6 +23,9 @@ func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state
 				util.AppendMapList(statuses, componentStatus, componentName)
 			}
 		}
+	}
+	if mandatoryComponents == 0 {
+		return verb + "ed", ""
 	}
 	for _, candidate := range []string{"deployed", "undeployed"} {
 		components, exist := statuses[candidate]

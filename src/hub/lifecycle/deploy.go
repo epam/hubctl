@@ -460,7 +460,7 @@ NEXT_COMPONENT:
 
 	if stateManifest != nil {
 		if !stackReadyConditionFailed {
-			status, message := calculateStackStatus(stackManifest, stateManifest)
+			status, message := calculateStackStatus(stackManifest, stateManifest, request.Verb)
 			stateManifest = state.UpdateStackStatus(stateManifest, status, message)
 			stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "success", nil)
 			stateUpdater(stateManifest)
