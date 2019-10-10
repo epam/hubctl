@@ -125,7 +125,7 @@ func expandRequestedOutputs(componentName, componentDir string,
 							}
 						}
 						if parameters.RequireExpansion(substitution) {
-							errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to substitution `%s` that expands to `%s`. This is surely a bug.",
+							errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to substitution `%s` that expands to `%s` - this is surely a bug",
 								componentName, requestedOutput.Name, requestedOutput.Value, expr, substitution))
 							substitution = "(bug)"
 						}

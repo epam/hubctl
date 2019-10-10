@@ -105,18 +105,19 @@ func AskParameter(parameter manifest.Parameter,
 		}
 	}
 
-	if parameter.Default == "" {
-		if parameter.Env != "" && parameter.FromEnv == "" {
-			util.Warn("Parameter `%s` has `env = %s` assigned. Did you mean `fromEnv`?", qName, parameter.Env)
-		}
-		if parameter.Empty == "allow" {
-			if config.Debug {
-				log.Printf("Empty parameter `%s` value allowed", qName)
-			}
-			return "", nil
-		}
-		return "(unknown)", fmt.Errorf("Parameter `%s` has no value nor default assigned", qName)
-	} else {
+	if parameter.Default != "" {
 		return parameter.Default, nil
 	}
+
+	if parameter.Env != "" && parameter.FromEnv == "" {
+		util.Warn("Parameter `%s` has `env = %s` assigned. Did you mean `fromEnv`?", qName, parameter.Env)
+	}
+	if parameter.Empty == "allow" {
+		if config.Debug {
+			log.Printf("Empty parameter `%s` value allowed", qName)
+		}
+		return "", nil
+	}
+
+	return "(unknown)", fmt.Errorf("Parameter `%s` has no value nor default assigned", qName)
 }

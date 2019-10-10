@@ -68,7 +68,7 @@ func mergeOsEnviron(toMerge ...[]string) []string {
 	}
 
 	keys := make([]string, 0, len(vars))
-	for key, _ := range vars {
+	for key := range vars {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)

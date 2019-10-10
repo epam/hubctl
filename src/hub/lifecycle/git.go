@@ -32,9 +32,8 @@ func gitStatus(dir string, calculateStatus bool) (map[string]string, error) {
 				continue
 			}
 			return nil, fmt.Errorf("Unable to stat `%s`: %v", gitDir, err)
-		} else {
-			break
 		}
+		break
 	}
 
 	repo, err := git.PlainOpen(dir)

@@ -26,9 +26,8 @@ func startStopComponentsBlurb(request *Request, stackManifest *manifest.Manifest
 		}
 		return fmt.Sprintf(" with components %s%s%s",
 			strings.Join(manifest.ComponentsNamesFromRefs(stackManifest.Components), ", "), startAt, stopAt)
-	} else {
-		return fmt.Sprintf(" %s %s", util.Plural(len(request.Components), "component"), strings.Join(request.Components, ", "))
 	}
+	return fmt.Sprintf(" %s %s", util.Plural(len(request.Components), "component"), strings.Join(request.Components, ", "))
 }
 
 func printStartBlurb(request *Request, manifestFilename string, stackManifest *manifest.Manifest) {
