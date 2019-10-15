@@ -1,6 +1,6 @@
 {
     "name": "${name}",
-    "description": "Bare-metal Adapter",
+    "description": "Hybrid Adapter for Bare-metal with Cloud",
     "stack": "hybrid-adapter:1",
     "componentsEnabled": ["k8s-hybrid", "tiller", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
