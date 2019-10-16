@@ -17,11 +17,12 @@ import (
 	"hub/config"
 )
 
-var warnings = make([]string, 0)
-
-var WarnColor = func(str string) string {
-	return str
-}
+var (
+	warnings        = make([]string, 0)
+	warningsEmitted = make(map[string]struct{})
+	HighlightColor  = func(str string) string { return str }
+	WarnColor       = func(str string) string { return str }
+)
 
 func init() {
 	fd := os.Stderr.Fd()
@@ -29,9 +30,8 @@ func init() {
 		fd = os.Stdout.Fd()
 	}
 	if isatty.IsTerminal(fd) {
-		WarnColor = func(str string) string {
-			return aurora.Magenta(str).String()
-		}
+		HighlightColor = func(str string) string { return aurora.BrightCyan(str).String() }
+		WarnColor = func(str string) string { return aurora.BrightMagenta(str).String() }
 	}
 }
 
@@ -42,8 +42,6 @@ func Warn(format string, v ...interface{}) {
 		warnings = append(warnings, msg)
 	}
 }
-
-var warningsEmitted = make(map[string]struct{})
 
 func WarnOnce(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)

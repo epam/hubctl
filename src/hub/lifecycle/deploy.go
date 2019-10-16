@@ -238,7 +238,7 @@ NEXT_COMPONENT:
 		}
 
 		if config.Verbose {
-			log.Printf("%s ***%s*** (%d/%d)", maybeTestVerb(request.Verb, request.DryRun),
+			log.Printf(util.HighlightColor("%s ***%s*** (%d/%d)"), maybeTestVerb(request.Verb, request.DryRun),
 				componentName, componentIndex+1, len(components))
 		}
 
