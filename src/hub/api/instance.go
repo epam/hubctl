@@ -528,7 +528,7 @@ func kubeconfigStackInstance(selector, filename string) error {
 	if instance == nil {
 		return error404
 	}
-	path := fmt.Sprintf("%s/%s/config", stackInstancesResource, url.PathEscape(instance.Id))
+	path := fmt.Sprintf("%s/%s/kubeconfig", stackInstancesResource, url.PathEscape(instance.Id))
 	code, err, body := get2(hubApi, path)
 	if err != nil {
 		return err
