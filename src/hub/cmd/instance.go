@@ -272,7 +272,7 @@ func kubeconfigInstance(args []string) error {
 }
 
 func init() {
-	instanceGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "s", false,
+	instanceGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
 	instanceGetCmd.Flags().BoolVarP(&showBackups, "backups", "b", false,
 		"Show backups")
