@@ -37,7 +37,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 		log.Fatalf("Unable to sync Stack Instance: %v", err)
 	}
 
-	errs := formatStackInstanceEntity(patched, false, false, make([]error, 0))
+	errs := formatStackInstanceEntity(patched, false, false, false, make([]error, 0))
 	if len(errs) > 0 {
 		config.AggWarnings = false
 		util.Warn("%s", util.Errors2(errs...))

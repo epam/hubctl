@@ -158,7 +158,7 @@ func instance(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.StackInstances(selector, showSecrets, showLogs, jsonFormat)
+	api.StackInstances(selector, showSecrets, showLogs, showBackups, jsonFormat)
 
 	return nil
 }
@@ -274,6 +274,8 @@ func kubeconfigInstance(args []string) error {
 func init() {
 	instanceGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "s", false,
 		"Show secrets")
+	instanceGetCmd.Flags().BoolVarP(&showBackups, "backups", "b", false,
+		"Show backups")
 	instanceGetCmd.Flags().BoolVarP(&showLogs, "logs", "l", false,
 		"Show logs")
 	instanceGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,

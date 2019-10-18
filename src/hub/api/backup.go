@@ -110,6 +110,16 @@ func formatBackup(backup *Backup) {
 	}
 }
 
+func showBackup(id string) {
+	backup, err := backupById(id)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	if backup != nil {
+		formatBackup(backup)
+	}
+}
+
 func backupBy(selector string) (*Backup, error) {
 	if !util.IsUint(selector) {
 		return backupByName(selector)
@@ -168,6 +178,14 @@ func backupsByName(name string) ([]Backup, error) {
 
 func backupsByEnvironmentId(id string) ([]Backup, error) {
 	return backupsByFilter("environment", id)
+}
+
+func backupsByInstanceId(id string) ([]Backup, error) {
+	return backupsByFilter("instance", id)
+}
+
+func backupsByPlatformId(id string) ([]Backup, error) {
+	return backupsByFilter("platform", id)
 }
 
 func backupsByFilter(field, value string) ([]Backup, error) {

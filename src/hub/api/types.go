@@ -320,6 +320,7 @@ type StackInstanceRef struct {
 	Name       string      `json:"name"`
 	Domain     string      `json:"domain"`
 	Stack      StackRef    `json:"stack,omitempty"`
+	Platform   PlatformRef `json:"platform,omitempty"`
 	Parameters []Parameter `json:"parameters,omitempty"`
 }
 

@@ -18,7 +18,7 @@ const stackInstancesResource = "hub/api/v1/instances"
 
 var stackInstancesCache = make(map[string]*StackInstance)
 
-func StackInstances(selector string, showSecrets, showLogs, jsonFormat bool) {
+func StackInstances(selector string, showSecrets, showLogs, showBackups, jsonFormat bool) {
 	instances, err := stackInstancesBy(selector)
 	if err != nil {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
@@ -47,7 +47,7 @@ func StackInstances(selector string, showSecrets, showLogs, jsonFormat bool) {
 			fmt.Print("Stack Instances:\n")
 			errors := make([]error, 0)
 			for _, instance := range instances {
-				errors = formatStackInstanceEntity(&instance, showSecrets, showLogs, errors)
+				errors = formatStackInstanceEntity(&instance, showSecrets, showLogs, showBackups, errors)
 			}
 			if len(errors) > 0 {
 				fmt.Print("Errors encountered:\n")
@@ -59,7 +59,7 @@ func StackInstances(selector string, showSecrets, showLogs, jsonFormat bool) {
 	}
 }
 
-func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bool, errors []error) []error {
+func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs, showBackups bool, errors []error) []error {
 	title := fmt.Sprintf("%s / %s [%s]", instance.Name, instance.Domain, instance.Id)
 	if instance.Description != "" {
 		title = fmt.Sprintf("%s - %s", title, instance.Description)
@@ -153,11 +153,43 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs bo
 			fmt.Print(formatInflightOperation(op, showLogs))
 		}
 	}
+	if showBackups {
+		backups, err := backupsByInstanceId(instance.Id)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		if len(backups) > 0 {
+			fmt.Print("\tBackups:\n")
+			errs := make([]error, 0)
+			for _, backup := range backups {
+				errs = formatBackupEntity(&backup, showLogs, errors)
+			}
+			if len(errs) > 0 {
+				errors = append(errors, errs...)
+			}
+		}
+		if instance.Platform == nil {
+			backups, err = backupsByPlatformId(instance.Id)
+			if err != nil {
+				errors = append(errors, err)
+			}
+			if len(backups) > 0 {
+				fmt.Print("\tOverlay backups:\n")
+				errs := make([]error, 0)
+				for _, backup := range backups {
+					errs = formatBackupEntity(&backup, showLogs, errors)
+				}
+				if len(errs) > 0 {
+					errors = append(errors, errs...)
+				}
+			}
+		}
+	}
 	return errors
 }
 
 func formatStackInstance(instance *StackInstance) {
-	errors := formatStackInstanceEntity(instance, false, false, make([]error, 0))
+	errors := formatStackInstanceEntity(instance, false, false, false, make([]error, 0))
 	if len(errors) > 0 {
 		fmt.Print("Errors encountered formatting response:\n")
 		for _, err := range errors {
@@ -268,7 +300,11 @@ func formatStackInstanceRef(ref *StackInstanceRef, resource string) (string, []e
 	if ref.Stack.Name != "" {
 		stack = fmt.Sprintf("\n\t\t\tStack: %s\n", formatStackRef(&ref.Stack))
 	}
-	return fmt.Sprintf("%s / %s [%s]%s%s", ref.Name, ref.Domain, ref.Id, stack, parameters), errors
+	platform := ""
+	if ref.Platform.Id != "" {
+		platform = fmt.Sprintf("\n\t\t\tPlatform: %s [%s]", ref.Platform.Domain, ref.Platform.Id)
+	}
+	return fmt.Sprintf("%s / %s [%s]%s%s%s", ref.Name, ref.Domain, ref.Id, platform, stack, parameters), errors
 }
 
 func formatPlatformRef(ref *PlatformRef) string {
@@ -440,8 +476,11 @@ func BackupStackInstance(selector, name string, components []string, waitAndTail
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
-		os.Exit(Logs([]string{"backup/" + resp.Id}, true))
+		code := Logs([]string{"backup/" + resp.Id}, true)
+		showBackup(resp.Id)
+		os.Exit(code)
 	}
+	showBackup(resp.Id)
 }
 
 func commandStackInstance(selector, verb string, req interface{}, waitAndTailDeployLogs, dryRun bool) (*StackInstanceLifecycleResponse, error) {
