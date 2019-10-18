@@ -296,22 +296,26 @@ func formatParameterValue(resource string, kind string, value interface{}, showS
 		}
 		if len(reallySecretRef) == 36 { // uuid
 			value2 := ""
-			s, err2 := secret(resource, reallySecretRef)
-			if err2 != nil {
-				err = err2
-				value2 = "<error>"
-			} else if s != nil {
-				secretValue, secretKind := formatSecret(s)
-				if showSecret {
-					value2 = secretValue
-				} else {
-					value2 = "<hidden>"
-				}
-				if secretKind != "" && !strings.HasPrefix(annotation, secretKind+", ") {
-					annotation = fmt.Sprintf("%s, %s", secretKind, annotation)
-				}
+			if !showSecret && !config.ApiDerefSecrets {
+				value2 = "<no deref>"
 			} else {
-				value2 = "<nil>"
+				s, err2 := secret(resource, reallySecretRef)
+				if err2 != nil {
+					err = err2
+					value2 = "<error>"
+				} else if s != nil {
+					secretValue, secretKind := formatSecret(s)
+					if showSecret {
+						value2 = secretValue
+					} else {
+						value2 = "<hidden>"
+					}
+					if secretKind != "" && !strings.HasPrefix(annotation, secretKind+", ") {
+						annotation = fmt.Sprintf("%s, %s", secretKind, annotation)
+					}
+				} else {
+					value2 = "<nil>"
+				}
 			}
 			if strings.Contains(value2, "\n") {
 				value = fmt.Sprintf("(%s)\n%s", annotation, value2)

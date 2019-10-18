@@ -9,8 +9,9 @@ var (
 	ConfigFile string
 	CacheFile  string
 
-	ApiBaseUrl    string
-	ApiLoginToken string
+	ApiBaseUrl      string
+	ApiLoginToken   string
+	ApiDerefSecrets bool
 
 	AwsProfile                  string
 	AwsRegion                   string

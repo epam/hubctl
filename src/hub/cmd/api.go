@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"hub/config"
 )
 
 var apiCmd = &cobra.Command{
@@ -10,5 +12,6 @@ var apiCmd = &cobra.Command{
 }
 
 func init() {
+	apiCmd.PersistentFlags().BoolVar(&config.ApiDerefSecrets, "deref-secrets", true, "Always retrieve secrets to catch API errors")
 	RootCmd.AddCommand(apiCmd)
 }
