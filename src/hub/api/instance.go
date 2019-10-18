@@ -282,6 +282,22 @@ func stackInstancesByDomain(domain string) ([]StackInstance, error) {
 	return jsResp, nil
 }
 
+func stackInstancesByPlatform(platformId string) ([]StackInstance, error) {
+	path := fmt.Sprintf("%s/%s/overlays", stackInstancesResource, url.PathEscape(platformId))
+	var jsResp []StackInstance
+	code, err := get(hubApi, path, &jsResp)
+	if code == 404 {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Error querying SuperHub Stack Instances: %v", err)
+	}
+	if code != 200 {
+		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Stack Instances, expected 200 HTTP", code)
+	}
+	return jsResp, nil
+}
+
 func formatStackInstanceRef(ref *StackInstanceRef, resource string) (string, []error) {
 	errors := make([]error, 0)
 	parameters := ""

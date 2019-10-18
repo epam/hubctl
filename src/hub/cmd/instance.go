@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -14,7 +15,11 @@ import (
 )
 
 var (
-	kubeconfigOutput string
+	kubeconfigOutput         string
+	workerpoolSpotPrice      float32
+	workerpoolPreemptibleVMs bool
+	workerpoolAutoscale      bool
+	workerpoolVolumeSize     int
 )
 
 var instanceCmd = &cobra.Command{
@@ -149,6 +154,61 @@ var instanceKubeconfigCmd = &cobra.Command{
 	},
 }
 
+var instanceWorkerpoolCmd = &cobra.Command{
+	Use:   "workerpool <get | create | scale | undeploy | deploy | delete>",
+	Short: "Create and manage platform stack instance Kubernetes worker pools",
+}
+
+var instanceWorkerpoolGetCmd = &cobra.Command{
+	Use:   "get [id | domain | pool@domain]",
+	Short: "Show a list of worker pools or details about the worker pool",
+	Long: `Show a list of all platform stack instance worker pools or details about
+the particular worker pool (specify Id or search by full domain name)`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return workerpool(args)
+	},
+}
+
+var instanceWorkerpoolCreateCmd = &cobra.Command{
+	Use:   "create <id | domain> <name> <instance type> <count> [max]",
+	Short: "Create worker pool",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return createWorkerpool(args)
+	},
+}
+
+var instanceWorkerpoolScaleCmd = &cobra.Command{
+	Use:   "scale <id | name@domain> <count> [max]",
+	Short: "Scale worker pool",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return scaleWorkerpool(args)
+	},
+}
+
+var instanceWorkerpoolDeployCmd = &cobra.Command{
+	Use:   "deploy <id | name@domain>",
+	Short: "Deploy worker pool",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return deployWorkerpool(args)
+	},
+}
+
+var instanceWorkerpoolUndeployCmd = &cobra.Command{
+	Use:   "undeploy <id | name@domain>",
+	Short: "Undeploy worker pool",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return undeployWorkerpool(args)
+	},
+}
+
+var instanceWorkerpoolDeleteCmd = &cobra.Command{
+	Use:   "delete <id | name@domain>",
+	Short: "Delete worker pool",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return deleteWorkerpool(args)
+	},
+}
+
 func instance(args []string) error {
 	if len(args) > 1 {
 		return errors.New("Instance command has one optional argument - id or domain of the Stack Instance")
@@ -271,6 +331,108 @@ func kubeconfigInstance(args []string) error {
 	return nil
 }
 
+func workerpool(args []string) error {
+	if len(args) > 1 {
+		return errors.New("Workerpool command has one optional argument - id or domain of the worker pool")
+	}
+
+	selector := ""
+	if len(args) > 0 {
+		selector = args[0]
+	}
+	api.Workerpools(selector, showSecrets, showLogs, jsonFormat)
+
+	return nil
+}
+
+func createWorkerpool(args []string) error {
+	// create <id | domain> <name> <instance type> <count> [max count]
+	if len(args) < 4 || len(args) > 5 {
+		return errors.New("Create worker pool command has several arguments - id or domain of the platform, name of the worker pool, instance type, and node count")
+	}
+
+	selector := args[0]
+	name := args[1]
+	instanceType := args[2]
+	count, err := strconv.ParseInt(args[3], 10, 32)
+	if err != nil {
+		return fmt.Errorf("Unable to parse count: %v", err)
+	}
+	maxCount := count
+	if len(args) > 4 {
+		maxCount, err = strconv.ParseInt(args[4], 10, 32)
+		if err != nil {
+			return fmt.Errorf("Unable to parse max count: %v", err)
+		}
+	}
+	api.CreateWorkerpool(selector, name, instanceType, int(count), int(maxCount),
+		workerpoolSpotPrice, workerpoolPreemptibleVMs, workerpoolAutoscale, workerpoolVolumeSize,
+		waitAndTailDeployLogs, dryRun)
+
+	return nil
+}
+
+func scaleWorkerpool(args []string) error {
+	if len(args) < 4 || len(args) > 5 {
+		return errors.New("Scale worker pool command has two or three arguments - id or name@domain of the worker pool, node count, and (optionally) node max count")
+	}
+
+	selector := args[0]
+	count, err := strconv.ParseInt(args[3], 10, 32)
+	if err != nil {
+		return fmt.Errorf("Unable to parse count: %v", err)
+	}
+	maxCount := count
+	if len(args) > 4 {
+		maxCount, err = strconv.ParseInt(args[4], 10, 32)
+		if err != nil {
+			return fmt.Errorf("Unable to parse max count: %v", err)
+		}
+	}
+	if dryRun {
+		waitAndTailDeployLogs = false
+	}
+	api.ScaleWorkerpool(selector, int(count), int(maxCount), waitAndTailDeployLogs, dryRun)
+
+	return nil
+}
+
+func deployWorkerpool(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Deploy worker command has one mandatory argument - id or name@domain of the worker pool")
+	}
+
+	if dryRun {
+		waitAndTailDeployLogs = false
+	}
+	api.DeployWorkerpool(args[0], waitAndTailDeployLogs, dryRun)
+
+	return nil
+}
+
+func undeployWorkerpool(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Undeploy worker command has one mandatory argument - id or name@domain of the worker pool")
+	}
+
+	if dryRun {
+		waitAndTailDeployLogs = false
+	}
+	api.UndeployWorkerpool(args[0], waitAndTailDeployLogs)
+
+	return nil
+}
+
+func deleteWorkerpool(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Delete worker command has one mandatory argument - id or name@domain of the worker pool")
+	}
+
+	api.DeleteWorkerpool(args[0])
+
+	return nil
+}
+
 func init() {
 	instanceGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
@@ -311,5 +473,40 @@ func init() {
 	instanceCmd.AddCommand(instanceSyncCmd)
 	instanceCmd.AddCommand(instanceDeleteCmd)
 	instanceCmd.AddCommand(instanceKubeconfigCmd)
+
+	instanceWorkerpoolGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
+		"Show secrets")
+	instanceWorkerpoolGetCmd.Flags().BoolVarP(&showLogs, "logs", "l", false,
+		"Show logs")
+	instanceWorkerpoolGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+		"JSON output")
+	instanceWorkerpoolCreateCmd.Flags().Float32VarP(&workerpoolSpotPrice, "spot-price", "s", 0,
+		"AWS use spot instances at specified spot price")
+	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolPreemptibleVMs, "preemptible-vms", "p", false,
+		"GCP use preemptible VMs")
+	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolAutoscale, "autoscale", "a", false,
+		"Autoscale worker pool with cluster-autoscaler (stack-k8s-aws based Kubernetes only)")
+	instanceWorkerpoolCreateCmd.Flags().IntVarP(&workerpoolVolumeSize, "volume-size", "z", 0,
+		"Node root volume size (default 30GB)")
+	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
+		"Wait for deployment and tail logs")
+	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
+		"Save parameters and envrc to Template's Git but do not start the deployment")
+	instanceWorkerpoolScaleCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
+		"Wait for deployment and tail logs")
+	instanceWorkerpoolDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
+		"Wait for deployment and tail logs")
+	instanceWorkerpoolDeployCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
+		"Save parameters and envrc to Template's Git but do not start the deployment")
+	instanceWorkerpoolUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
+		"Wait for deployment and tail logs")
+	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolGetCmd)
+	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolCreateCmd)
+	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolScaleCmd)
+	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolDeployCmd)
+	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolUndeployCmd)
+	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolDeleteCmd)
+
+	instanceCmd.AddCommand(instanceWorkerpoolCmd)
 	apiCmd.AddCommand(instanceCmd)
 }
