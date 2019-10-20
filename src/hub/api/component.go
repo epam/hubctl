@@ -99,9 +99,13 @@ func formatComponentEntity(component *Component, errors []error) []error {
 func formatComponentTitle(component *Component) string {
 	brief := ""
 	if component.Brief != "" {
-		brief = " " + component.Brief
+		brief = " - " + component.Brief
 	}
-	return fmt.Sprintf("%s%s [%s]%s", component.QName, brief, component.Id)
+	id := ""
+	if component.Id != "" {
+		brief = fmt.Sprintf(" [%s]", component.Id)
+	}
+	return fmt.Sprintf("%s%s%s", component.QName, id, brief)
 }
 
 func formatComponentGitRef(ref *ComponentGitRef) string {

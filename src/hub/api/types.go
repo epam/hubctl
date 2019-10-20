@@ -420,7 +420,7 @@ type ComponentGitRef struct {
 }
 
 type Component struct {
-	Id               string                 `json:"id"`
+	Id               string                 `json:"id,omitempty"`
 	QName            string                 `json:"qname"`
 	Brief            string                 `json:"brief,omitempty"`
 	Description      string                 `json:"description,omitempty"`
