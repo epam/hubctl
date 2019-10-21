@@ -315,6 +315,20 @@ type StackInstancePatch struct {
 	Provides           map[string][]string    `json:"provides,omitempty"`
 }
 
+type WorkerpoolRequest struct {
+	Name        string                 `json:"name"`
+	Kind        string                 `json:"kind"`
+	Description string                 `json:"description,omitempty"`
+	Tags        []string               `json:"tags,omitempty"`
+	UI          map[string]interface{} `json:"ui,omitempty"`
+	Parameters  []Parameter            `json:"parameters,omitempty"`
+}
+
+type WorkerpoolCreateResponse struct {
+	JobId    string        `json:"jobId"`
+	Instance StackInstance `json:"instance"`
+}
+
 type StackInstanceRef struct {
 	Id         string      `json:"id"`
 	Name       string      `json:"name"`

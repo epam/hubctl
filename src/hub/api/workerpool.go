@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"strings"
 
+	"hub/config"
 	"hub/util"
 )
 
@@ -86,10 +89,71 @@ func Workerpools(selector string, showSecrets, showLogs, jsonFormat bool) {
 }
 
 func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
-	workerpoolSpotPrice float32, workerpoolPreemptibleVMs, workerpoolAutoscale bool, workerpoolVolumeSize int,
+	spotPrice float32, preemptibleVMs, autoscale bool, volumeSize int,
 	waitAndTailDeployLogs, dryRun bool) {
 
-	log.Fatal("Not implemented")
+	instance, err := stackInstanceBy(selector)
+	if err != nil {
+		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
+	}
+
+	kind := "aws"
+	if strings.HasPrefix(instance.Stack.Id, "gke") {
+		kind = "gcp"
+	}
+	parameters := []Parameter{
+		{Name: "component.k8s-worker-nodes.size", Value: instanceType},
+		{Name: "component.k8s-worker-nodes.count", Value: count},
+	}
+	if maxCount > 0 {
+		parameters = append(parameters,
+			Parameter{Name: "component.k8s-worker-nodes.maxCount", Value: maxCount})
+	}
+	if volumeSize > 0 {
+		parameters = append(parameters,
+			Parameter{Name: "component.k8s-worker-nodes.volume.size", Value: volumeSize})
+	}
+	switch kind {
+	case "aws":
+		price := ""
+		if spotPrice > 0 {
+			price = fmt.Sprintf("%.2f", spotPrice) // TODO what if price is less than a cent?
+		}
+		parameters = append(parameters,
+			Parameter{Name: "component.k8s-worker-nodes.spotPrice", Value: price},
+			Parameter{Name: "component.k8s-worker-nodes.autoscale.enabled", Value: autoscale})
+
+	case "gcp":
+		parameters = append(parameters,
+			Parameter{Name: "component.k8s-worker-nodes.preemptible", Value: preemptibleVMs})
+	}
+	req := &WorkerpoolRequest{
+		Name:       name,
+		Kind:       kind + "-worker-pool", // TODO API switching validation schema on input field
+		Parameters: parameters,
+	}
+	maybeDryRun := ""
+	if dryRun {
+		maybeDryRun = "?dryRun=1"
+	}
+	path := fmt.Sprintf("%s/%s/workerpools%s", stackInstancesResource, url.PathEscape(instance.Id), maybeDryRun)
+	var jsResp WorkerpoolCreateResponse
+	code, err := post(hubApi, path, req, &jsResp)
+	if err != nil {
+		log.Fatalf("Error creating SuperHub `%s` Workerpool `%s`: %v",
+			instance.Domain, name, err)
+	}
+	if code != 201 {
+		log.Fatalf("Got %d HTTP creating SuperHub `%s` Workerpool `%s`, expected 201 HTTP",
+			code, instance.Domain, name)
+	}
+	formatStackInstance(&jsResp.Instance)
+	if waitAndTailDeployLogs {
+		if config.Verbose {
+			log.Print("Tailing automation task logs... ^C to interrupt")
+		}
+		os.Exit(Logs([]string{"stackInstance/" + jsResp.Instance.Id}, true))
+	}
 }
 
 func ScaleWorkerpool(selector string, count, maxCount int, waitAndTailDeployLogs, dryRun bool) {

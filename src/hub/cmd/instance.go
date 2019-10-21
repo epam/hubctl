@@ -415,9 +415,6 @@ func undeployWorkerpool(args []string) error {
 		return errors.New("Undeploy worker command has one mandatory argument - id or name@domain of the worker pool")
 	}
 
-	if dryRun {
-		waitAndTailDeployLogs = false
-	}
 	api.UndeployWorkerpool(args[0], waitAndTailDeployLogs)
 
 	return nil
@@ -494,6 +491,8 @@ func init() {
 		"Save parameters and envrc to Template's Git but do not start the deployment")
 	instanceWorkerpoolScaleCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	instanceWorkerpoolScaleCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
+		"Save parameters and envrc to Template's Git but do not start the deployment")
 	instanceWorkerpoolDeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceWorkerpoolDeployCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
