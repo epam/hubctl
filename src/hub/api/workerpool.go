@@ -137,7 +137,7 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 		maybeDryRun = "?dryRun=1"
 	}
 	path := fmt.Sprintf("%s/%s/workerpools%s", stackInstancesResource, url.PathEscape(instance.Id), maybeDryRun)
-	var jsResp WorkerpoolCreateResponse
+	var jsResp WorkerpoolLifecycleResponse
 	code, err := post(hubApi, path, req, &jsResp)
 	if err != nil {
 		log.Fatalf("Error creating SuperHub `%s` Workerpool `%s`: %v",
@@ -148,7 +148,7 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 			code, instance.Domain, name)
 	}
 	formatStackInstance(&jsResp.Instance)
-	if waitAndTailDeployLogs {
+	if waitAndTailDeployLogs && !dryRun {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
@@ -156,18 +156,111 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 	}
 }
 
-func ScaleWorkerpool(selector string, count, maxCount int, waitAndTailDeployLogs, dryRun bool) {
-	log.Fatal("Not implemented")
+func VerifyWorkerpool(selector string) {
+	instance, err := cachedStackInstanceBy(selector)
+	if err != nil {
+		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
+	}
+	if !util.Contains(workerpoolStacks, instance.Stack.Id) || instance.Platform == nil {
+		log.Fatalf("Instance `%s` [%d] is not a workerpool", instance.Domain, instance.Id)
+	}
+}
+
+func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAndTailDeployLogs, dryRun bool) {
+	VerifyWorkerpool(selector)
+	instance, err := cachedStackInstanceBy(selector)
+	if err != nil {
+		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
+	}
+	kind := "aws"
+	if strings.HasPrefix(instance.Stack.Id, "gke") {
+		kind = "gcp"
+	}
+	parameters := []Parameter{
+		{Name: "component.k8s-worker-nodes.count", Value: count},
+	}
+	if instanceType != "" {
+		parameters = append(parameters,
+			Parameter{Name: "component.k8s-worker-nodes.size", Value: instanceType})
+	}
+	if maxCount > 0 {
+		parameters = append(parameters,
+			Parameter{Name: "component.k8s-worker-nodes.maxCount", Value: maxCount})
+	}
+	req := &WorkerpoolPatch{
+		Kind:       kind + "-worker-pool", // TODO API switching validation schema on input field
+		Parameters: parameters,
+	}
+	maybeDryRun := ""
+	if dryRun {
+		maybeDryRun = "?dryRun=1"
+	}
+	path := fmt.Sprintf("%s/%s/workerpools/%s%s", stackInstancesResource,
+		url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeDryRun)
+	var jsResp WorkerpoolLifecycleResponse
+	code, err := patch(hubApi, path, req, &jsResp)
+	if err != nil {
+		log.Fatalf("Error scaling SuperHub `%s` Workerpool `%s`: %v",
+			instance.Platform.Domain, instance.Name, err)
+	}
+	if code != 202 {
+		log.Fatalf("Got %d HTTP scaling SuperHub `%s` Workerpool `%s`, expected 202 HTTP",
+			code, instance.Platform.Domain, instance.Name)
+	}
+	formatStackInstance(&jsResp.Instance)
+	if waitAndTailDeployLogs && !dryRun {
+		if config.Verbose {
+			log.Print("Tailing automation task logs... ^C to interrupt")
+		}
+		os.Exit(Logs([]string{"stackInstance/" + jsResp.Id}, true))
+	}
 }
 
 func DeployWorkerpool(selector string, waitAndTailDeployLogs, dryRun bool) {
-	log.Fatal("Not implemented")
+	VerifyWorkerpool(selector)
+	_, err := commandStackInstance(selector, "deploy", nil, waitAndTailDeployLogs, dryRun)
+	if err != nil {
+		log.Fatalf("Unable to deploy SuperHub Workerpool: %v", err)
+	}
 }
 
-func UndeployWorkerpool(selector string, waitAndTailDeployLogs bool) {
-	log.Fatal("Not implemented")
+func UndeployWorkerpool(selector string, useWorkerpoolApi, waitAndTailDeployLogs bool) {
+	VerifyWorkerpool(selector)
+	if useWorkerpoolApi {
+		// use workerpool undeploy API (DELETE)
+		instance, err := cachedStackInstanceBy(selector)
+		if err != nil {
+			log.Fatalf("Unable to query for Stack Instance(s): %v", err)
+		}
+		path := fmt.Sprintf("%s/%s/workerpools/%s", stackInstancesResource,
+			url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id))
+		code, err := delete(hubApi, path)
+		if err != nil {
+			log.Fatalf("Error deleting SuperHub `%s` Workerpool `%s`: %v",
+				instance.Platform.Domain, instance.Name, err)
+		}
+		if code != 202 {
+			log.Fatalf("Got %d HTTP deleting SuperHub `%s` Workerpool `%s`, expected 202 HTTP",
+				code, instance.Platform.Domain, instance.Name)
+		}
+		if waitAndTailDeployLogs {
+			if config.Verbose {
+				log.Print("Tailing automation task logs... ^C to interrupt")
+			}
+			os.Exit(Logs([]string{"stackInstance/" + instance.Id}, true))
+		}
+	} else {
+		_, err := commandStackInstance(selector, "undeploy", nil, waitAndTailDeployLogs, false)
+		if err != nil {
+			log.Fatalf("Unable to undeploy SuperHub Workerpool: %v", err)
+		}
+	}
 }
 
 func DeleteWorkerpool(selector string) {
-	log.Fatal("Not implemented")
+	VerifyWorkerpool(selector)
+	err := deleteStackInstance(selector)
+	if err != nil {
+		log.Fatalf("Unable to delete SuperHub Workerpool: %v", err)
+	}
 }

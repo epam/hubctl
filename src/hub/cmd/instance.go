@@ -20,6 +20,8 @@ var (
 	workerpoolPreemptibleVMs bool
 	workerpoolAutoscale      bool
 	workerpoolVolumeSize     int
+	workerpoolDelete         bool
+	workerpoolInstanceType   string
 )
 
 var instanceCmd = &cobra.Command{
@@ -373,18 +375,18 @@ func createWorkerpool(args []string) error {
 }
 
 func scaleWorkerpool(args []string) error {
-	if len(args) < 4 || len(args) > 5 {
+	if len(args) < 2 || len(args) > 3 {
 		return errors.New("Scale worker pool command has two or three arguments - id or name@domain of the worker pool, node count, and (optionally) node max count")
 	}
 
 	selector := args[0]
-	count, err := strconv.ParseInt(args[3], 10, 32)
+	count, err := strconv.ParseInt(args[1], 10, 32)
 	if err != nil {
 		return fmt.Errorf("Unable to parse count: %v", err)
 	}
 	maxCount := count
-	if len(args) > 4 {
-		maxCount, err = strconv.ParseInt(args[4], 10, 32)
+	if len(args) > 2 {
+		maxCount, err = strconv.ParseInt(args[2], 10, 32)
 		if err != nil {
 			return fmt.Errorf("Unable to parse max count: %v", err)
 		}
@@ -392,7 +394,7 @@ func scaleWorkerpool(args []string) error {
 	if dryRun {
 		waitAndTailDeployLogs = false
 	}
-	api.ScaleWorkerpool(selector, int(count), int(maxCount), waitAndTailDeployLogs, dryRun)
+	api.ScaleWorkerpool(selector, workerpoolInstanceType, int(count), int(maxCount), waitAndTailDeployLogs, dryRun)
 
 	return nil
 }
@@ -415,7 +417,7 @@ func undeployWorkerpool(args []string) error {
 		return errors.New("Undeploy worker command has one mandatory argument - id or name@domain of the worker pool")
 	}
 
-	api.UndeployWorkerpool(args[0], waitAndTailDeployLogs)
+	api.UndeployWorkerpool(args[0], workerpoolDelete, waitAndTailDeployLogs)
 
 	return nil
 }
@@ -489,6 +491,8 @@ func init() {
 		"Wait for deployment and tail logs")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
 		"Save parameters and envrc to Template's Git but do not start the deployment")
+	instanceWorkerpoolScaleCmd.Flags().StringVarP(&workerpoolInstanceType, "instance-type", "m", "",
+		"Instance type")
 	instanceWorkerpoolScaleCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceWorkerpoolScaleCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
@@ -497,6 +501,8 @@ func init() {
 		"Wait for deployment and tail logs")
 	instanceWorkerpoolDeployCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
 		"Save parameters and envrc to Template's Git but do not start the deployment")
+	instanceWorkerpoolUndeployCmd.Flags().BoolVarP(&workerpoolDelete, "delete", "", false,
+		"Delete worker pool (stack instance) after it is undeployed")
 	instanceWorkerpoolUndeployCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceWorkerpoolCmd.AddCommand(instanceWorkerpoolGetCmd)

@@ -204,7 +204,7 @@ func cachedStackInstanceBy(selector string) (*StackInstance, error) {
 		var err error
 		instance, err = stackInstanceBy(selector)
 		if err != nil {
-			return nil, err
+			return instance, err
 		}
 		stackInstancesCache[selector] = instance
 	}
@@ -500,7 +500,7 @@ func BackupStackInstance(selector, name string, components []string, waitAndTail
 }
 
 func commandStackInstance(selector, verb string, req interface{}, waitAndTailDeployLogs, dryRun bool) (*StackInstanceLifecycleResponse, error) {
-	instance, err := stackInstanceBy(selector)
+	instance, err := cachedStackInstanceBy(selector)
 	if err != nil {
 		return nil, err
 	}
@@ -524,7 +524,7 @@ func commandStackInstance(selector, verb string, req interface{}, waitAndTailDep
 	if config.Verbose {
 		log.Printf("Instance %s automation task id: %s", verb, jsResp.JobId)
 	}
-	if waitAndTailDeployLogs {
+	if waitAndTailDeployLogs && !dryRun {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
@@ -541,7 +541,7 @@ func DeleteStackInstance(selector string) {
 }
 
 func deleteStackInstance(selector string) error {
-	instance, err := stackInstanceBy(selector)
+	instance, err := cachedStackInstanceBy(selector)
 	id := ""
 	if err != nil {
 		str := err.Error()

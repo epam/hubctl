@@ -324,7 +324,13 @@ type WorkerpoolRequest struct {
 	Parameters  []Parameter            `json:"parameters,omitempty"`
 }
 
-type WorkerpoolCreateResponse struct {
+type WorkerpoolPatch struct {
+	Kind       string      `json:"kind"`
+	Parameters []Parameter `json:"parameters,omitempty"`
+}
+
+type WorkerpoolLifecycleResponse struct {
+	Id       string        `json:"id"`
 	JobId    string        `json:"jobId"`
 	Instance StackInstance `json:"instance"`
 }
