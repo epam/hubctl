@@ -232,8 +232,12 @@ func UndeployWorkerpool(selector string, useWorkerpoolApi, waitAndTailDeployLogs
 		if err != nil {
 			log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 		}
-		path := fmt.Sprintf("%s/%s/workerpools/%s", stackInstancesResource,
-			url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id))
+		maybeForce := ""
+		if config.Force {
+			maybeForce = "?force=1"
+		}
+		path := fmt.Sprintf("%s/%s/workerpools/%s%s", stackInstancesResource,
+			url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeForce)
 		code, err := delete(hubApi, path)
 		if err != nil {
 			log.Fatalf("Error deleting SuperHub `%s` Workerpool `%s`: %v",
