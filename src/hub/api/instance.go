@@ -509,7 +509,7 @@ func commandStackInstance(selector, verb string, req interface{}, waitAndTailDep
 	}
 	maybeDryRun := ""
 	if dryRun {
-		maybeDryRun = "?dryRun=1"
+		maybeDryRun = "?dryRun=true"
 	}
 	var jsResp StackInstanceLifecycleResponse
 	path := fmt.Sprintf("%s/%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), verb, maybeDryRun)

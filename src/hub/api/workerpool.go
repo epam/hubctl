@@ -134,7 +134,7 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 	}
 	maybeDryRun := ""
 	if dryRun {
-		maybeDryRun = "?dryRun=1"
+		maybeDryRun = "?dryRun=true"
 	}
 	path := fmt.Sprintf("%s/%s/workerpools%s", stackInstancesResource, url.PathEscape(instance.Id), maybeDryRun)
 	var jsResp WorkerpoolLifecycleResponse
@@ -193,7 +193,7 @@ func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAnd
 	}
 	maybeDryRun := ""
 	if dryRun {
-		maybeDryRun = "?dryRun=1"
+		maybeDryRun = "?dryRun=true"
 	}
 	path := fmt.Sprintf("%s/%s/workerpools/%s%s", stackInstancesResource,
 		url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeDryRun)
@@ -234,7 +234,7 @@ func UndeployWorkerpool(selector string, useWorkerpoolApi, waitAndTailDeployLogs
 		}
 		maybeForce := ""
 		if config.Force {
-			maybeForce = "?force=1"
+			maybeForce = "?force=true"
 		}
 		path := fmt.Sprintf("%s/%s/workerpools/%s%s", stackInstancesResource,
 			url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeForce)
