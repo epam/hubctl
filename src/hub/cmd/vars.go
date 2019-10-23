@@ -7,6 +7,7 @@ const (
 	envVarNameAwsRegion         = "HUB_AWS_REGION"
 	envVarNameComponentsBaseDir = "HUB_COMPONENTS_BASEDIR"
 	envVarNameHubApi            = "HUB_API"
+	envVarNameDerefSecrets      = "HUB_API_DEREF_SECRETS"
 	SuperHubIo                  = ".superhub.io"
 )
 
