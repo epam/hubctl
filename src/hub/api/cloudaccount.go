@@ -19,7 +19,7 @@ const cloudAccountsResource = "hub/api/v1/cloud-accounts"
 
 var cloudAccountsCache = make(map[string]*CloudAccount)
 
-func CloudAccounts(selector string, showSecrets,
+func CloudAccounts(selector string, showSecrets, showLogs,
 	getCloudCredentials, shFormat, nativeConfigFormat, jsonFormat bool) {
 
 	cloudAccounts, err := cloudAccountsBy(selector)
@@ -93,7 +93,7 @@ func CloudAccounts(selector string, showSecrets,
 			fmt.Print("Cloud Accounts:\n")
 			errors := make([]error, 0)
 			for _, cloudAccount := range cloudAccounts {
-				errors = formatCloudAccountEntity(&cloudAccount, getCloudCredentials, showSecrets, errors)
+				errors = formatCloudAccountEntity(&cloudAccount, getCloudCredentials, showSecrets, showLogs, errors)
 			}
 			if len(errors) > 0 {
 				fmt.Print("Errors encountered:\n")
@@ -105,7 +105,7 @@ func CloudAccounts(selector string, showSecrets,
 	}
 }
 
-func formatCloudAccountEntity(cloudAccount *CloudAccount, getCloudCredentials, showSecrets bool, errors []error) []error {
+func formatCloudAccountEntity(cloudAccount *CloudAccount, getCloudCredentials, showSecrets, showLogs bool, errors []error) []error {
 	fmt.Printf("\n\t%s\n", formatCloudAccountTitle(cloudAccount))
 	fmt.Printf("\t\tKind: %s\n", formatCloudAccountKind(cloudAccount.Kind))
 	fmt.Printf("\t\tStatus: %s\n", cloudAccount.Status)
@@ -137,11 +137,17 @@ func formatCloudAccountEntity(cloudAccount *CloudAccount, getCloudCredentials, s
 			errors = append(errors, err)
 		}
 	}
+	if len(cloudAccount.InflightOperations) > 0 {
+		fmt.Print("\t\tInflight Operations:\n")
+		for _, op := range cloudAccount.InflightOperations {
+			fmt.Print(formatInflightOperation(op, showLogs))
+		}
+	}
 	return errors
 }
 
 func formatCloudAccount(cloudAccount *CloudAccount) {
-	errors := formatCloudAccountEntity(cloudAccount, false, false, make([]error, 0))
+	errors := formatCloudAccountEntity(cloudAccount, false, false, false, make([]error, 0))
 	if len(errors) > 0 {
 		fmt.Print("Errors encountered:\n")
 		for _, err := range errors {

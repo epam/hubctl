@@ -88,7 +88,7 @@ func cloudAccount(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.CloudAccounts(selector, showSecrets,
+	api.CloudAccounts(selector, showSecrets, showLogs,
 		getCloudCredentials, cloudCredentialsShell, cloudCredentialsNativeConfig, jsonFormat)
 
 	return nil
@@ -136,6 +136,8 @@ func deleteCloudAccount(args []string) error {
 func init() {
 	cloudAccountGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
+	cloudAccountGetCmd.Flags().BoolVarP(&showLogs, "logs", "l", false,
+		"Show logs")
 	cloudAccountGetCmd.Flags().BoolVarP(&getCloudCredentials, "cloud-credentials", "c", false,
 		"Request (Temporary) Security Credentials")
 	cloudAccountGetCmd.Flags().BoolVarP(&cloudCredentialsShell, "sh", "", false,

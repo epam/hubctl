@@ -21,14 +21,15 @@ type ApiError struct {
 }
 
 type CloudAccount struct {
-	Id               string      `json:"id"`
-	Name             string      `json:"name"`
-	Tags             []string    `json:"tags,omitempty"`
-	Kind             string      `json:"kind"`
-	Status           string      `json:"status"`
-	BaseDomain       string      `json:"baseDomain"`
-	Parameters       []Parameter `json:"parameters,omitempty"`
-	TeamsPermissions []Team      `json:"teamsPermissions"`
+	Id                 string              `json:"id"`
+	Name               string              `json:"name"`
+	Tags               []string            `json:"tags,omitempty"`
+	Kind               string              `json:"kind"`
+	Status             string              `json:"status"`
+	BaseDomain         string              `json:"baseDomain"`
+	Parameters         []Parameter         `json:"parameters,omitempty"`
+	InflightOperations []InflightOperation `json:"inflightOperations,omitempty"`
+	TeamsPermissions   []Team              `json:"teamsPermissions"`
 }
 
 type AwsSecurityCredentials struct {
