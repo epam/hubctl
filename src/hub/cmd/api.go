@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -15,6 +16,7 @@ var apiCmd = &cobra.Command{
 
 func init() {
 	apiCmd.PersistentFlags().BoolVar(&config.ApiDerefSecrets, "deref-secrets",
-		os.Getenv(envVarNameDerefSecrets) != "false", "Always retrieve secrets to catch API errors")
+		os.Getenv(envVarNameDerefSecrets) != "false",
+		fmt.Sprintf("Always retrieve secrets to catch API errors (%s)", envVarNameDerefSecrets))
 	RootCmd.AddCommand(apiCmd)
 }
