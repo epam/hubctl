@@ -29,7 +29,8 @@ var (
 )
 
 func IsEncryptedData(data []byte) bool {
-	return data[0] == encryptionMarkerByte0 && data[1] == encryptionMarkerByte1
+	return len(data) > EncryptionOverhead &&
+		data[0] == encryptionMarkerByte0 && data[1] == encryptionMarkerByte1
 }
 
 func encryptionKeyInit(salt []byte) []byte {

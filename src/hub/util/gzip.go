@@ -8,7 +8,8 @@ import (
 )
 
 func IsGzipData(data []byte) bool {
-	return data[0] == '\x1f' && data[1] == '\x8b'
+	return len(data) > 2 &&
+		data[0] == '\x1f' && data[1] == '\x8b'
 }
 
 func Gunzip(compressed []byte) ([]byte, error) {
