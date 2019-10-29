@@ -450,10 +450,14 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 		if parameter.Value == "" {
 			value, exist := stateStackOutputs[parameter.Name]
 			if exist {
-				if parameter.Kind == "user" && parameter.Default == "" {
-					parameter.Default = value
-				} else {
+				if parameter.FromEnv == "" {
 					parameter.Value = value
+				} else {
+					if parameter.Default != "" {
+						util.Warn("Overwritting empty parameter `%s` `default: %s` with state value `%s` (due to `fromEnv: %s`)",
+							parameter.QName(), parameter.Default, value, parameter.FromEnv)
+					}
+					parameter.Default = value
 				}
 			} else {
 				// a special case for Kubernetes
