@@ -301,7 +301,7 @@ func initTemplate(selector string) error {
 		return error404
 	}
 	path := fmt.Sprintf("%s/%s/git/create", templatesResource, url.PathEscape(template.Id))
-	code, err := post2(hubApi, path, nil, nil)
+	code, err := post2(hubApiLongWait, path, nil, nil)
 	if err != nil {
 		return err
 	}

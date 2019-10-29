@@ -20,8 +20,11 @@ import (
 	"hub/util"
 )
 
-var hubApi = util.RobustHttpClient(30*time.Second, false)
-var wsApi = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
+var (
+	hubApi         = util.RobustHttpClient(30*time.Second, false)
+	hubApiLongWait = util.RobustHttpClient(120*time.Second, false)
+	wsApi          = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
+)
 
 const (
 	requestsBindata  = "src/hub/api/requests"
