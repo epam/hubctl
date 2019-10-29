@@ -162,7 +162,7 @@ func VerifyWorkerpool(selector string) {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 	}
 	if !util.Contains(workerpoolStacks, instance.Stack.Id) || instance.Platform == nil {
-		log.Fatalf("Instance `%s` [%d] is not a workerpool", instance.Domain, instance.Id)
+		log.Fatalf("Instance `%s` [%s] is not a workerpool", instance.Domain, instance.Id)
 	}
 }
 
