@@ -450,7 +450,11 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 		if parameter.Value == "" {
 			value, exist := stateStackOutputs[parameter.Name]
 			if exist {
-				parameter.Value = value
+				if parameter.Kind == "user" && parameter.Default == "" {
+					parameter.Default = value
+				} else {
+					parameter.Value = value
+				}
 			} else {
 				// a special case for Kubernetes
 				if len(kubeOutputs) > 0 && util.Contains(kube.KubernetesParameters, parameter.Name) {
