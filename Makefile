@@ -89,7 +89,7 @@ fmt:
 .PHONY: fmt
 
 vet:
-	@cd src && go vet -vettool=$(which shadow) \
+	@cd src && go vet -vettool=$(which shadow) -composites=false \
 		hub/api hub/aws hub/azure hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
 		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
 .PHONY: vet
