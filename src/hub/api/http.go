@@ -320,8 +320,8 @@ func decodeApiError(e ApiError, indent string) string {
 			strings.Join(decodeApiErrors(meta.Data.Errors, indent+"\t"), "\n\t"+indent))
 	}
 	validation := ""
-	if meta.SchemaPath != "" && config.Debug {
-		validation = fmt.Sprintf("\n%s\tValidation: %s %+v", indent, meta.Message, meta.Params)
+	if meta.SchemaPath != "" {
+		validation = fmt.Sprintf("\n%s\t\tValidation: %s %+v", indent, meta.Message, meta.Params)
 	}
 	stack := ""
 	if meta.Stack != "" && config.Debug {
