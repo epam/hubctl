@@ -57,7 +57,7 @@ func Components(selector string, jsonFormat bool) {
 func formatComponentEntity(component *Component, errors []error) []error {
 	fmt.Printf("\n\t%s\n", formatComponentTitle(component))
 	if component.Description != "" {
-		fmt.Printf("Description: %s\n", component.Description)
+		fmt.Printf("\t\tDescription: %s\n", strings.Trim(component.Description, "\r\n "))
 	}
 	if len(component.Tags) > 0 {
 		fmt.Printf("\t\tTags: %s\n", strings.Join(component.Tags, ", "))
@@ -84,10 +84,10 @@ func formatComponentEntity(component *Component, errors []error) []error {
 		fmt.Printf("\t\tMaturity: %s\n", component.Maturity)
 	}
 	if len(component.Requires) > 0 {
-		fmt.Printf("\t\t: %s\n", strings.Join(component.Requires, ", "))
+		fmt.Printf("\t\tRequires: %s\n", strings.Join(component.Requires, ", "))
 	}
 	if len(component.Provides) > 0 {
-		fmt.Printf("\t\t: %s\n", strings.Join(component.Provides, ", "))
+		fmt.Printf("\t\tProvides: %s\n", strings.Join(component.Provides, ", "))
 	}
 	if len(component.TeamsPermissions) > 0 {
 		formatted := formatTeams(component.TeamsPermissions)
