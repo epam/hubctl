@@ -103,8 +103,8 @@ func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bo
 		fmt.Printf("\t\tTags: %s\n", strings.Join(template.Tags, ", "))
 	}
 	fmt.Printf("\t\tStatus: %s\n", template.Status)
-	if template.Stack.Name != "" {
-		fmt.Printf("\t\tStack: %s\n", formatStackRef(&template.Stack))
+	if template.Stack != nil && template.Stack.Name != "" {
+		fmt.Printf("\t\tStack: %s\n", formatStackRef(template.Stack))
 	}
 	if len(template.Verbs) > 0 {
 		fmt.Printf("\t\tVerbs: %s\n", strings.Join(template.Verbs, ", "))

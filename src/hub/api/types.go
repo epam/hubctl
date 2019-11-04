@@ -156,7 +156,7 @@ type StackTemplate struct {
 	Status            string                 `json:"status"`
 	Tags              []string               `json:"tags,omitempty"`
 	UI                map[string]interface{} `json:"ui,omitempty"`
-	Stack             StackRef               `json:"stack"`
+	Stack             *StackRef              `json:"stack,omitempty"`
 	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
 	Verbs             []string               `json:"verbs,omitempty"`
 	GitRemote         GitRef                 `json:"gitRemote"`
