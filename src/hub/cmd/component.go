@@ -18,7 +18,7 @@ var componentCmd = &cobra.Command{
 }
 
 var componentGetCmd = &cobra.Command{
-	Use:   "get [id | name]",
+	Use:   "get [id | qname | name]",
 	Short: "Show a list of Components or details about the Component",
 	Long: `Show a list of all user accessible Components or details about
 the particular Component (specify Id or search by name)`,
@@ -33,23 +33,30 @@ var componentCreateCmd = &cobra.Command{
 	Long: `Create Component Registration by sending JSON via stdin, for example:
 	{
 		"name": "kube-dashboard", // generated qname = "org:kube-dashboard/kube-dashboard-456",
+		"title": "Dashboard",
 		"brief": "Kubernetes Dashboard",
 		"description": "...",
 		"tags": [],
 		"ui": {},
-		"category": "kubernetes-tools",
+		"category": "Kubernetes Tools",
 		"license": "Apache 2.0",
 		"icon": "data:image/png;base64",
 		"template": "456", // https://git.agilestacks.io/repo/org/kube-dashboard-456
+		"git": {
+			"subDir": "optional"
+		},
 		"version": "1.10.1",
 		"maturity": "ga",
-		"teamsPermissions": [],
 		"requires": [
 			"kubernetes"
 		],
 		"provides": [
 			"kubernetes-dashboard"
-		]
+		],
+		"parameters": [ // optional defaults for UI custom component settings form
+			{"name": "...", "value": "...", "brief": "UI label"}
+		],
+		"teamsPermissions": []
 	}`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return createComponent(args)
@@ -57,26 +64,27 @@ var componentCreateCmd = &cobra.Command{
 }
 
 var componentPatchCmd = &cobra.Command{
-	Use:   "patch <id | name> < component-patch.json",
+	Use:   "patch <id | qname | name> < component-patch.json",
 	Short: "Patch Component Registration",
 	Long: `Patch Component Registration by sending JSON via stdin, for example:
 	{
+		"title": "Dashboard",
 		"brief": "Kubernetes Dashboard",
 		"description": "...",
 		"tags": [],
 		"ui": {},
-		"category": "kubernetes-tools",
+		"category": "Kubernetes Tools",
 		"license": "Apache 2.0",
 		"icon": "data:image/png;base64",
 		"version": "1.10.1",
 		"maturity": "ga",
-		"teamsPermissions": [],
 		"requires": [
 			"kubernetes"
 		],
 		"provides": [
 			"kubernetes-dashboard"
-		]
+		],
+		"teamsPermissions": []
 	}`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return patchComponent(args)
@@ -84,7 +92,7 @@ var componentPatchCmd = &cobra.Command{
 }
 
 var componentDeleteCmd = &cobra.Command{
-	Use:   "delete <id | name>",
+	Use:   "delete <id | qname | name>",
 	Short: "Delete Component Registration by Id or name",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return deleteComponent(args)

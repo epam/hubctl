@@ -443,6 +443,7 @@ type ComponentGitRef struct {
 type Component struct {
 	Id               string                 `json:"id,omitempty"`
 	QName            string                 `json:"qname"`
+	Title            string                 `json:"title"`
 	Brief            string                 `json:"brief,omitempty"`
 	Description      string                 `json:"description,omitempty"`
 	Tags             []string               `json:"tags,omitempty"`
@@ -459,25 +460,31 @@ type Component struct {
 	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
 }
 
+type ComponentGitRefRequest struct {
+	SubDir string `json:"subDir,omitempty"`
+}
+
 type ComponentRequest struct {
-	Name             string                 `json:"name"`
-	Brief            string                 `json:"brief,omitempty"`
-	Description      string                 `json:"description,omitempty"`
-	Tags             []string               `json:"tags,omitempty"`
-	UI               map[string]interface{} `json:"ui,omitempty"`
-	Category         string                 `json:"category,omitempty"`
-	License          string                 `json:"license,omitempty"`
-	Icon             string                 `json:"icon,omitempty"`
-	Template         string                 `json:"template,omitempty"`
-	SubDir           string                 `json:"subDir,omitempty"`
-	Version          string                 `json:"version,omitempty"`
-	Maturity         string                 `json:"maturity,omitempty"`
-	Requires         []string               `json:"requires,omitempty"`
-	Provides         []string               `json:"provides,omitempty"`
-	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
+	Name             string                  `json:"name"`
+	Title            string                  `json:"title"`
+	Brief            string                  `json:"brief,omitempty"`
+	Description      string                  `json:"description,omitempty"`
+	Tags             []string                `json:"tags,omitempty"`
+	UI               map[string]interface{}  `json:"ui,omitempty"`
+	Category         string                  `json:"category,omitempty"`
+	License          string                  `json:"license,omitempty"`
+	Icon             string                  `json:"icon,omitempty"`
+	Template         string                  `json:"template,omitempty"`
+	Git              *ComponentGitRefRequest `json:"git,omitempty"`
+	Version          string                  `json:"version,omitempty"`
+	Maturity         string                  `json:"maturity,omitempty"`
+	Requires         []string                `json:"requires,omitempty"`
+	Provides         []string                `json:"provides,omitempty"`
+	TeamsPermissions []Team                  `json:"teamsPermissions,omitempty"`
 }
 
 type ComponentPatch struct {
+	Title            string                 `json:"title,omitempty"`
 	Brief            string                 `json:"brief,omitempty"`
 	Description      string                 `json:"description,omitempty"`
 	Tags             []string               `json:"tags,omitempty"`
