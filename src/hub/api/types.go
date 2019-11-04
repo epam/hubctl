@@ -169,7 +169,7 @@ type StackTemplateRequest struct {
 	Description       string                 `json:"description,omitempty"`
 	Tags              []string               `json:"tags,omitempty"`
 	UI                map[string]interface{} `json:"ui,omitempty"`
-	Stack             string                 `json:"stack"`
+	Stack             string                 `json:"stack,omitempty"`
 	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
 	Verbs             []string               `json:"verbs,omitempty"`
 	Parameters        []Parameter            `json:"parameters,omitempty"`
