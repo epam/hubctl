@@ -106,7 +106,9 @@ func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bo
 	if template.Stack.Name != "" {
 		fmt.Printf("\t\tStack: %s\n", formatStackRef(&template.Stack))
 	}
-	fmt.Printf("\t\tVerbs: %s\n", strings.Join(template.Verbs, ", "))
+	if len(template.Verbs) > 0 {
+		fmt.Printf("\t\tVerbs: %s\n", strings.Join(template.Verbs, ", "))
+	}
 	if len(template.ComponentsEnabled) > 0 {
 		fmt.Printf("\t\tComponents enabled: %s\n", strings.Join(template.ComponentsEnabled, ", "))
 	}
