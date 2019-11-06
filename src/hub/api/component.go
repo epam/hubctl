@@ -9,13 +9,14 @@ import (
 	"os"
 	"strings"
 
+	"hub/config"
 	"hub/util"
 )
 
 const componentsResource = "hub/api/v1/components"
 
-func Components(selector string, jsonFormat bool) {
-	components, err := componentsBy(selector)
+func Components(selector string, onlyCustomComponents, jsonFormat bool) {
+	components, err := componentsBy(selector, onlyCustomComponents)
 	if err != nil {
 		log.Fatalf("Unable to query for Component(s): %v", err)
 	}
@@ -133,9 +134,9 @@ func componentBy(selector string) (*Component, error) {
 	return componentById(selector)
 }
 
-func componentsBy(selector string) ([]Component, error) {
+func componentsBy(selector string, onlyCustomComponents bool) ([]Component, error) {
 	if !util.IsUint(selector) {
-		return componentsByName(selector)
+		return componentsByName(selector, onlyCustomComponents)
 	}
 	component, err := componentById(selector)
 	if err != nil {
@@ -164,7 +165,7 @@ func componentById(id string) (*Component, error) {
 }
 
 func componentByName(name string) (*Component, error) {
-	components, err := componentsByName(name)
+	components, err := componentsByName(name, false)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to query for Component `%s`: %v", name, err)
 	}
@@ -178,10 +179,17 @@ func componentByName(name string) (*Component, error) {
 	return &component, nil
 }
 
-func componentsByName(name string) ([]Component, error) {
+func componentsByName(name string, onlyCustomComponents bool) ([]Component, error) {
 	path := componentsResource
+	var filters []string
 	if name != "" {
-		path += "?qname=" + url.QueryEscape(name)
+		filters = append(filters, "qname="+url.QueryEscape(name))
+	}
+	if onlyCustomComponents {
+		filters = append(filters, "kind=custom")
+	}
+	if len(filters) > 0 {
+		path += "?" + strings.Join(filters, "&")
 	}
 	var jsResp []Component
 	code, err := get(hubApi, path, &jsResp)

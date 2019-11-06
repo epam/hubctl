@@ -12,6 +12,10 @@ import (
 	"hub/api"
 )
 
+var (
+	onlyCustomComponents bool
+)
+
 var componentCmd = &cobra.Command{
 	Use:   "component <get | create | delete> ...",
 	Short: "Create and manage (custom) Component Registration",
@@ -108,7 +112,7 @@ func component(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.Components(selector, jsonFormat)
+	api.Components(selector, onlyCustomComponents, jsonFormat)
 
 	return nil
 }
@@ -158,6 +162,8 @@ func deleteComponent(args []string) error {
 }
 
 func init() {
+	componentGetCmd.Flags().BoolVarP(&onlyCustomComponents, "custom", "c", false,
+		"Only custom components")
 	componentGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
 	componentPatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
