@@ -545,7 +545,7 @@ func deleteCloudAccount(selector string) error {
 	if err != nil {
 		str := err.Error()
 		if util.IsUint(selector) &&
-			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse") || config.Force) {
 			util.Warn("%v", err)
 			id = selector
 		} else {

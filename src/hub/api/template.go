@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"hub/config"
 	"hub/util"
 )
 
@@ -326,7 +327,7 @@ func deleteTemplate(selector string) error {
 	if err != nil {
 		str := err.Error()
 		if util.IsUint(selector) &&
-			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse")) {
+			(strings.Contains(str, "json: cannot unmarshal") || strings.Contains(str, "cannot parse") || config.Force) {
 			util.Warn("%v", err)
 			id = selector
 		} else {
@@ -337,7 +338,11 @@ func deleteTemplate(selector string) error {
 	} else {
 		id = template.Id
 	}
-	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(id))
+	force := ""
+	if config.Force {
+		force = "?force=true"
+	}
+	path := fmt.Sprintf("%s/%s%s", templatesResource, url.PathEscape(id), force)
 	code, err := delete(hubApi, path)
 	if err != nil {
 		return err
