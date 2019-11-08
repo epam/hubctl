@@ -99,7 +99,7 @@ func stacksBy(selector string) ([]BaseStack, error) {
 func stackById(id string) (*BaseStack, error) {
 	path := fmt.Sprintf("%s/%s", stacksResource, url.PathEscape(id))
 	var jsResp BaseStack
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -114,7 +114,7 @@ func stackById(id string) (*BaseStack, error) {
 
 func stacks() ([]BaseStack, error) {
 	var jsResp []BaseStack
-	code, err := get(hubApi, stacksResource, &jsResp)
+	code, err := get(hubApi(), stacksResource, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}

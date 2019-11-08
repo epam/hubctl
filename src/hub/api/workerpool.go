@@ -138,7 +138,7 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 	}
 	path := fmt.Sprintf("%s/%s/workerpools%s", stackInstancesResource, url.PathEscape(instance.Id), maybeDryRun)
 	var jsResp WorkerpoolLifecycleResponse
-	code, err := post(hubApi, path, req, &jsResp)
+	code, err := post(hubApi(), path, req, &jsResp)
 	if err != nil {
 		log.Fatalf("Error creating SuperHub `%s` Workerpool `%s`: %v",
 			instance.Domain, name, err)
@@ -198,7 +198,7 @@ func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAnd
 	path := fmt.Sprintf("%s/%s/workerpools/%s%s", stackInstancesResource,
 		url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeDryRun)
 	var jsResp WorkerpoolLifecycleResponse
-	code, err := patch(hubApi, path, req, &jsResp)
+	code, err := patch(hubApi(), path, req, &jsResp)
 	if err != nil {
 		log.Fatalf("Error scaling SuperHub `%s` Workerpool `%s`: %v",
 			instance.Platform.Domain, instance.Name, err)
@@ -238,7 +238,7 @@ func UndeployWorkerpool(selector string, useWorkerpoolApi, waitAndTailDeployLogs
 		}
 		path := fmt.Sprintf("%s/%s/workerpools/%s%s", stackInstancesResource,
 			url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeForce)
-		code, err := delete(hubApi, path)
+		code, err := delete(hubApi(), path)
 		if err != nil {
 			log.Fatalf("Error deleting SuperHub `%s` Workerpool `%s`: %v",
 				instance.Platform.Domain, instance.Name, err)

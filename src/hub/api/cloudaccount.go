@@ -193,7 +193,7 @@ func cloudAccountsBy(selector string) ([]CloudAccount, error) {
 func cloudAccountById(id string) (*CloudAccount, error) {
 	path := fmt.Sprintf("%s/%s", cloudAccountsResource, url.PathEscape(id))
 	var jsResp CloudAccount
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -227,7 +227,7 @@ func cloudAccountsByDomain(domain string) ([]CloudAccount, error) {
 		path += "?domain=" + url.QueryEscape(domain)
 	}
 	var jsResp []CloudAccount
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -286,7 +286,7 @@ func rawCloudAccountCredentials(id string) ([]byte, error) {
 		log.Printf("Getting Cloud Account `%s` credentials", id)
 	}
 	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
-	code, err, body := get2(hubApi, path)
+	code, err, body := get2(hubApi(), path)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
 			id, err)
@@ -304,7 +304,7 @@ func awsCloudAccountCredentials(id string) (*AwsSecurityCredentials, error) {
 	}
 	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
 	var jsResp AwsSecurityCredentials
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
 			id, err)
@@ -513,7 +513,7 @@ func cloudFirstZoneInRegion(provider, region string) string {
 
 func createCloudAccount(cloudAccount *CloudAccountRequest) (*CloudAccount, error) {
 	var jsResp CloudAccount
-	code, err := post(hubApi, cloudAccountsResource, cloudAccount, &jsResp)
+	code, err := post(hubApi(), cloudAccountsResource, cloudAccount, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -561,7 +561,7 @@ func deleteCloudAccount(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", cloudAccountsResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}

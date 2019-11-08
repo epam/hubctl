@@ -151,7 +151,7 @@ func componentsBy(selector string, onlyCustomComponents bool) ([]Component, erro
 func componentById(id string) (*Component, error) {
 	path := fmt.Sprintf("%s/%s", componentsResource, url.PathEscape(id))
 	var jsResp Component
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -192,7 +192,7 @@ func componentsByName(name string, onlyCustomComponents bool) ([]Component, erro
 		path += "?" + strings.Join(filters, "&")
 	}
 	var jsResp []Component
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -215,7 +215,7 @@ func CreateComponent(body io.Reader) {
 
 func createComponent(body io.Reader) (*Component, error) {
 	var jsResp Component
-	code, err := post2(hubApi, componentsResource, body, &jsResp)
+	code, err := post2(hubApi(), componentsResource, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +254,7 @@ func deleteComponent(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", componentsResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -282,7 +282,7 @@ func patchComponent(selector string, change ComponentPatch) (*Component, error) 
 	}
 	path := fmt.Sprintf("%s/%s", componentsResource, url.PathEscape(component.Id))
 	var jsResp Component
-	code, err := patch(hubApi, path, &change, &jsResp)
+	code, err := patch(hubApi(), path, &change, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func rawPatchComponent(selector string, body io.Reader) (*Component, error) {
 	}
 	path := fmt.Sprintf("%s/%s", componentsResource, url.PathEscape(component.Id))
 	var jsResp Component
-	code, err := patch2(hubApi, path, body, &jsResp)
+	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}

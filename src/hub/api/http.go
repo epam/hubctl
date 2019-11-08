@@ -20,18 +20,31 @@ import (
 	"hub/util"
 )
 
-var (
-	hubApi         = util.RobustHttpClient(30*time.Second, false)
-	hubApiLongWait = util.RobustHttpClient(120*time.Second, false)
-	wsApi          = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
-)
-
 const (
 	requestsBindata  = "src/hub/api/requests"
 	socketIoResource = "hub/socket.io/"
 )
 
-var error404 = errors.New("404 HTTP")
+var (
+	error404        = errors.New("404 HTTP")
+	_hubApi         *http.Client
+	_hubApiLongWait *http.Client
+	wsApi           = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
+)
+
+func hubApi() *http.Client {
+	if _hubApi == nil {
+		_hubApi = util.RobustHttpClient(time.Duration(config.ApiTimeout)*time.Second, false)
+	}
+	return _hubApi
+}
+
+func hubApiLongWait() *http.Client {
+	if _hubApiLongWait == nil {
+		_hubApiLongWait = util.RobustHttpClient(time.Duration(config.ApiTimeout)*time.Second, false)
+	}
+	return _hubApiLongWait
+}
 
 func hubRequest(method, path string, body io.Reader) (*http.Request, error) {
 	return hubRequestWithToken(method, path, bearerToken(), body)

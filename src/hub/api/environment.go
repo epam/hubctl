@@ -249,7 +249,7 @@ func environmentsBy(selector string) ([]Environment, error) {
 func environmentById(id string) (*Environment, error) {
 	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(id))
 	var jsResp Environment
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -283,7 +283,7 @@ func environmentsByName(name string) ([]Environment, error) {
 		path += "?name=" + url.QueryEscape(name)
 	}
 	var jsResp []Environment
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -303,7 +303,7 @@ func formatEnvironmentRef(ref *EnvironmentRef) string {
 func myTeams(environmentId string) ([]Team, error) {
 	path := fmt.Sprintf("%s/%s/my-teams", environmentsResource, url.PathEscape(environmentId))
 	var jsResp []Team
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying SuperHub Environment `%s` My Teams: %v",
 			environmentId, err)
@@ -326,7 +326,7 @@ func formatTeams(teams []Team) string {
 func serviceAccount(environmentId, teamId string) (*ServiceAccount, error) {
 	path := fmt.Sprintf("%s/%s/service-account/%s", environmentsResource, url.PathEscape(environmentId), url.PathEscape(teamId))
 	var jsResp ServiceAccount
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying SuperHub Team `%s` Service Account: %v",
 			teamId, err)
@@ -369,7 +369,7 @@ func CreateEnvironment(name, cloudAccountSelector string) {
 
 func createEnvironment(environment *EnvironmentRequest) (*Environment, error) {
 	var jsResp Environment
-	code, err := post(hubApi, environmentsResource, environment, &jsResp)
+	code, err := post(hubApi(), environmentsResource, environment, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +408,7 @@ func deleteEnvironment(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", environmentsResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -436,7 +436,7 @@ func patchEnvironment(selector string, change EnvironmentPatch) (*Environment, e
 	}
 	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
 	var jsResp Environment
-	code, err := patch(hubApi, path, &change, &jsResp)
+	code, err := patch(hubApi(), path, &change, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -464,7 +464,7 @@ func rawPatchEnvironment(selector string, body io.Reader) (*Environment, error) 
 	}
 	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
 	var jsResp Environment
-	code, err := patch2(hubApi, path, body, &jsResp)
+	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}

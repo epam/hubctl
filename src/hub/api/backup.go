@@ -145,7 +145,7 @@ func backupsBy(selector string) ([]Backup, error) {
 func backupById(id string) (*Backup, error) {
 	path := fmt.Sprintf("%s/%s", backupsResource, url.PathEscape(id))
 	var jsResp Backup
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -195,7 +195,7 @@ func backupsByFilter(field, value string) ([]Backup, error) {
 		path += fmt.Sprintf("?%s=%s", url.QueryEscape(field), url.QueryEscape(value))
 	}
 	var jsResp []Backup
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -241,7 +241,7 @@ func deleteBackup(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", backupsResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}

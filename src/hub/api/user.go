@@ -13,7 +13,7 @@ func userDeploymentKey(subject string) (string, error) {
 	}
 	path := fmt.Sprintf("%s/deployment-key%s", userResource, subject)
 	var jsResp DeploymentKey
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
 		return "", fmt.Errorf("Error querying SuperHub User Deployment Key: %v", err)
 	}

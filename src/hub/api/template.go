@@ -205,7 +205,7 @@ func templatesBy(selector string) ([]StackTemplate, error) {
 func templateById(id string) (*StackTemplate, error) {
 	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(id))
 	var jsResp StackTemplate
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -239,7 +239,7 @@ func templatesByName(name string) ([]StackTemplate, error) {
 		path += "?name=" + url.QueryEscape(name)
 	}
 	var jsResp []StackTemplate
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -255,7 +255,7 @@ func templatesByName(name string) ([]StackTemplate, error) {
 func templateGitStatus(id string) (*TemplateStatus, error) {
 	path := fmt.Sprintf("%s/%s/git/status", templatesResource, url.PathEscape(id))
 	var jsResp TemplateStatus
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -278,7 +278,7 @@ func CreateTemplate(body io.Reader) {
 
 func createTemplate(body io.Reader) (*StackTemplate, error) {
 	var jsResp StackTemplate
-	code, err := post2(hubApi, templatesResource, body, &jsResp)
+	code, err := post2(hubApi(), templatesResource, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func initTemplate(selector string) error {
 		return error404
 	}
 	path := fmt.Sprintf("%s/%s/git/create", templatesResource, url.PathEscape(template.Id))
-	code, err := post2(hubApiLongWait, path, nil, nil)
+	code, err := post2(hubApiLongWait(), path, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -343,7 +343,7 @@ func deleteTemplate(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", templatesResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -371,7 +371,7 @@ func patchTemplate(selector string, change StackTemplatePatch) (*StackTemplate, 
 	}
 	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(template.Id))
 	var jsResp StackTemplate
-	code, err := patch(hubApi, path, &change, &jsResp)
+	code, err := patch(hubApi(), path, &change, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func rawPatchTemplate(selector string, body io.Reader) (*StackTemplate, error) {
 	}
 	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(template.Id))
 	var jsResp StackTemplate
-	code, err := patch2(hubApi, path, body, &jsResp)
+	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}

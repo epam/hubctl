@@ -102,7 +102,7 @@ func createSecret(resource, id, name, component, kind string, values map[string]
 	values["kind"] = kind
 	path := fmt.Sprintf("%s/%s/secrets", resource, url.PathEscape(id))
 	var jsResp CreateSecretResponse
-	code, err := post(hubApi, path, values, &jsResp)
+	code, err := post(hubApi(), path, values, &jsResp)
 	if err != nil {
 		return "", fmt.Errorf("Error creating SuperHub `%s` Secret `%s`: %v",
 			id, name, err)
@@ -117,7 +117,7 @@ func createSecret(resource, id, name, component, kind string, values map[string]
 func secret(resource, id string) (map[string]string, error) {
 	path := fmt.Sprintf("%s/secrets/%s", resource, url.PathEscape(id))
 	var jsResp map[string]string
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying SuperHub `%s` Secret `%s`: %v",
 			resource, id, err)

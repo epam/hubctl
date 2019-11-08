@@ -18,5 +18,7 @@ func init() {
 	apiCmd.PersistentFlags().BoolVar(&config.ApiDerefSecrets, "deref-secrets",
 		os.Getenv(envVarNameDerefSecrets) != "false",
 		fmt.Sprintf("Always retrieve secrets to catch API errors (%s)", envVarNameDerefSecrets))
+	apiCmd.PersistentFlags().IntVar(&config.ApiTimeout, "timeout", 30,
+		"API HTTP timeout in seconds")
 	RootCmd.AddCommand(apiCmd)
 }

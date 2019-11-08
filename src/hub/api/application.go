@@ -155,7 +155,7 @@ func applicationsBy(selector string) ([]Application, error) {
 func applicationById(id string) (*Application, error) {
 	path := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(id))
 	var jsResp Application
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -189,7 +189,7 @@ func applicationsByName(name string) ([]Application, error) {
 		path += "?name=" + url.QueryEscape(name)
 	}
 	var jsResp []Application
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -218,7 +218,7 @@ func InstallApplication(body io.Reader, waitAndTailDeployLogs bool) {
 
 func installApplication(body io.Reader) (*Application, error) {
 	var jsResp Application
-	code, err := post2(hubApi, applicationsResource, body, &jsResp)
+	code, err := post2(hubApi(), applicationsResource, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func deleteApplication(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", applicationsResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,7 @@ func patchApplication(selector string, change ApplicationPatch) (*Application, e
 	}
 	path := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(application.Id))
 	var jsResp Application
-	code, err := patch(hubApi, path, &change, &jsResp)
+	code, err := patch(hubApi(), path, &change, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ func rawPatchApplication(selector string, body io.Reader) (*Application, error) 
 	}
 	path := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(instance.Id))
 	var jsResp Application
-	code, err := patch2(hubApi, path, body, &jsResp)
+	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}

@@ -235,7 +235,7 @@ func stackInstancesBy(selector string) ([]StackInstance, error) {
 func stackInstanceById(id string) (*StackInstance, error) {
 	path := fmt.Sprintf("%s/%s", stackInstancesResource, url.PathEscape(id))
 	var jsResp StackInstance
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -269,7 +269,7 @@ func stackInstancesByDomain(domain string) ([]StackInstance, error) {
 		path += "?domain=" + url.QueryEscape(domain)
 	}
 	var jsResp []StackInstance
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -285,7 +285,7 @@ func stackInstancesByDomain(domain string) ([]StackInstance, error) {
 func stackInstancesByPlatform(platformId string) ([]StackInstance, error) {
 	path := fmt.Sprintf("%s/%s/overlays", stackInstancesResource, url.PathEscape(platformId))
 	var jsResp []StackInstance
-	code, err := get(hubApi, path, &jsResp)
+	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {
 		return nil, nil
 	}
@@ -459,7 +459,7 @@ func CreateStackInstance(body io.Reader) {
 
 func createStackInstance(body io.Reader) (*StackInstance, error) {
 	var jsResp StackInstance
-	code, err := post2(hubApi, stackInstancesResource, body, &jsResp)
+	code, err := post2(hubApi(), stackInstancesResource, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +513,7 @@ func commandStackInstance(selector, verb string, req interface{}, waitAndTailDep
 	}
 	var jsResp StackInstanceLifecycleResponse
 	path := fmt.Sprintf("%s/%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), verb, maybeDryRun)
-	code, err := post(hubApi, path, req, &jsResp)
+	code, err := post(hubApi(), path, req, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -562,7 +562,7 @@ func deleteStackInstance(selector string) error {
 		force = "?force=true"
 	}
 	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(id), force)
-	code, err := delete(hubApi, path)
+	code, err := delete(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -588,7 +588,7 @@ func kubeconfigStackInstance(selector, filename string) error {
 		return error404
 	}
 	path := fmt.Sprintf("%s/%s/kubeconfig", stackInstancesResource, url.PathEscape(instance.Id))
-	code, err, body := get2(hubApi, path)
+	code, err, body := get2(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -661,7 +661,7 @@ func PatchStackInstance(selector string, change StackInstancePatch, replace bool
 	}
 	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), maybeReplace)
 	var jsResp StackInstance
-	code, err := patch(hubApi, path, &change, &jsResp)
+	code, err := patch(hubApi(), path, &change, &jsResp)
 	if err != nil {
 		return nil, err
 	}
@@ -693,7 +693,7 @@ func rawPatchStackInstance(selector string, body io.Reader, replace bool) (*Stac
 	}
 	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), maybeReplace)
 	var jsResp StackInstance
-	code, err := patch2(hubApi, path, body, &jsResp)
+	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {
 		return nil, err
 	}

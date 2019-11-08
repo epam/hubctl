@@ -69,7 +69,7 @@ func loginForToken(apiBaseUrl, username, password string) (string, error) {
 	req.Header.Add("Content-type", "application/json")
 
 	var jsResp LoginTokenResponse
-	code, err, _ := do(hubApi, req, &jsResp)
+	code, err, _ := do(hubApi(), req, &jsResp)
 	if code == 404 {
 		return "", fmt.Errorf("No user found (404 HTTP)")
 	}
@@ -101,7 +101,7 @@ func loginWithToken(apiBaseUrl, token string) (*SigninResponse, error) {
 	req.Header.Add("Content-type", "application/json")
 
 	var jsResp SigninResponse
-	code, err, _ := do(hubApi, req, &jsResp)
+	code, err, _ := do(hubApi(), req, &jsResp)
 	if code == 404 {
 		return nil, fmt.Errorf("No user found (404 HTTP)")
 	}
@@ -211,7 +211,7 @@ func verifyAccessToken(accessToken string) (int, *AuthPingResponse, error) {
 		return 0, nil, err
 	}
 	var jsResp AuthPingResponse
-	code, err, _ := do(hubApi, req, &jsResp)
+	code, err, _ := do(hubApi(), req, &jsResp)
 	if err != nil {
 		return code, nil, err
 	}
@@ -231,7 +231,7 @@ func refreshAccessToken(tokens *SigninResponse) (*SigninResponse, error) {
 		return nil, err
 	}
 	var jsResp SigninResponse
-	code, err, _ := do(hubApi, req, &jsResp)
+	code, err, _ := do(hubApi(), req, &jsResp)
 	if err != nil {
 		return nil, fmt.Errorf("Refresh API token error: %v", err)
 	}
