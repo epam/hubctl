@@ -15,6 +15,7 @@ var (
 	getCloudCredentials          bool
 	cloudCredentialsShell        bool
 	cloudCredentialsNativeConfig bool
+	cfTemplateOutput             string
 )
 
 var cloudAccountCmd = &cobra.Command{
@@ -80,6 +81,29 @@ var cloudAccounDeleteCmd = &cobra.Command{
 	},
 }
 
+var cloudAccountCfTemplateCmd = &cobra.Command{
+	Use:   "cf-template",
+	Short: "Download AWS CloudFormation template",
+	Long: `Download AWS CloudFormation template to create cross-account role:
+
+1. Download CloudFormation template x-account-role.json. The template is specific to your AgileStack's user account.
+2. Open Launch CloudFormation Stack: https://console.aws.amazon.com/cloudformation/home#/stacks/new
+3. Under Choose a template section select Upload a template to Amazon S3.
+4. Choose file and upload x-account-role.json.
+5. Click Next.
+6. Enter the Stack name.
+7. Click Next.
+8. Set your Options (optional) and click Next.
+9. Check the I Acknowledge that AWS CloudFormation might create IAM resources box on the Review screen, and click Create.
+10. When Stack Creation has completed, go to the Resources tab and click on the AgileStacksRole's Physical ID.
+11. Finally, copy the "Role ARN" value and paste it into:
+
+	$ hub api cloudaccount onboard ... <Role ARN>`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return downloadCfTemplate(args)
+	},
+}
+
 func cloudAccount(args []string) error {
 	if len(args) > 1 {
 		return errors.New("CloudAccount command has one optional argument - id or domain of the cloud account")
@@ -134,6 +158,16 @@ func deleteCloudAccount(args []string) error {
 	return nil
 }
 
+func downloadCfTemplate(args []string) error {
+	if len(args) != 0 {
+		return errors.New("Download AWS CloudFormation template command has no arguments")
+	}
+
+	api.CloudAccountDownloadCfTemplate(cfTemplateOutput)
+
+	return nil
+}
+
 func init() {
 	cloudAccountGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
@@ -151,8 +185,11 @@ func init() {
 		"Wait for deployment and tail logs")
 	cloudAccounDeleteCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	cloudAccountCfTemplateCmd.Flags().StringVarP(&cfTemplateOutput, "output", "o", "x-account-role.json",
+		"Set output filename, \"-\" for stdout")
 	cloudAccountCmd.AddCommand(cloudAccountGetCmd)
 	cloudAccountCmd.AddCommand(cloudAccounOnboardCmd)
 	cloudAccountCmd.AddCommand(cloudAccounDeleteCmd)
+	cloudAccountCmd.AddCommand(cloudAccountCfTemplateCmd)
 	apiCmd.AddCommand(cloudAccountCmd)
 }

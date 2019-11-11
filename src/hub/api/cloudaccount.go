@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -382,7 +383,7 @@ func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
 }
 
 func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLogs bool) {
-	credentials, err := cloudSpecificCredentials(kind, args)
+	kind2, credentials, err := cloudSpecificCredentials(kind, args)
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
@@ -392,9 +393,6 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	}
 
 	provider := kind
-	if kind == "aws" {
-		kind = "awscar" // cross-account role
-	}
 	domainParts := strings.SplitN(domain, ".", 2)
 	if len(domainParts) != 2 {
 		log.Fatalf("Domain `%s` invalid", domain)
@@ -402,7 +400,7 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	region := args[0]
 	req := &CloudAccountRequest{
 		Name:        domainParts[0],
-		Kind:        kind,
+		Kind:        kind2,
 		Credentials: credentials,
 		Parameters: []Parameter{
 			{Name: "dns.baseDomain", Value: domainParts[1]},
@@ -429,11 +427,14 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 	}
 }
 
-func cloudSpecificCredentials(provider string, args []string) (map[string]string, error) {
+func cloudSpecificCredentials(provider string, args []string) (string, map[string]string, error) {
 	switch provider {
 	case "aws":
 		if len(args) == 3 {
-			return map[string]string{"accessKey": args[1], "secretKey": args[2]}, nil
+			return "awscar", map[string]string{"accessKey": args[1], "secretKey": args[2]}, nil
+		}
+		if len(args) == 2 && strings.HasPrefix(args[1], "arn:aws:iam:") {
+			return "awsarn", map[string]string{"roleArn": args[1]}, nil
 		}
 		profile := ""
 		if len(args) == 2 {
@@ -450,9 +451,9 @@ func cloudSpecificCredentials(provider string, args []string) (map[string]string
 			if profile != "" {
 				maybeProfile = fmt.Sprintf(" (profile `%s`)", profile)
 			}
-			return nil, fmt.Errorf("Unable to retrieve AWS credentials%s: %v", maybeProfile, err)
+			return "", nil, fmt.Errorf("Unable to retrieve AWS credentials%s: %v", maybeProfile, err)
 		}
-		return map[string]string{"accessKey": creds.AccessKeyID, "secretKey": creds.SecretAccessKey,
+		return "awscar", map[string]string{"accessKey": creds.AccessKeyID, "secretKey": creds.SecretAccessKey,
 			"sessionToken": creds.SessionToken}, nil
 
 	case "azure", "gcp":
@@ -474,25 +475,25 @@ func cloudSpecificCredentials(provider string, args []string) (map[string]string
 			}
 		}
 		if credentialsFile == "" {
-			return nil, errors.New("No credentials file specified")
+			return "", nil, errors.New("No credentials file specified")
 		}
 		file, err := os.Open(credentialsFile)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to open credentials file: %v", err)
+			return "", nil, fmt.Errorf("Unable to open credentials file: %v", err)
 		}
 		defer file.Close()
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to read credentials file `%s`: %v", credentialsFile, err)
+			return "", nil, fmt.Errorf("Unable to read credentials file `%s`: %v", credentialsFile, err)
 		}
 		var creds map[string]string
 		err = json.Unmarshal(data, &creds)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to unmarshall credentials file `%s`: %v", credentialsFile, err)
+			return "", nil, fmt.Errorf("Unable to unmarshall credentials file `%s`: %v", credentialsFile, err)
 		}
-		return creds, nil
+		return provider, creds, nil
 	}
-	return nil, nil
+	return "", nil, errors.New("Unknown cloud account provider")
 }
 
 func cloudFirstZoneInRegion(provider, region string) string {
@@ -568,5 +569,57 @@ func deleteCloudAccount(selector string) error {
 	if code != 202 && code != 204 {
 		return fmt.Errorf("Got %d HTTP deleting SuperHub Cloud Account, expected [202, 204] HTTP", code)
 	}
+	return nil
+}
+
+func CloudAccountDownloadCfTemplate(filename string) {
+	err := cloudAccountDownloadCfTemplate(filename)
+	if err != nil {
+		log.Fatalf("Unable to download SuperHub Cloud Account AWS CloudFormation template: %v", err)
+	}
+}
+
+func cloudAccountDownloadCfTemplate(filename string) error {
+	path := fmt.Sprintf("%s/x-account-role-template-download", cloudAccountsResource)
+	code, err, body := get2(hubApi(), path)
+	if err != nil {
+		return err
+	}
+	if code != 200 {
+		return fmt.Errorf("Got %d HTTP fetching SuperHub Cloud Account AWS CloudFormation template, expected 200 HTTP", code)
+	}
+	if len(body) == 0 {
+		return fmt.Errorf("Got empty SuperHub Cloud Account AWS CloudFormation template")
+	}
+
+	var file io.WriteCloser
+	if filename == "-" {
+		file = os.Stdout
+	} else {
+		info, _ := os.Stat(filename)
+		if info != nil {
+			if info.IsDir() {
+				filename = fmt.Sprintf("%s/x-account-role.json", filename)
+			} else {
+				if !config.Force {
+					log.Fatalf("File `%s` exists, use --force / -f to overwrite", filename)
+				}
+			}
+		}
+		var err error
+		file, err = os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("Unable to create %s: %v", filename, err)
+		}
+		defer file.Close()
+	}
+	written, err := file.Write(body)
+	if written != len(body) {
+		return fmt.Errorf("Unable to write %s: %v", filename, err)
+	}
+	if config.Verbose && filename != "-" {
+		log.Printf("Wrote %s", filename)
+	}
+
 	return nil
 }
