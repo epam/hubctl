@@ -39,15 +39,16 @@ var cloudAccounOnboardCmd = &cobra.Command{
 <domain> must be a sub-domain of superhub.io or prefix, for example dev-01.superhub.io, dev-01
 
 AWS:
-	$ hub api onboard dev-01.superhub.io aws <access key> <secret key>
-	$ hub api onboard dev-01.superhub.io aws <profile>
-	$ hub api onboard dev-01.superhub.io aws  # credentials from OS environment, default profile, or EC2 metadata
+	$ hub api cloudaccount onboard dev-01.superhub.io aws <access key> <secret key>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws <profile>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws <Role ARN>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws  # credentials from OS environment, default profile, or EC2 metadata
 
 A cross account role will be created in your AWS account. The keys are not stored in SuperHub.
 
 Azure:
-	$ hub api onboard dev-01.superhub.io azure creds.json
-	$ hub api onboard dev-01.superhub.io azure  # credentials from $AZURE_AUTH_LOCATION
+	$ hub api cloudaccount onboard dev-01.superhub.io azure creds.json
+	$ hub api cloudaccount onboard dev-01.superhub.io azure  # credentials from $AZURE_AUTH_LOCATION
 
 where creds.json is a file with Service Principal credentials created by:
 
@@ -59,8 +60,8 @@ https://docs.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azu
 https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
 
 GCP:
-	$ hub api onboard gcp dev-01.superhub.io gcp creds.json
-	$ hub api onboard gcp dev-01.superhub.io gcp  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
+	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp creds.json
+	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
 
 where creds.json is a file with Service Account credentials usually used via GOOGLE_APPLICATION_CREDENTIALS environment variable.
 For details please consult
