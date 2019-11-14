@@ -256,6 +256,7 @@ NEXT_COMPONENT:
 
 		var updateStateComponentFailed func(string, bool)
 		if stateManifest != nil {
+			stateManifest = state.UpdateComponentStartTimestamp(stateManifest, componentName)
 			updateStateComponentFailed = func(msg string, final bool) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, componentManifest.Meta.Version, "error", msg)
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "error")

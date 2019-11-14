@@ -20,6 +20,7 @@ import (
 
 type ExplainedComponent struct {
 	Timestamp  time.Time         `yaml:",omitempty" json:"timestamp,omitempty"`
+	Timestamps Timestamps        `yaml:",omitempty" json:"timestamps,omitempty"`
 	Status     string            `yaml:",omitempty" json:"status,omitempty"`
 	Message    string            `yaml:",omitempty" json:"message,omitempty"`
 	Parameters map[string]string `yaml:",omitempty" json:"parameters,omitempty"`
@@ -98,7 +99,7 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 		if global || componentName == "" {
 			fmt.Printf("Kind: %s\n", state.Meta.Kind)
 			fmt.Printf("Name: %s\n", state.Meta.Name)
-			fmt.Printf("Timestamp: %v\n", state.Timestamp)
+			fmt.Printf("Timestamp: %v\n", state.Timestamp.Truncate(time.Second))
 			fmt.Printf("Status: %s\n", state.Status)
 			if state.Message != "" {
 				fmt.Printf("Message: %s\n", state.Message)
@@ -144,6 +145,7 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 				if step, exist := state.Components[component]; exist {
 					comp := ExplainedComponent{
 						Timestamp:  step.Timestamp,
+						Timestamps: step.Timestamps,
 						Status:     step.Status,
 						Message:    step.Message,
 						Parameters: make(map[string]string),
@@ -193,7 +195,10 @@ var headColor = func(str string) string {
 }
 
 func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
-	fmt.Printf("-- Timestamp: %v\n", step.Timestamp)
+	fmt.Printf("-- Timestamp: %v\n", step.Timestamp.Truncate(time.Second))
+	if t := step.Timestamps; !t.End.IsZero() && !t.Start.IsZero() {
+		fmt.Printf("-- Duration: %v\n", t.End.Sub(t.Start).Truncate(time.Second).String())
+	}
 	fmt.Printf("-- Status: %v\n", step.Status)
 	if step.Version != "" {
 		fmt.Printf("-- Version: %v\n", step.Version)
@@ -342,7 +347,7 @@ func formatOperation(op LifecycleOperation, showLogs bool) string {
 		phases = fmt.Sprintf("%sPhases:\n%s\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident))
 	}
 	return fmt.Sprintf("%s%s %s - %s %v%s%s %s\n%s%s%s",
-		ident, headColor("Operation:"), op.Operation, op.Status, op.Timestamp, initiator, description, op.Id,
+		ident, headColor("Operation:"), op.Operation, op.Status, op.Timestamp.Truncate(time.Second), initiator, description, op.Id,
 		options, phases, logs)
 }
 

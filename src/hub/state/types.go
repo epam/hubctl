@@ -15,8 +15,14 @@ type Lifecycle struct {
 	Order []string `yaml:",omitempty"`
 }
 
+type Timestamps struct {
+	Start time.Time `yaml:",omitempty" json:"start,omitempty"`
+	End   time.Time `yaml:",omitempty" json:"end,omitempty"`
+}
+
 type StateStep struct {
-	Timestamp       time.Time
+	Timestamp       time.Time                    `yaml:",omitempty"`
+	Timestamps      Timestamps                   `yaml:",omitempty"`
 	Status          string                       `yaml:",omitempty"`
 	Version         string                       `yaml:",omitempty"`
 	Message         string                       `yaml:",omitempty"`

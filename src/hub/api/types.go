@@ -206,12 +206,18 @@ type PlatformRef struct {
 	StateFiles []string            `json:"stateFiles,omitempty"`
 }
 
+type Timestamps struct {
+	Start time.Time `json:"start,omitempty"`
+	End   time.Time `json:"end,omitempty"`
+}
+
 type ComponentStatus struct {
-	Name    string            `json:"name"`
-	Status  string            `json:"status"`
-	Version string            `json:"version,omitempty"`
-	Message string            `json:"message,omitempty"`
-	Outputs map[string]string `json:"outputs,omitempty"`
+	Name       string            `json:"name"`
+	Status     string            `json:"status"`
+	Version    string            `json:"version,omitempty"`
+	Message    string            `json:"message,omitempty"`
+	Outputs    map[string]string `json:"outputs,omitempty"`
+	Timestamps *Timestamps       `json:"timestamps,omitempty"`
 }
 
 type LifecyclePhase struct {
@@ -235,11 +241,11 @@ type InflightOperation struct {
 }
 
 type TemplateStatus struct {
-	Commit  string `json:"commit,omitempty"`
-	Ref     string `json:"ref,omitempty"`
-	Date    string `json:"date,omitempty"`
-	Author  string `json:"author,omitempty"`
-	Subject string `json:"subject,omitempty"`
+	Commit  string    `json:"commit,omitempty"`
+	Ref     string    `json:"ref,omitempty"`
+	Date    time.Time `json:"date,omitempty"`
+	Author  string    `json:"author,omitempty"`
+	Subject string    `json:"subject,omitempty"`
 }
 
 type StackInstanceStatus struct {

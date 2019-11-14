@@ -133,12 +133,21 @@ func UpdateStackStatus(manifest *StateManifest, status, message string) *StateMa
 	return manifest
 }
 
+func UpdateComponentStartTimestamp(manifest *StateManifest, name string) *StateManifest {
+	manifest = maybeInitState(manifest)
+	componentState := maybeInitComponentState(manifest, name)
+	componentState.Timestamps.Start = time.Now()
+	return manifest
+}
+
 func UpdateComponentStatus(manifest *StateManifest, name, version, status, message string) *StateManifest {
 	manifest = maybeInitState(manifest)
 	if name != "" && status != "" {
 		componentState := maybeInitComponentState(manifest, name)
 		componentState.Version = version
-		componentState.Timestamp = time.Now()
+		now := time.Now()
+		componentState.Timestamp = now
+		componentState.Timestamps.End = now
 		componentState.Status = status
 		componentState.Message = message
 		if config.Debug {

@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"hub/config"
 	"hub/util"
@@ -131,7 +132,7 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs, s
 		if len(commit) > 7 {
 			commit = commit[:7]
 		}
-		fmt.Printf("\t\tTemplate deployed: %s %s %s %s %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
+		fmt.Printf("\t\tTemplate deployed: %s %s %s %v %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
 	}
 	if instance.Status.K8s != nil && instance.Status.K8s.Commit != "" {
 		t := instance.Status.K8s
@@ -139,7 +140,7 @@ func formatStackInstanceEntity(instance *StackInstance, showSecrets, showLogs, s
 		if len(commit) > 7 {
 			commit = commit[:7]
 		}
-		fmt.Printf("\t\tKubernetes deployed: %s %s %s %s %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
+		fmt.Printf("\t\tKubernetes deployed: %s %s %s %v %s\n", commit, t.Ref, t.Author, t.Date, t.Subject)
 	}
 	if len(instance.Status.Components) > 0 {
 		fmt.Print("\t\tComponents Status:\n")
@@ -390,7 +391,12 @@ func formatComponentStatus(comp ComponentStatus) string {
 	if comp.Message != "" {
 		message = fmt.Sprintf(": %s", comp.Message)
 	}
-	str := fmt.Sprintf("%s%s%s - %s%s\n", ident, comp.Name, version, comp.Status, message)
+	timestamps := ""
+	if t := comp.Timestamps; t != nil {
+		timestamps = fmt.Sprintf(" (start: %v; duration %s)",
+			t.Start.Truncate(time.Second), t.End.Sub(t.Start).Truncate(time.Second).String())
+	}
+	str := fmt.Sprintf("%s%s%s - %s%s%s\n", ident, comp.Name, version, comp.Status, timestamps, message)
 	if len(comp.Outputs) > 0 {
 		str = fmt.Sprintf("%s%s\t%s\n", str, ident, formatComponentOutputs(comp.Outputs, ident))
 	}
@@ -438,7 +444,8 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 		phases = fmt.Sprintf("%s\tPhases:\n%s\t\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident+"\t"))
 	}
 	return fmt.Sprintf("%sOperation: %s - %s %v%s%s %s\n%s%s%s%s",
-		ident, op.Operation, op.Status, op.Timestamp, initiator, description, op.Id, platform, options, phases, logs)
+		ident, op.Operation, op.Status, op.Timestamp.Truncate(time.Second), initiator, description, op.Id,
+		platform, options, phases, logs)
 }
 
 func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
