@@ -160,6 +160,15 @@ func UpdateComponentStatus(manifest *StateManifest, name, version, status, messa
 	return manifest
 }
 
+func EraseComponentEmptyState(manifest *StateManifest, name string) *StateManifest {
+	manifest = maybeInitState(manifest)
+	componentState := manifest.Components[name]
+	if componentState != nil && componentState.Status == "" {
+		delete(manifest.Components, name)
+	}
+	return manifest
+}
+
 func UpdateOperation(manifest *StateManifest, id, operation, status string, options map[string]interface{}) *StateManifest {
 	found := -1
 	ops := manifest.Operations

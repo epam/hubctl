@@ -296,7 +296,9 @@ NEXT_COMPONENT:
 		optionalParametersFalse := calculateOptionalFalseParameters(componentName, allParameters, optionalRequires)
 		if len(optionalParametersFalse) > 0 {
 			log.Printf("Surprisingly, let skip `%s` due to optional parameter %v evaluated to false", componentName, optionalParametersFalse)
-
+			if stateManifest != nil {
+				stateManifest = state.EraseComponentEmptyState(stateManifest, componentName)
+			}
 			continue NEXT_COMPONENT
 		}
 		if len(expansionErrs) > 0 {
