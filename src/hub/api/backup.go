@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"hub/config"
 	"hub/util"
@@ -60,7 +61,7 @@ func formatBackupEntity(backup *Backup, showLogs bool, errors []error) []error {
 	if backup.Description != "" {
 		title = fmt.Sprintf("%s - %s", title, backup.Description)
 	}
-	fmt.Printf("\n\t%s @ %v\n", title, backup.Timestamp)
+	fmt.Printf("\n\t%s @ %v\n", title, backup.Timestamp.Truncate(time.Second))
 	if len(backup.Tags) > 0 {
 		fmt.Printf("\t\tTags: %s\n", strings.Join(backup.Tags, ", "))
 	}
@@ -79,12 +80,12 @@ func formatBackupEntity(backup *Backup, showLogs bool, errors []error) []error {
 	}
 	if backup.Bundle.Kind != "" {
 		bundle := backup.Bundle
-		fmt.Printf("\t\tBundle: %s @ %v\n", bundle.Kind, bundle.Timestamp)
+		fmt.Printf("\t\tBundle: %s @ %v\n", bundle.Kind, bundle.Timestamp.Truncate(time.Second))
 		fmt.Printf("\t\t\tStatus: %s\n", bundle.Status)
 		if len(bundle.Components) > 0 {
 			fmt.Print("\t\t\tComponents:\n")
 			for name, comp := range bundle.Components {
-				fmt.Printf("\t\t\t\t%s [%s] @ %v\n", name, comp.Kind, comp.Timestamp)
+				fmt.Printf("\t\t\t\t%s [%s] @ %v\n", name, comp.Kind, comp.Timestamp.Truncate(time.Second))
 				fmt.Printf("\t\t\t\tStatus: %s\n", comp.Status)
 				if len(comp.Outputs) > 0 {
 					fmt.Print("\t\t\t\tOutputs:\n")
