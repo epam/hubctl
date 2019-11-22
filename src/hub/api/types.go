@@ -324,7 +324,6 @@ type StackInstancePatch struct {
 
 type WorkerpoolRequest struct {
 	Name        string                 `json:"name"`
-	Kind        string                 `json:"kind"`
 	Description string                 `json:"description,omitempty"`
 	Tags        []string               `json:"tags,omitempty"`
 	UI          map[string]interface{} `json:"ui,omitempty"`
@@ -332,7 +331,6 @@ type WorkerpoolRequest struct {
 }
 
 type WorkerpoolPatch struct {
-	Kind       string      `json:"kind"`
 	Parameters []Parameter `json:"parameters,omitempty"`
 }
 

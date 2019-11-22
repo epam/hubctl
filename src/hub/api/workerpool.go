@@ -129,7 +129,6 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 	}
 	req := &WorkerpoolRequest{
 		Name:       name,
-		Kind:       kind + "-worker-pool", // TODO API switching validation schema on input field
 		Parameters: parameters,
 	}
 	maybeDryRun := ""
@@ -172,10 +171,6 @@ func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAnd
 	if err != nil {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 	}
-	kind := "aws"
-	if strings.HasPrefix(instance.Stack.Id, "gke") {
-		kind = "gcp"
-	}
 	parameters := []Parameter{
 		{Name: "component.k8s-worker-nodes.count", Value: count},
 	}
@@ -188,7 +183,6 @@ func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAnd
 			Parameter{Name: "component.k8s-worker-nodes.maxCount", Value: maxCount})
 	}
 	req := &WorkerpoolPatch{
-		Kind:       kind + "-worker-pool", // TODO API switching validation schema on input field
 		Parameters: parameters,
 	}
 	maybeDryRun := ""
