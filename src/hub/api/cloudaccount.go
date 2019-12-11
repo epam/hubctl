@@ -528,11 +528,11 @@ func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
 	if config.Debug {
 		log.Printf("Deleting %s cloud account", selector)
 	}
-	err := deleteCloudAccount(selector)
+	code, err := deleteCloudAccount(selector)
 	if err != nil {
 		log.Fatalf("Unable to delete SuperHub Cloud Account: %v", err)
 	}
-	if waitAndTailDeployLogs {
+	if waitAndTailDeployLogs && code == 202 {
 		if config.Verbose {
 			log.Print("Tailing automation task logs... ^C to interrupt")
 		}
@@ -540,7 +540,7 @@ func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
 	}
 }
 
-func deleteCloudAccount(selector string) error {
+func deleteCloudAccount(selector string) (int, error) {
 	account, err := cloudAccountBy(selector)
 	id := ""
 	if err != nil {
@@ -550,10 +550,10 @@ func deleteCloudAccount(selector string) error {
 			util.Warn("%v", err)
 			id = selector
 		} else {
-			return err
+			return 0, err
 		}
 	} else if account == nil {
-		return error404
+		return 404, error404
 	} else {
 		id = account.Id
 	}
@@ -564,12 +564,12 @@ func deleteCloudAccount(selector string) error {
 	path := fmt.Sprintf("%s/%s%s", cloudAccountsResource, url.PathEscape(id), force)
 	code, err := delete(hubApi(), path)
 	if err != nil {
-		return err
+		return code, err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Cloud Account, expected [202, 204] HTTP", code)
+		return code, fmt.Errorf("Got %d HTTP deleting SuperHub Cloud Account, expected [202, 204] HTTP", code)
 	}
-	return nil
+	return code, nil
 }
 
 func CloudAccountDownloadCfTemplate(filename string) {
