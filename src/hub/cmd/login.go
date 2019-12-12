@@ -19,9 +19,10 @@ var (
 var loginCmd = &cobra.Command{
 	Use:   "login [https://api.agilestacks.io] [-u email] [-p password]",
 	Short: "Obtain login token for subsequent Hub API calls",
-	Long: `Sign-in to Hub API service to obtain a Login Token. The token is used to call
-API service to manage Secrets, print Environment or Stack Instance details, etc.
-If API URL is not given on command line then it's read from HUB_API env.`,
+	Long: `Sign-in to Hub API service to obtain a Login Token.
+
+The token is used to call API service to manage Secrets, print Environment or Stack Instance
+details, etc. If API URL is not given on command line then it's read from HUB_API env.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return login(args)
 	},

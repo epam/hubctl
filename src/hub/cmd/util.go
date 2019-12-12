@@ -24,9 +24,10 @@ var utilOtpCmd = &cobra.Command{
 	Use:   "otp [encode]",
 	Short: "Encode stdin with one-time pad",
 	Long: `Encode stdin with one-time pad provided via HUB_RANDOM environment variable (base64).
+
 The result is printed to stdout:
 
-secrets = <base64-encoded-result>
+	secrets = <base64-encoded-result>
 
 HUB_RANDOM is set by deploy command for components to output secrets securely.
 In component's Makefile:

@@ -42,29 +42,31 @@ the particular instance (specify Id or search by full domain name)`,
 var instanceCreateCmd = &cobra.Command{
 	Use:   "create < instance.json",
 	Short: "Create Stack Instance",
-	Long: `Create Stack Instance by sending JSON via stdin, for example:
-    {
-        "name": "kubernetes",
-        "template": "1",
-        "environment": "2",
-        "tags": [],
-        "parameters": [
-            {
-                "name": "dns.name",
-                "value": "kubernetes"
-            }, {
-                "name": "dns.baseDomain",
-                "value": "dev01.superhub.io"
-            }, {
-                "name": "component.postgresql.password",
-                "kind": "secret",
-                "value": {
-                    "kind": "password",
-                    "password": "qwerty123"
-                }
-            }
-        ]
-    }`,
+	Long: fmt.Sprintf(`Create Stack Instance by sending JSON via stdin, for example:
+%[1]s
+	{
+		"name": "kubernetes",
+		"template": "1",
+		"environment": "2",
+		"tags": [],
+		"parameters": [
+			{
+				"name": "dns.name",
+				"value": "kubernetes"
+			}, {
+				"name": "dns.baseDomain",
+				"value": "dev01.superhub.io"
+			}, {
+				"name": "component.postgresql.password",
+				"kind": "secret",
+				"value": {
+					"kind": "password",
+					"password": "qwerty123"
+				}
+			}
+		]
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return createInstance(args)
 	},
@@ -73,36 +75,38 @@ var instanceCreateCmd = &cobra.Command{
 var instancePatchCmd = &cobra.Command{
 	Use:   "patch <id | domain> < instance-patch.json",
 	Short: "Patch Stack Instance",
-	Long: `Patch Stack Instance by sending JSON via stdin, for example:
-    {
-        "status": {
-            "status": "deployed",
-            "components": [],
-            "inflightOperations": []
-        },
-        "parameters": [
-            {
-                "name": "dns.name",
-                "value": "kubernetes"
-            }, {
-                "name": "component.postgresql.password",
-                "kind": "secret",
-                "value": {
-                    "kind": "password",
-                    "password": "qwerty123"
-                }
-            }
-        ],
-        "outputs": [
-            {
-                "name": "component.ingress.fqdn",
-                "value": "app.kubernetes.dev01.superhub.io"
-            }
-        ],
-        "provides": {
-            "kubernetes": ["stack-k8s-aws"]
-        }
-    }`,
+	Long: fmt.Sprintf(`Patch Stack Instance by sending JSON via stdin, for example:
+%[1]s
+	{
+		"status": {
+			"status": "deployed",
+			"components": [],
+			"inflightOperations": []
+		},
+		"parameters": [
+			{
+				"name": "dns.name",
+				"value": "kubernetes"
+			}, {
+				"name": "component.postgresql.password",
+				"kind": "secret",
+				"value": {
+					"kind": "password",
+					"password": "qwerty123"
+				}
+			}
+		],
+		"outputs": [
+			{
+				"name": "component.ingress.fqdn",
+				"value": "app.kubernetes.dev01.superhub.io"
+			}
+		],
+		"provides": {
+			"kubernetes": ["stack-k8s-aws"]
+		}
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return patchInstance(args)
 	},

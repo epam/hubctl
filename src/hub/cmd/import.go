@@ -36,6 +36,7 @@ var importCmd = &cobra.Command{
 		strings.Join(knownImportKinds, " | ")),
 	Short: "Import Kubernetes cluster",
 	Long: `Import Kubernetes cluster into SuperHub to become Platform Stack.
+
 Currently supported cluster types are:
 - k8s-aws - AgileStacks Kubernetes on AWS (stack-k8s-aws)
 - eks - AWS EKS
@@ -81,7 +82,7 @@ func importKubernetes(args []string) error {
 		}
 		nativeEndpoint = k8sEndpoint
 
-        case "hybrid":
+	case "hybrid":
 		if metalEndpoint == "" {
 			return errors.New("Hybrid bare-metal cluster API endpoint must be specified by --metal-endpoint")
 		}

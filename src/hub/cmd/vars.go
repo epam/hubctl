@@ -9,6 +9,8 @@ const (
 	envVarNameHubApi            = "HUB_API"
 	envVarNameDerefSecrets      = "HUB_API_DEREF_SECRETS"
 	SuperHubIo                  = ".superhub.io"
+
+	mdpre = "```"
 )
 
 var (

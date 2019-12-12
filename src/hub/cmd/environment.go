@@ -49,7 +49,8 @@ var environmentCreateCmd = &cobra.Command{
 var environmentPatchCmd = &cobra.Command{
 	Use:   "patch <id | name> < environment-patch.json",
 	Short: "Patch Environment",
-	Long: `Patch Environment by sending JSON via stdin, for example:
+	Long: fmt.Sprintf(`Patch Environment by sending JSON via stdin, for example:
+%[1]s
 	{
 		"name": "GCP01",
 		"providers": [],
@@ -89,7 +90,8 @@ var environmentPatchCmd = &cobra.Command{
 				"role": "write"
 			}
 		]
-	}`,
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return patchEnvironment(args)
 	},

@@ -34,7 +34,8 @@ the particular Component (specify Id or search by name)`,
 var componentCreateCmd = &cobra.Command{
 	Use:   "create < component.json",
 	Short: "Create Component Registration",
-	Long: `Create Component Registration by sending JSON via stdin, for example:
+	Long: fmt.Sprintf(`Create Component Registration by sending JSON via stdin, for example:
+%[1]s
 	{
 		"name": "kube-dashboard", // generated qname = "org:kube-dashboard/kube-dashboard-456",
 		"title": "Dashboard",
@@ -61,7 +62,8 @@ var componentCreateCmd = &cobra.Command{
 			{"name": "...", "value": "...", "brief": "UI label"}
 		],
 		"teamsPermissions": []
-	}`,
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return createComponent(args)
 	},
@@ -70,7 +72,8 @@ var componentCreateCmd = &cobra.Command{
 var componentPatchCmd = &cobra.Command{
 	Use:   "patch <id | qname | name> < component-patch.json",
 	Short: "Patch Component Registration",
-	Long: `Patch Component Registration by sending JSON via stdin, for example:
+	Long: fmt.Sprintf(`Patch Component Registration by sending JSON via stdin, for example:
+%[1]s
 	{
 		"title": "Dashboard",
 		"brief": "Kubernetes Dashboard",
@@ -89,7 +92,8 @@ var componentPatchCmd = &cobra.Command{
 			"kubernetes-dashboard"
 		],
 		"teamsPermissions": []
-	}`,
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return patchComponent(args)
 	},

@@ -36,43 +36,45 @@ the particular Template (specify Id or search by name)`,
 var templateCreateCmd = &cobra.Command{
 	Use:   "create < template.json",
 	Short: "Create Stack Template",
-	Long: `Create Stack Template by sending JSON via stdin, for example:
-    {
-        "name": "EKS",
-        "description": "EKS with Terraform",
-        "stack": "eks:1",
-        "componentsEnabled": ["stack-k8s-eks", "tiller", "traefik", "dex", "kube-dashboard"],
-        "verbs": ["deploy", "undeploy"],
-        "tags": [],
-        "parameters": [{
-            "name": "dns.domain"
-        }, {
-            "name": "component.kubernetes.eks.cluster"
-        }, {
-            "name": "component.kubernetes.eks.admin"
-        }, {
-            "name": "component.kubernetes.eks.availabilityZones"
-        }, {
-            "name": "component.kubernetes.worker.count",
-            "value": 3
-        }, {
-            "name": "component.kubernetes.worker.size",
-            "value": "r5a.large"
-        }, {
-            "name": "component.kubernetes.worker.spotPrice",
-            "value": 0.06
-        }, {
-            "name": "component.ingress.urlPrefix",
-            "value": "app"
-        }, {
-            "name": "component.ingress.ssoUrlPrefix",
-            "value": "apps"
-        }, {
-            "name": "component.ingress.ssl.enabled",
-            "value": "false"
-        }],
-        "teamsPermissions": []
-    }`,
+	Long: fmt.Sprintf(`Create Stack Template by sending JSON via stdin, for example:
+%[1]s
+	{
+		"name": "EKS",
+		"description": "EKS with Terraform",
+		"stack": "eks:1",
+		"componentsEnabled": ["stack-k8s-eks", "tiller", "traefik", "dex", "kube-dashboard"],
+		"verbs": ["deploy", "undeploy"],
+		"tags": [],
+		"parameters": [{
+			"name": "dns.domain"
+		}, {
+			"name": "component.kubernetes.eks.cluster"
+		}, {
+			"name": "component.kubernetes.eks.admin"
+		}, {
+			"name": "component.kubernetes.eks.availabilityZones"
+		}, {
+			"name": "component.kubernetes.worker.count",
+			"value": 3
+		}, {
+			"name": "component.kubernetes.worker.size",
+			"value": "r5a.large"
+		}, {
+			"name": "component.kubernetes.worker.spotPrice",
+			"value": 0.06
+		}, {
+			"name": "component.ingress.urlPrefix",
+			"value": "app"
+		}, {
+			"name": "component.ingress.ssoUrlPrefix",
+			"value": "apps"
+		}, {
+			"name": "component.ingress.ssl.enabled",
+			"value": "false"
+		}],
+		"teamsPermissions": []
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return createTemplate(args)
 	},
@@ -89,7 +91,8 @@ var templateInitCmd = &cobra.Command{
 var templatePatchCmd = &cobra.Command{
 	Use:   "patch <id | name> < template-patch.json",
 	Short: "Patch Stack Template",
-	Long: `Patch Template by sending JSON via stdin, for example:
+	Long: fmt.Sprintf(`Patch Template by sending JSON via stdin, for example:
+%[1]s
 	{
 		"description": "",
 		"verbs": [
@@ -114,7 +117,8 @@ var templatePatchCmd = &cobra.Command{
 			}
 		],
 		"teamsPermissions": []
-	}`,
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return patchTemplate(args)
 	},

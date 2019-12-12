@@ -30,7 +30,8 @@ the particular application (specify Id or search by name)`,
 var applicationInstallCmd = &cobra.Command{
 	Use:   "install < application.json",
 	Short: "Install Application",
-	Long: `Install Application by sending JSON via stdin, for example:
+	Long: fmt.Sprintf(`Install Application by sending JSON via stdin, for example:
+%[1]s
 	{
 		"name": "a-node-01",
 		"description": "NodeJS microservice with Express",
@@ -45,7 +46,7 @@ var applicationInstallCmd = &cobra.Command{
 			...
 		}]
 	}
-	`,
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return installApplication(args)
 	},
@@ -54,15 +55,17 @@ var applicationInstallCmd = &cobra.Command{
 var applicationPatchCmd = &cobra.Command{
 	Use:   "patch <id | name> < application-patch.json",
 	Short: "Patch Application",
-	Long: `Patch Application by sending JSON via stdin, for example:
-    {
-        "parameters": [
+	Long: fmt.Sprintf(`Patch Application by sending JSON via stdin, for example:
+%[1]s
+	{
+		"parameters": [
 			{
 				"name": "application.replicas",
 				"value": 3
 			}
 		]
-	}`,
+	}
+%[1]s`, mdpre),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return patchApplication(args)
 	},

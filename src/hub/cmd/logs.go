@@ -16,6 +16,7 @@ var logsCmd = &cobra.Command{
 	Use:   "logs [entity kind/][id | name | domain ...]",
 	Short: "Tail logs and status updates",
 	Long: `Tail deployment logs, lifecycle operation phases, and stack instance status changes.
+
 A filtering list of Ids or domain names may be supplied to limit the output, otherwise
 everything accessible to the current user is shown.
 
