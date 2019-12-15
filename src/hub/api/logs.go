@@ -142,8 +142,9 @@ func Logs(selectors []string, exitOnCompletedOperation bool) int {
 			if !m.Success {
 				success = aurora.Red("fail").String()
 			}
-			fmt.Printf("%s %s [%s] %s %s %s\n",
+			fmt.Printf("%s %s %s [%s] %s %s %s\n",
 				aurora.Magenta("===>").Bold().String(),
+				time.Now().Format("15:04:05"),
 				aurora.Green(m.Name).String(),
 				m.Id,
 				m.Entity,
