@@ -364,7 +364,7 @@ func createWorkerpool(args []string) error {
 	if err != nil {
 		return fmt.Errorf("Unable to parse count: %v", err)
 	}
-	maxCount := count
+	maxCount := int64(0)
 	if len(args) > 4 {
 		maxCount, err = strconv.ParseInt(args[4], 10, 32)
 		if err != nil {
@@ -388,7 +388,7 @@ func scaleWorkerpool(args []string) error {
 	if err != nil {
 		return fmt.Errorf("Unable to parse count: %v", err)
 	}
-	maxCount := count
+	maxCount := int64(0)
 	if len(args) > 2 {
 		maxCount, err = strconv.ParseInt(args[2], 10, 32)
 		if err != nil {
