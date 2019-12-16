@@ -1,17 +1,17 @@
 package util
 
 import (
+	"bufio"
 	"fmt"
 	"io"
-	"bufio"
 	"log"
 	"os"
-	"syscall"
 	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/logrusorgru/aurora"
 	"golang.org/x/crypto/ssh/terminal"
@@ -105,18 +105,18 @@ func askOnTerminal(prompt string, secure bool) string {
 		}
 		return ""
 	}
-	
+
 	var read string
 	var err error
 	fmt.Printf("%s: ", prompt)
 	if secure == true {
 		read, err = askOnTerminalSecure()
-	}else{
+	} else {
 		reader := bufio.NewReader(os.Stdin)
 		read, err = reader.ReadString('\n')
 		read = strings.TrimSuffix(read, "\n")
 	}
-	
+
 	if len(read) > 0 {
 		if err != nil {
 			log.Fatalf("Error reading input for `%s`: %v (read %s)", prompt, err, read)
