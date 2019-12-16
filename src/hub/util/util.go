@@ -3,8 +3,10 @@ package util
 import (
 	"fmt"
 	"io"
+	"bufio"
 	"log"
 	"os"
+	"syscall"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -12,7 +14,7 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/mattn/go-isatty"
+	"golang.org/x/crypto/ssh/terminal"
 
 	"hub/config"
 )
@@ -29,7 +31,7 @@ func init() {
 	if config.LogDestination == "stdout" {
 		fd = os.Stdout.Fd()
 	}
-	if isatty.IsTerminal(fd) {
+	if terminal.IsTerminal(int(fd)) {
 		HighlightColor = func(str string) string { return aurora.BrightCyan(str).String() }
 		WarnColor = func(str string) string { return aurora.BrightMagenta(str).String() }
 	}
@@ -97,23 +99,37 @@ func Errors2(maybeErrors ...error) string {
 
 // TODO honour `secure`
 func askOnTerminal(prompt string, secure bool) string {
-	if !isatty.IsTerminal(os.Stdin.Fd()) {
+	if !terminal.IsTerminal(int(os.Stdin.Fd())) {
 		if config.Verbose {
 			log.Printf("Stdin is not a terminal, not asking for `%s`", prompt)
 		}
 		return ""
 	}
-	var input string
+	
+	var read string
+	var err error
 	fmt.Printf("%s: ", prompt)
-	read, err := fmt.Scanln(&input)
-	if read > 0 {
+	if secure == true {
+		read, err = askOnTerminalSecure()
+	}else{
+		reader := bufio.NewReader(os.Stdin)
+		read, err = reader.ReadString('\n')
+		read = strings.TrimSuffix(read, "\n")
+	}
+	
+	if len(read) > 0 {
 		if err != nil {
-			log.Fatalf("Error reading input for `%s`: %v (read %d bytes)", prompt, err, read)
+			log.Fatalf("Error reading input for `%s`: %v (read %s)", prompt, err, read)
 		} else {
-			return input
+			return read
 		}
 	}
 	return ""
+}
+
+func askOnTerminalSecure() (string, error) {
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	return string(bytePassword), err
 }
 
 func maybeAskInput(input string, prompt string, secure bool) string {
