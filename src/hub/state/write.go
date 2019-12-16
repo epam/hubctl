@@ -1,6 +1,7 @@
 package state
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -20,11 +21,11 @@ const (
 	stateUpdateSettleInterval = time.Duration(2 * time.Second)
 )
 
-func InitWriter(stateFiles *storage.Files) func(interface{}) {
+func InitWriter(stateFiles *storage.Files, atWrite func(*StateManifest)) func(interface{}) {
 	ch := make(chan interface{}, 2)
 	done := make(chan struct{})
 	ticker := time.NewTicker(1 * time.Second)
-	go writer(ch, done, ticker.C, stateFiles)
+	go writer(ch, done, ticker.C, stateFiles, atWrite)
 	update := func(v interface{}) {
 		ch <- v
 		if cmd, ok := v.(string); ok && cmd == "done" {
@@ -38,14 +39,25 @@ func InitWriter(stateFiles *storage.Files) func(interface{}) {
 	return update
 }
 
-func writer(ch <-chan interface{}, done chan<- struct{}, ticker <-chan time.Time, files *storage.Files) {
+func writer(ch <-chan interface{}, done chan<- struct{}, ticker <-chan time.Time,
+	files *storage.Files, atWrite func(*StateManifest)) {
+
 	pending := false
 	var updated time.Time
 	var state *StateManifest
 
 	maybeWrite := func() {
 		if pending && state != nil {
-			WriteState(state, files)
+			err := WriteState(state, files)
+			if err != nil {
+				log.Printf("%v", err)
+			}
+			if atWrite != nil {
+				atWrite(state)
+			}
+			if err != nil {
+				os.Exit(2)
+			}
 			pending = false
 		}
 	}
@@ -263,24 +275,25 @@ func UpdatePhase(manifest *StateManifest, opId, name, status string) *StateManif
 	return manifest
 }
 
-func WriteState(manifest *StateManifest, stateFiles *storage.Files) {
+func WriteState(manifest *StateManifest, stateFiles *storage.Files) error {
 	manifest.Version = 1
 	manifest.Kind = "state"
 
 	yamlBytes, err := yaml.Marshal(manifest)
 	if err != nil {
-		log.Fatalf("Unable to marshal state into YAML: %v", err)
+		return fmt.Errorf("Unable to marshal state into YAML: %v", err)
 	}
 
 	written, errs := storage.Write(yamlBytes, stateFiles)
 	if len(errs) > 0 {
 		msg := fmt.Sprintf("Unable to write state: %s", util.Errors2(errs...))
 		if !written {
-			log.Fatal(msg)
+			return errors.New(msg)
 		} else {
 			util.Warn("%s", msg)
 		}
 	}
+	return nil
 }
 
 func maybeInitState(manifest *StateManifest) *StateManifest {

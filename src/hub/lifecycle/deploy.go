@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"hub/api"
 	"hub/config"
 	"hub/manifest"
 	"hub/parameters"
@@ -113,7 +112,12 @@ func Execute(request *Request) {
 				}
 			}
 		}
-		stateUpdater = state.InitWriter(stateFiles)
+		var syncer func(*state.StateManifest)
+		// TODO sync status if no state manifest on undeploy
+		if request.SyncStackInstance && request.StackInstance != "" {
+			syncer = hubSyncer(request)
+		}
+		stateUpdater = state.InitWriter(stateFiles, syncer)
 
 		u, err := uuid.NewRandom()
 		if err != nil {
@@ -487,31 +491,6 @@ NEXT_COMPONENT:
 				util.PrintDeps(provides2)
 			}
 			printStackOutputs(stackOutputs)
-		}
-	}
-
-	// TODO sync status if no state manifest on undeploy
-	if stateManifest != nil && request.SyncStackInstance && request.StackInstance != "" {
-		patch := api.TransformStateToApi(stateManifest)
-		remoteStatePaths := storage.RemoteStoragePaths(request.StateFilenames)
-		if len(remoteStatePaths) > 0 {
-			patch.StateFiles = remoteStatePaths
-		}
-		if request.SyncSkipParametersAndOplog {
-			patch.ComponentsEnabled = nil
-			patch.Parameters = nil
-			patch.InflightOperations = nil
-		}
-		if config.Verbose {
-			log.Print("Syncing stack instance state to SuperHub")
-			if config.Trace {
-				printStackInstancePatch(patch)
-			}
-		}
-		_, err := api.PatchStackInstance(request.StackInstance, patch, true)
-		if err != nil {
-			util.Warn("Unable to sync stack instance to SuperHub: %v\n\ttry running sync manually: hub api instance sync %s -s %s ",
-				err, request.StackInstance, strings.Join(request.StateFilenames, ","))
 		}
 	}
 
