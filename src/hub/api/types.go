@@ -139,6 +139,11 @@ type StackRef struct {
 	Name string `json:"name"`
 }
 
+type ComponentRef struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type GitRef struct {
 	Public   string `json:"public"`
 	Template *struct {
@@ -158,6 +163,7 @@ type StackTemplate struct {
 	UI                map[string]interface{} `json:"ui,omitempty"`
 	Stack             *StackRef              `json:"stack,omitempty"`
 	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
+	Component         *ComponentRef          `json:"component,omitempty"`
 	Verbs             []string               `json:"verbs,omitempty"`
 	GitRemote         GitRef                 `json:"gitRemote"`
 	Parameters        []Parameter            `json:"parameters,omitempty"`
@@ -171,6 +177,7 @@ type StackTemplateRequest struct {
 	UI                map[string]interface{} `json:"ui,omitempty"`
 	Stack             string                 `json:"stack,omitempty"`
 	ComponentsEnabled []string               `json:"componentsEnabled,omitempty"`
+	Component         string                 `json:"stack,omitempty"`
 	Verbs             []string               `json:"verbs,omitempty"`
 	Parameters        []Parameter            `json:"parameters,omitempty"`
 	TeamsPermissions  []Team                 `json:"teamsPermissions,omitempty"`

@@ -107,6 +107,9 @@ func formatTemplateEntity(template *StackTemplate, showSecrets, showGitStatus bo
 	if template.Stack != nil && template.Stack.Name != "" {
 		fmt.Printf("\t\tStack: %s\n", formatStackRef(template.Stack))
 	}
+	if template.Component != nil && template.Component.Name != "" {
+		fmt.Printf("\t\tComponent: %s\n", formatComponentRef(template.Component))
+	}
 	if len(template.Verbs) > 0 {
 		fmt.Printf("\t\tVerbs: %s\n", strings.Join(template.Verbs, ", "))
 	}
@@ -155,6 +158,10 @@ func formatTemplateRef(ref *StackTemplateRef) string {
 }
 
 func formatStackRef(ref *StackRef) string {
+	return fmt.Sprintf("%s [%s]", ref.Name, ref.Id)
+}
+
+func formatComponentRef(ref *ComponentRef) string {
 	return fmt.Sprintf("%s [%s]", ref.Name, ref.Id)
 }
 
