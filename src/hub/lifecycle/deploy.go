@@ -334,7 +334,6 @@ NEXT_COMPONENT:
 		}
 
 		if stateManifest != nil {
-			status := fmt.Sprintf("%sing", request.Verb)
 			if isDeploy {
 				stateManifest = state.UpdateState(stateManifest, componentName,
 					stackParameters, expandedComponentParameters,
@@ -342,6 +341,7 @@ NEXT_COMPONENT:
 					noEnvironmentProvides(provides),
 					false)
 			}
+			status := fmt.Sprintf("%sing", request.Verb)
 			stateManifest = state.UpdateComponentStatus(stateManifest, componentName, componentManifest.Meta.Version, status, "")
 			stateManifest = state.UpdateStackStatus(stateManifest, status, "")
 			stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "in-progress")
@@ -418,7 +418,7 @@ NEXT_COMPONENT:
 			mergeProvides(provides, componentName, append(dynamicProvides, componentManifest.Provides...), componentOutputs)
 		}
 
-		if isDeploy && stateManifest != nil {
+		if stateManifest != nil && isDeploy {
 			final := componentIndex == len(order)-1 || (len(request.Components) > 0 && request.LoadFinalState)
 			stateManifest = state.UpdateState(stateManifest, componentName,
 				stackParameters, expandedComponentParameters,
