@@ -52,6 +52,7 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 	for _, requestedOutput := range requestedOutputs {
 		var value string
 		kind := requestedOutput.Kind
+		brief := requestedOutput.Brief
 		valueExist := false
 		// output from a specific component
 		componentOutputRequested := strings.Contains(requestedOutput.Name, ":")
@@ -74,14 +75,17 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 					debugPrinted = true
 				}
 			}
-			// propagate output (secret) kind
-			if exist && kind == "" {
+			// propagate output (secret) kind and brief
+			if exist && (kind == "" || brief == "") {
 				for _, o := range outputs {
 					if o.QName() == requestedOutput.Name {
-						if o.Kind != "" {
+						if o.Kind != "" && kind == "" {
 							kind = o.Kind
-							break
 						}
+						if o.Brief != "" && brief == "" {
+							brief = o.Brief
+						}
+						break
 					}
 				}
 			}
@@ -123,7 +127,7 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 
 		if valueExist {
 			expanded = append(expanded,
-				ExpandedOutput{Name: requestedOutput.Name, Value: value, Kind: kind, Brief: requestedOutput.Brief})
+				ExpandedOutput{Name: requestedOutput.Name, Value: value, Kind: kind, Brief: brief})
 		}
 	}
 

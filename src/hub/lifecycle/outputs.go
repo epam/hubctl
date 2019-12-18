@@ -58,7 +58,12 @@ func expandRequestedOutputs(componentName, componentDir string,
 	outputs := make(parameters.CapturedOutputs)
 	errs := make([]error, 0)
 	for _, requestedOutput := range requestedOutputs {
-		output := parameters.CapturedOutput{Component: componentName, Name: requestedOutput.Name, Kind: requestedOutput.Kind}
+		output := parameters.CapturedOutput{
+			Component: componentName,
+			Name:      requestedOutput.Name,
+			Brief:     requestedOutput.Brief,
+			Kind:      requestedOutput.Kind,
+		}
 		if requestedOutput.FromTfVar != "" {
 			variable, encoding := valueEncoding(requestedOutput.FromTfVar)
 			value, exist := tfOutputs[variable]

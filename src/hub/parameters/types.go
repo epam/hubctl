@@ -20,6 +20,7 @@ type CapturedOutput struct {
 	Component string `yaml:",omitempty" json:"component,omitempty"`
 	Name      string `json:"name"`
 	Value     string `json:"value"`
+	Brief     string `yaml:",omitempty" json:"brief,omitempty"`
 	Kind      string `yaml:",omitempty" json:"kind,omitempty"`
 }
 

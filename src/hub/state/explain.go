@@ -246,12 +246,17 @@ func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 			if c.Kind != "" {
 				kind = fmt.Sprintf("[%s] ", c.Kind)
 			}
+			brief := ""
+			if c.Brief != "" {
+				brief = fmt.Sprintf(" [%s]", c.Brief)
+			}
+			value := util.Wrap(c.Value)
 			if !overExist {
-				fmt.Printf("\t%s%s => %s\n", kind, c.Name, util.Wrap(c.Value))
+				fmt.Printf("\t%s%s%s => `%s`\n", kind, c.Name, brief, value)
 			} else if c.Value != over {
-				fmt.Printf("\t%s%s => %s (was: %s)\n", kind, c.Name, util.Wrap(c.Value), util.Wrap(over))
+				fmt.Printf("\t%s%s%s => `%s` (was: `%s`)\n", kind, c.Name, brief, value, util.Wrap(over))
 			} else {
-				fmt.Printf("\t%s%s => %s\n", kind, qName, util.Wrap(c.Value))
+				fmt.Printf("\t%s%s%s => `%s`\n", kind, qName, brief, value)
 			}
 		}
 	}

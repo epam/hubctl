@@ -94,7 +94,11 @@ func PrintCapturedOutputsList(outputs []CapturedOutput) {
 				value = "(masked)"
 			}
 		}
-		log.Printf("\t%s%s:%s => %s", kind, output.Component, output.Name, value)
+		brief := ""
+		if output.Brief != "" {
+			brief = fmt.Sprintf(" [%s] ", output.Brief)
+		}
+		log.Printf("\t%s%s:%s%s => %s", kind, output.Component, output.Name, brief, value)
 	}
 }
 
