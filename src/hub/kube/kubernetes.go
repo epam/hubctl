@@ -3,7 +3,6 @@ package kube
 import (
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -70,24 +69,18 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 		return outputs
 	}
 
-	kubernetesApiKeysFiles := make(map[string]string)
-	for _, outputName := range KubernetesKeysParameters {
-		outputQName := parameters.OutputQualifiedName(outputName, componentName)
-		output, exists := componentOutputs[outputQName]
-		if !exists {
-			continue
-		}
-		kubernetesApiKeysFiles[outputName] = output.Value
-	}
-
 	switch flavor {
 	case "k8s-aws":
-		if len(kubernetesApiKeysFiles) != len(KubernetesKeysParameters) {
-			util.Warn("Component `%s` declared to provide Kubernetes but some key/certs output(s) are missing", componentName)
-			if config.Debug && len(kubernetesApiKeysFiles) > 0 {
-				log.Print("Required key/certs outputs found:")
-				util.PrintMap(kubernetesApiKeysFiles)
+		var missing []string
+		for _, outputName := range KubernetesKeysParameters {
+			outputQName := parameters.OutputQualifiedName(outputName, componentName)
+			if _, exists := componentOutputs[outputQName]; !exists {
+				missing = append(missing, outputName)
 			}
+		}
+		if len(missing) > 0 {
+			util.Warn("Component `%s` declared to provide Kubernetes but some key/certs output(s) are missing: %v",
+				componentName, missing)
 		}
 
 	case "eks":
@@ -139,32 +132,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 		}
 	}
 
-	// TODO deprecate
-	for key, apiKey := range kubernetesApiKeysFiles {
-		if strings.HasPrefix(apiKey, kubernetesFileRefPrefix) {
-			filename := apiKey[len(kubernetesFileRefPrefix):]
-			content := captureFile(filename)
-			// replace file:// with actual content
-			parameters.MergeOutput(outputs,
-				parameters.CapturedOutput{
-					Component: componentName,
-					Name:      key,
-					Value:     content,
-					Kind:      "secret",
-				})
-		}
-	}
-
 	return outputs
-}
-
-// TODO deprecate
-func captureFile(filename string) string {
-	bytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Fatalf("Unable to read %s: %v", filename, err)
-	}
-	return string(bytes)
 }
 
 func SetupKubernetes(params parameters.LockedParameters,
