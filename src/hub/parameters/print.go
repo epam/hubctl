@@ -96,7 +96,7 @@ func PrintCapturedOutputsList(outputs []CapturedOutput) {
 		}
 		brief := ""
 		if output.Brief != "" {
-			brief = fmt.Sprintf(" [%s] ", output.Brief)
+			brief = fmt.Sprintf(" [%s]", output.Brief)
 		}
 		log.Printf("\t%s%s:%s%s => %s", kind, output.Component, output.Name, brief, value)
 	}
