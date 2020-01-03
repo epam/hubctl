@@ -200,8 +200,15 @@ func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOut
 		fmt.Printf("-- Duration: %v\n", t.End.Sub(t.Start).Truncate(time.Second).String())
 	}
 	fmt.Printf("-- Status: %v\n", step.Status)
-	if step.Version != "" {
-		fmt.Printf("-- Version: %v\n", step.Version)
+	if step.Meta.Title != "" {
+		fmt.Printf("-- Title: %s\n", step.Meta.Title)
+	}
+	version := step.Meta.Version
+	if version == "" && step.Version != "" {
+		version = step.Version
+	}
+	if version != "" {
+		fmt.Printf("-- Version: %s\n", version)
 	}
 	if step.Message != "" {
 		fmt.Printf("-- Message: %v\n", step.Message)

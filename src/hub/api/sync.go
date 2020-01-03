@@ -131,10 +131,27 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 			noSecretOutputs := filterOutSecretOutputs(component.CapturedOutputs)
 			outputs := state.DiffOutputs(noSecretOutputs, prevOutputs)
 			prevOutputs = noSecretOutputs
+			version := component.Meta.Version
+			if version == "" && component.Version != "" {
+				version = component.Version
+			}
 			components = append(components,
-				ComponentStatus{Name: name, Status: component.Status,
-					Version: component.Version, Message: component.Message, Outputs: outputs,
-					Timestamps: &Timestamps{Start: component.Timestamps.Start, End: component.Timestamps.End}})
+				ComponentStatus{
+					Name:    name,
+					Status:  component.Status,
+					Version: version,
+					Meta: &ComponentMetadata{
+						Title:       component.Meta.Title,
+						Brief:       component.Meta.Brief,
+						Description: component.Meta.Description,
+						Version:     component.Meta.Version,
+						Maturity:    component.Meta.Maturity,
+						Icon:        component.Meta.Icon,
+					},
+					Message:    component.Message,
+					Outputs:    outputs,
+					Timestamps: &Timestamps{Start: component.Timestamps.Start, End: component.Timestamps.End},
+				})
 		}
 	}
 	return components

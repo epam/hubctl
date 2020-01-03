@@ -20,11 +20,21 @@ type Timestamps struct {
 	End   time.Time `yaml:",omitempty" json:"end,omitempty"`
 }
 
+type ComponentMetadata struct {
+	Title       string `yaml:",omitempty"`
+	Brief       string `yaml:",omitempty"`
+	Description string `yaml:",omitempty"`
+	Version     string `yaml:",omitempty"`
+	Maturity    string `yaml:",omitempty"`
+	Icon        string `yaml:",omitempty"`
+}
+
 type StateStep struct {
 	Timestamp       time.Time                    `yaml:",omitempty"`
 	Timestamps      Timestamps                   `yaml:",omitempty"`
 	Status          string                       `yaml:",omitempty"`
-	Version         string                       `yaml:",omitempty"`
+	Version         string                       `yaml:",omitempty"` // TODO deprecate in favor of Meta
+	Meta            ComponentMetadata            `yaml:",omitempty"`
 	Message         string                       `yaml:",omitempty"`
 	Parameters      []parameters.LockedParameter `yaml:",omitempty"`
 	RawOutputs      []parameters.RawOutput       `yaml:"rawOutputs,omitempty"`

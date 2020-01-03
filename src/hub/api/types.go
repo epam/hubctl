@@ -213,18 +213,28 @@ type PlatformRef struct {
 	StateFiles []string            `json:"stateFiles,omitempty"`
 }
 
+type ComponentMetadata struct {
+	Title       string `json:"title,omitempty"`
+	Brief       string `json:"brief,omitempty"`
+	Description string `json:"description,omitempty"`
+	Version     string `json:"version,omitempty"`
+	Maturity    string `json:"maturity,omitempty"`
+	Icon        string `json:"icon,omitempty"`
+}
+
 type Timestamps struct {
 	Start time.Time `json:"start,omitempty"`
 	End   time.Time `json:"end,omitempty"`
 }
 
 type ComponentStatus struct {
-	Name       string            `json:"name"`
-	Status     string            `json:"status"`
-	Version    string            `json:"version,omitempty"`
-	Message    string            `json:"message,omitempty"`
-	Outputs    map[string]string `json:"outputs,omitempty"`
-	Timestamps *Timestamps       `json:"timestamps,omitempty"`
+	Name       string             `json:"name"`
+	Status     string             `json:"status"`
+	Version    string             `json:"version,omitempty"` // TODO deprecate in favor of Meta
+	Meta       *ComponentMetadata `json:"meta,omitempty"`
+	Message    string             `json:"message,omitempty"`
+	Outputs    map[string]string  `json:"outputs,omitempty"`
+	Timestamps *Timestamps        `json:"timestamps,omitempty"`
 }
 
 type LifecyclePhase struct {

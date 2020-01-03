@@ -152,11 +152,22 @@ func UpdateComponentStartTimestamp(manifest *StateManifest, name string) *StateM
 	return manifest
 }
 
-func UpdateComponentStatus(manifest *StateManifest, name, version, status, message string) *StateManifest {
+func UpdateComponentStatus(manifest *StateManifest, name string, meta *manifest.Metadata, status, message string) *StateManifest {
 	manifest = maybeInitState(manifest)
 	if name != "" && status != "" {
 		componentState := maybeInitComponentState(manifest, name)
-		componentState.Version = version
+		icon := ""
+		if len(meta.Icon) < 200 {
+			icon = meta.Icon
+		}
+		componentState.Meta = ComponentMetadata{
+			Title:       meta.Title,
+			Brief:       meta.Brief,
+			Description: meta.Description,
+			Version:     meta.Version,
+			Maturity:    meta.Maturity,
+			Icon:        icon,
+		}
 		now := time.Now()
 		componentState.Timestamp = now
 		componentState.Timestamps.End = now

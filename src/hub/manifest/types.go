@@ -17,10 +17,12 @@ type SourceLocation struct {
 
 type Metadata struct {
 	Name        string
+	Title       string            `yaml:",omitempty"`
 	Brief       string            `yaml:",omitempty"`
 	Description string            `yaml:",omitempty"`
 	Version     string            `yaml:",omitempty"`
 	Maturity    string            `yaml:",omitempty"`
+	Icon        string            `yaml:",omitempty"`
 	Source      SourceLocation    `yaml:",omitempty"`
 	FromStack   string            `yaml:"fromStack,omitempty"`
 	Annotations map[string]string `yaml:",omitempty"`
