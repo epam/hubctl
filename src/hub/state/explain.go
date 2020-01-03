@@ -197,9 +197,9 @@ var headColor = func(str string) string {
 func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
 	fmt.Printf("-- Timestamp: %v\n", step.Timestamp.Truncate(time.Second))
 	if t := step.Timestamps; !t.End.IsZero() && !t.Start.IsZero() {
-		fmt.Printf("-- Duration: %v\n", t.End.Sub(t.Start).Truncate(time.Second).String())
+		fmt.Printf("-- Duration: %v\n", t.End.Sub(t.Start).Round(time.Second).String())
 	}
-	fmt.Printf("-- Status: %v\n", step.Status)
+	fmt.Printf("-- Status: %s\n", step.Status)
 	if step.Meta.Title != "" {
 		fmt.Printf("-- Title: %s\n", step.Meta.Title)
 	}
@@ -211,7 +211,7 @@ func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOut
 		fmt.Printf("-- Version: %s\n", version)
 	}
 	if step.Message != "" {
-		fmt.Printf("-- Message: %v\n", step.Message)
+		fmt.Printf("-- Message: %s\n", step.Message)
 	}
 	fmt.Print("-- Parameters:\n")
 	printLockedParameters(step.Parameters)
