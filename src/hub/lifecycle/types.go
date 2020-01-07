@@ -12,7 +12,6 @@ type Request struct {
 	OffsetComponent            string   // deploy & undeploy
 	LimitComponent             string   // deploy & undeploy
 	GuessComponent             bool     // undeploy
-	StrictParameters           bool
 	OsEnvironmentMode          string
 	EnvironmentOverrides       string
 	ComponentsBaseDir          string

@@ -159,8 +159,7 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 func ParametersKV(parameters LockedParameters) map[string]string {
 	kv := make(map[string]string)
 	for _, parameter := range parameters {
-		qName := parameter.QName()
-		kv[qName] = parameter.Value
+		kv[parameter.QName()] = parameter.Value
 	}
 	return kv
 }
@@ -195,15 +194,6 @@ func FindValue(parameterName string, componentName string, componentDepends []st
 		for _, outputComponent := range componentDepends {
 			outputFqName := OutputQualifiedName(parameterName, outputComponent)
 			v, exist = kv[outputFqName]
-			if exist {
-				break
-			}
-		}
-	}
-	if !exist {
-		for _, component := range componentDepends {
-			relatedParameterName := parameterQualifiedName(parameterName, component)
-			v, exist = kv[relatedParameterName]
 			if exist {
 				break
 			}

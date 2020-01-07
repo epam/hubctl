@@ -68,7 +68,6 @@ func backupCreate(args []string) error {
 		ManifestFilenames:    manifests,
 		StateFilenames:       stateManifests,
 		Components:           components,
-		StrictParameters:     strictParameters,
 		OsEnvironmentMode:    osEnvironmentMode,
 		ComponentsBaseDir:    componentsBaseDir,
 		PipeOutputInRealtime: pipeOutputInRealtime,

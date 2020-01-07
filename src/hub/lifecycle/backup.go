@@ -153,11 +153,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 			util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 				componentName, util.Errors("\n\t", errs...))
 		}
-		componentParameters := make(parameters.LockedParameters)
-		if !request.StrictParameters {
-			componentParameters = stackParameters
-		}
-		componentParameters = parameters.MergeParameters(componentParameters, expandedComponentParameters)
+		componentParameters := parameters.MergeParameters(make(parameters.LockedParameters), expandedComponentParameters)
 
 		if config.Debug {
 			log.Print("Component parameters:")

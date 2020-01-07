@@ -20,7 +20,6 @@ var (
 	offsetComponent               string
 	limitComponent                string
 	guessComponent                bool
-	strictParameters              bool
 	compressedState               bool
 	gitOutputs                    bool
 	gitOutputsStatus              bool
@@ -124,7 +123,6 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 		OffsetComponent:            offsetComponent,
 		LimitComponent:             limitComponent,
 		GuessComponent:             guessComponent,
-		StrictParameters:           strictParameters,
 		OsEnvironmentMode:          osEnvironmentMode,
 		EnvironmentOverrides:       environmentOverrides,
 		ComponentsBaseDir:          componentsBaseDir,
@@ -180,8 +178,6 @@ func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 		"Pipe sub-commands output to console in real-time")
 	cmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
 		fmt.Sprintf("Invoke %[1]s-test verb instead of %[1]s", verb))
-	cmd.Flags().BoolVarP(&strictParameters, "strict-parameters", "", true,
-		"Put only hub-component.yaml declared parameters into component scope")
 	cmd.Flags().StringVarP(&osEnvironmentMode, "os-environment", "", "no-tfvars",
 		"OS environment mode for child process, one of: everything, no-tfvars, strict")
 	cmd.Flags().BoolVarP(&config.SwitchKubeconfigContext, "switch-kube-context", "", false,

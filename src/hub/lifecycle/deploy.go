@@ -315,12 +315,7 @@ NEXT_COMPONENT:
 			continue NEXT_COMPONENT
 		}
 
-		var componentParameters parameters.LockedParameters
-		if request.StrictParameters {
-			componentParameters = parameters.MergeParameters(make(parameters.LockedParameters), expandedComponentParameters)
-		} else {
-			componentParameters = allParameters
-		}
+		componentParameters := parameters.MergeParameters(make(parameters.LockedParameters), expandedComponentParameters)
 
 		if optionalNotProvided, err := prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires, request.EnabledClouds); len(optionalNotProvided) > 0 || err != nil {
 			if err != nil {
