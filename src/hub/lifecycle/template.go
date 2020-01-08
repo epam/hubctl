@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/alexkappa/mustache"
+
 	"hub/config"
 	"hub/manifest"
 	"hub/parameters"
@@ -19,29 +21,14 @@ import (
 )
 
 const (
-	templateSuffix = ".template"
-	curly          = "curly"
-	mustache       = "mustache"
+	templateSuffix   = ".template"
+	curlyKind        = "curly"
+	mustacheKind     = "mustache"
+	trueMustacheKind = "_mustache"
+	goKind           = "go"
 )
 
-var curlyReplacement = regexp.MustCompile("\\$\\{[a-zA-Z0-9_\\.\\|:/-]+\\}")
-var mustacheReplacement = regexp.MustCompile("\\{\\{[a-zA-Z0-9_\\.\\|:/-]+\\}\\}")
-
-func stripCurly(match string) string {
-	return match[2 : len(match)-1]
-}
-
-func stripMustache(match string) string {
-	return match[2 : len(match)-2]
-}
-
-func valueEncoding(variable string) (string, string) {
-	i := strings.Index(variable, "/")
-	if i <= 0 || i == len(variable)-1 {
-		return variable, ""
-	}
-	return variable[0:i], variable[i+1:]
-}
+var kinds = []string{curlyKind, mustacheKind, trueMustacheKind, goKind}
 
 type TemplateRef struct {
 	Filename string
@@ -59,7 +46,10 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
 	kv := parameters.ParametersKV(params)
-	templateSetup = expandParametersInTemplateSetup(templateSetup, kv)
+	templateSetup, err := expandParametersInTemplateSetup(templateSetup, kv)
+	if err != nil {
+		return []error{err}
+	}
 	templates := scanTemplates(componentName, dir, templateSetup)
 
 	if config.Verbose {
@@ -76,8 +66,12 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	}
 
 	filenames := make([]string, 0, len(templates))
+	hasMustache := false
 	for _, template := range templates {
 		filenames = append(filenames, template.Filename)
+		if !hasMustache && template.Kind == mustacheKind {
+			hasMustache = true
+		}
 	}
 	cannot := checkStat(filenames)
 	if len(cannot) > 0 {
@@ -88,8 +82,13 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 		return []error{fmt.Errorf("Unable to open `%s` component template input(s):\n%s", componentName, strings.Join(diag, "\n"))}
 	}
 
+	// during lifecycle operation `outputs` is nil - only parameters are available in templates
+	// outputs are for `hub render`
 	if outputs != nil {
 		kv = parameters.ParametersAndOutputsKV(params, outputs)
+	}
+	if hasMustache {
+		kv = addMustacheCompatibleBindings(kv)
 	}
 	errs := make([]error, 0)
 	for _, template := range templates {
@@ -98,15 +97,15 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	return errs
 }
 
-func maybeExpandParametersInTemplateGlob(glob string, kv map[string]string, section string, index int) string {
+func maybeExpandParametersInTemplateGlob(glob string, kv map[string]string, section string, index int) (string, error) {
 	if !parameters.RequireExpansion(glob) {
-		return glob
+		return glob, nil
 	}
 	value, errs := expandParametersInTemplateGlob(fmt.Sprintf("%s.%d", section, index), glob, kv)
 	if len(errs) > 0 {
-		log.Fatalf("Failed to expand templates globs:\n\t%s", util.Errors("\n\t", errs...))
+		return "", fmt.Errorf("Failed to expand template globs:\n\t%s", util.Errors("\n\t", errs...))
 	}
-	return value
+	return value, nil
 }
 
 func expandParametersInTemplateGlob(what string, value string, kv map[string]string) (string, []error) {
@@ -116,7 +115,7 @@ func expandParametersInTemplateGlob(what string, value string, kv map[string]str
 }
 
 func expandParametersInTemplateSetup(templateSetup *manifest.TemplateSetup,
-	kv map[string]string) *manifest.TemplateSetup {
+	kv map[string]string) (*manifest.TemplateSetup, error) {
 
 	setup := manifest.TemplateSetup{
 		Kind:        templateSetup.Kind,
@@ -126,10 +125,18 @@ func expandParametersInTemplateSetup(templateSetup *manifest.TemplateSetup,
 	}
 
 	for i, glob := range templateSetup.Files {
-		setup.Files = append(setup.Files, maybeExpandParametersInTemplateGlob(glob, kv, "files", i))
+		expanded, err := maybeExpandParametersInTemplateGlob(glob, kv, "files", i)
+		if err != nil {
+			return nil, err
+		}
+		setup.Files = append(setup.Files, expanded)
 	}
 	for i, glob := range templateSetup.Directories {
-		setup.Directories = append(setup.Directories, maybeExpandParametersInTemplateGlob(glob, kv, "directories", i))
+		expanded, err := maybeExpandParametersInTemplateGlob(glob, kv, "directories", i)
+		if err != nil {
+			return nil, err
+		}
+		setup.Directories = append(setup.Directories, expanded)
 	}
 	for j, templateExtra := range templateSetup.Extra {
 		extra := manifest.TemplateTarget{
@@ -142,17 +149,25 @@ func expandParametersInTemplateSetup(templateSetup *manifest.TemplateSetup,
 
 		prefix2 := fmt.Sprintf("%s.files", prefix)
 		for i, glob := range templateExtra.Files {
-			extra.Files = append(extra.Files, maybeExpandParametersInTemplateGlob(glob, kv, prefix2, i))
+			expanded, err := maybeExpandParametersInTemplateGlob(glob, kv, prefix2, i)
+			if err != nil {
+				return nil, err
+			}
+			extra.Files = append(extra.Files, expanded)
 		}
 		prefix2 = fmt.Sprintf("%s.directories", prefix)
 		for i, glob := range templateExtra.Directories {
-			extra.Directories = append(extra.Directories, maybeExpandParametersInTemplateGlob(glob, kv, prefix2, i))
+			expanded, err := maybeExpandParametersInTemplateGlob(glob, kv, prefix2, i)
+			if err != nil {
+				return nil, err
+			}
+			extra.Directories = append(extra.Directories, expanded)
 		}
 
 		setup.Extra = append(setup.Extra, extra)
 	}
 
-	return &setup
+	return &setup, nil
 }
 
 func scanTemplates(componentName string, baseDir string, templateSetup *manifest.TemplateSetup) []TemplateRef {
@@ -202,7 +217,7 @@ func scanDirectories(componentName string, acc []TemplateRef, baseDir string, di
 				}
 				matches, err := filepath.Glob(glob)
 				if err != nil {
-					log.Fatalf("Unable to expand `%s` component template glob `%s`: %v", componentName, glob, err)
+					util.Warn("Unable to expand `%s` component template glob `%s`: %v", componentName, glob, err)
 				}
 				if matches != nil {
 					for _, file := range matches {
@@ -223,10 +238,11 @@ func isGlob(path string) bool {
 
 func checkKind(componentName string, kind string) string {
 	if kind == "" {
-		kind = curly
+		return curlyKind
 	}
-	if kind != curly && kind != mustache {
-		log.Fatalf("Component `%s` template kind `%s` not recognized", componentName, kind)
+	if !util.Contains(kinds, kind) {
+		util.Warn("Component `%s` template kind `%s` not recognized; supported %v",
+			componentName, kind, kinds)
 	}
 	return kind
 }
@@ -278,31 +294,80 @@ func processTemplate(template TemplateRef, componentName string, componentDepend
 	if statInfo != nil {
 		err = out.Chmod(statInfo.Mode())
 		if err != nil {
-			util.Warn("Unable to chmod `%s` component template input `%s`: %v",
+			util.Warn("Unable to chmod `%s` component template output `%s`: %v",
 				componentName, template.Filename, err)
 		}
 	}
 
-	replaced := false
-	replacement := curlyReplacement
-	strip := stripCurly
-	if template.Kind == "mustache" {
-		replacement = mustacheReplacement
-		strip = stripMustache
+	var outContent string
+	var errs []error
+	switch template.Kind {
+	case "", curlyKind:
+		outContent, errs = processReplacement(content, template.Filename, componentName, componentDepends,
+			kv, curlyReplacement, stripCurly)
+	case mustacheKind:
+		outContent, errs = processReplacement(content, template.Filename, componentName, componentDepends, kv,
+			mustacheReplacement, stripMustache)
+	case trueMustacheKind:
+		outContent, err = processMustache(content, template.Filename, componentName, componentDepends, kv)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	default:
+		errs = append(errs, fmt.Errorf("Error processing `%s` component template `%s`: unknown `%s` template kind",
+			componentName, outPath, template.Kind))
+		return errs
 	}
+
+	if len(outContent) > 0 {
+		written, err := strings.NewReader(outContent).WriteTo(out)
+		if err != nil || written != int64(len(outContent)) {
+			errs = append(errs, fmt.Errorf("Error writting `%s` component template output `%s`: %v", componentName, outPath, err))
+		}
+	}
+
+	return errs
+}
+
+var (
+	curlyReplacement    = regexp.MustCompile("\\$\\{[a-zA-Z0-9_\\.\\|:/-]+\\}")
+	mustacheReplacement = regexp.MustCompile("\\{\\{[a-zA-Z0-9_\\.\\|:/-]+\\}\\}")
+)
+
+func stripCurly(match string) string {
+	return match[2 : len(match)-1]
+}
+
+func stripMustache(match string) string {
+	return match[2 : len(match)-2]
+}
+
+func valueEncoding(variable string) (string, string) {
+	i := strings.Index(variable, "/")
+	if i <= 0 || i == len(variable)-1 {
+		return variable, ""
+	}
+	return variable[0:i], variable[i+1:]
+}
+
+func processReplacement(content, filename, componentName string, componentDepends []string,
+	kv map[string]string, replacement *regexp.Regexp, strip func(string) string) (string, []error) {
+
 	errs := make([]error, 0)
+	replaced := false
+
 	outContent := replacement.ReplaceAllStringFunc(content,
 		func(variable string) string {
 			variable = strip(variable)
 			variable, encoding := valueEncoding(variable)
 			substitution, exist := parameters.FindValue(variable, componentName, componentDepends, kv)
 			if !exist {
-				errs = append(errs, fmt.Errorf("Template `%s` refer to unknown substitution `%s`", template.Filename, variable))
+				errs = append(errs, fmt.Errorf("Template `%s` refer to unknown substitution `%s`", filename, variable))
 				substitution = "(unknown)"
 			} else {
 				if parameters.RequireExpansion(substitution) {
 					util.WarnOnce("Template `%s` substitution `%s` refer to a value `%s` that is not expanded",
-						template.Filename, variable, substitution)
+						filename, variable, substitution)
 				}
 			}
 			if config.Trace {
@@ -321,21 +386,41 @@ func processTemplate(template TemplateRef, componentName string, componentDepend
 					}
 				} else {
 					util.Warn("Unknown encoding `%s` processing template `%s` substitution `%s`",
-						encoding, template.Filename, variable)
+						encoding, filename, variable)
 				}
 			} else {
 				substitution = strings.TrimSpace(substitution)
 			}
 			return substitution
 		})
+
 	if !replaced {
-		util.Warn("No substitutions found in template `%s` (%s)", template.Filename, template.Kind)
+		util.Warn("No substitutions found in template `%s`", filename)
 	}
+	return outContent, errs
+}
 
-	written, err := strings.NewReader(outContent).WriteTo(out)
-	if err != nil || written != int64(len(outContent)) {
-		errs = append(errs, fmt.Errorf("Error writting `%s` component template output `%s`: %v", componentName, outPath, err))
+func addMustacheCompatibleBindings(kv map[string]string) map[string]string {
+	for k, v := range kv {
+		if strings.Contains(k, ".") {
+			kv[strings.ReplaceAll(k, ".", "_")] = v
+		}
 	}
+	return kv
+}
 
-	return errs
+func processMustache(content, filename, componentName string, componentDepends []string,
+	kv map[string]string) (string, error) {
+
+	template := mustache.New(mustache.SilentMiss(false))
+	err := template.ParseString(content)
+	if err != nil {
+		return "", fmt.Errorf("Unable to parse mustache template `%s`: %v", filename, err)
+	}
+	outContent, err := template.RenderString(kv)
+	if err != nil {
+		util.PrintMap(kv)
+		return outContent, fmt.Errorf("Unable to render mustache template `%s`: %v", filename, err)
+	}
+	return outContent, nil
 }
