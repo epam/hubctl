@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/google/uuid"
@@ -17,8 +18,9 @@ import (
 )
 
 const (
-	HubEnvVarNameComponentName = "HUB_COMPONENT"
-	HubEnvVarNameRandom        = "HUB_RANDOM"
+	HubEnvVarNameComponentName    = "HUB_COMPONENT"
+	HubEnvVarNameRandom           = "HUB_RANDOM"
+	SkaffoldKubeContextEnvVarName = "SKAFFOLD_KUBE_CONTEXT"
 )
 
 func Execute(request *Request) {
@@ -578,10 +580,12 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 		}
 		return nil, nil, err
 	}
-	impl.Env = mergeOsEnviron(osEnv, processEnv, randomEnv(random))
+	skaffoldEnvironment := skaffoldEnv(impl, processEnv)
+	impl.Env = mergeOsEnviron(osEnv, processEnv, randomEnv(random), skaffoldEnvironment)
 	if config.Debug && len(processEnv) > 0 {
 		log.Print("Component environment:")
 		printEnvironment(processEnv)
+		printEnvironment(skaffoldEnvironment)
 		if config.Trace {
 			log.Print("Full process environment:")
 			printEnvironment(impl.Env)
@@ -600,6 +604,25 @@ func randomEnv(random string) []string {
 		return nil
 	}
 	return []string{fmt.Sprintf("%s=%s", HubEnvVarNameRandom, random)}
+}
+
+func skaffoldEnv(impl *exec.Cmd, processEnv []string) []string {
+	if len(impl.Args) > 0 && impl.Args[0] == "skaffold" {
+		for _, envEntry := range processEnv {
+			if strings.HasPrefix(envEntry, SkaffoldKubeContextEnvVarName+"=") {
+				return nil
+			}
+		}
+		for _, envEntry := range processEnv {
+			for _, domainVar := range []string{"DOMAIN_NAME", "DOMAIN"} {
+				if strings.HasPrefix(envEntry, domainVar+"=") {
+					kv := strings.SplitN(envEntry, "=", 2)
+					return []string{fmt.Sprintf("%s=%s", SkaffoldKubeContextEnvVarName, kv[1])}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func parametersInEnv(componentName string, componentParameters parameters.LockedParameters) []string {

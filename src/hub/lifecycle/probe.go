@@ -12,6 +12,11 @@ import (
 	"hub/util"
 )
 
+var hubToSkaffoldVerbs = map[string]string{
+	"deploy":   "run",
+	"undeploy": "delete",
+}
+
 func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 	makefile, err := probeMakefile(dir, verb)
 	if makefile {
@@ -26,8 +31,20 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 	if script != "" {
 		return &exec.Cmd{Path: script, Dir: dir}, nil
 	}
+	skaffold, err3 := probeSkaffold(dir, verb)
+	if skaffold {
+		binSkaffold, err := exec.LookPath("skaffold")
+		if err != nil {
+			binSkaffold = "/usr/local/bin/skaffold"
+			util.WarnOnce("Unable to lookup `skaffold` in PATH: %v; trying `%s`", err, binSkaffold)
+		}
+		if translatedVerb, translated := hubToSkaffoldVerbs[verb]; translated {
+			verb = translatedVerb
+		}
+		return &exec.Cmd{Path: binSkaffold, Args: []string{"skaffold", verb}, Dir: dir}, nil
+	}
 	return nil, fmt.Errorf("No `%s` implementation found in `%s`: %s",
-		verb, dir, util.Errors("; ", err, err2))
+		verb, dir, util.Errors("; ", err, err2, err3))
 }
 
 func probeImplementation(dir string, verb string) bool {
@@ -39,9 +56,13 @@ func probeImplementation(dir string, verb string) bool {
 	if script != "" {
 		return true
 	}
+	skaffold, err3 := probeSkaffold(dir, verb)
+	if skaffold {
+		return true
+	}
 	if config.Debug {
 		log.Printf("Found no `%s` implementations in `%s`: %s",
-			verb, dir, util.Errors("; ", err, err2))
+			verb, dir, util.Errors("; ", err, err2, err3))
 	}
 	return false
 }
@@ -84,4 +105,24 @@ func probeScript(dir string, verb string) (string, error) {
 		}
 	}
 	return "", lastErr
+}
+
+func probeSkaffold(dir string, verb string) (bool, error) {
+	yamls := []string{"skaffold.yaml", "skaffold.yaml.template"}
+	var lastErr error = nil
+	for _, yaml := range yamls {
+		filename := fmt.Sprintf("%s/%s", dir, yaml)
+		info, err := os.Stat(filename)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				lastErr = err
+			}
+			continue
+		}
+		mode := info.Mode()
+		if mode.IsRegular() {
+			return true, nil
+		}
+	}
+	return false, lastErr
 }
