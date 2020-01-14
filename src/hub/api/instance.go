@@ -399,7 +399,11 @@ func formatComponentStatus(comp ComponentStatus) string {
 	}
 	message := ""
 	if comp.Message != "" {
-		message = fmt.Sprintf(": %s", comp.Message)
+		sep := ""
+		if strings.Contains(comp.Message, "\n") {
+			sep = "\n"
+		}
+		message = fmt.Sprintf(":%s%s", sep, comp.Message)
 	}
 	timestamps := ""
 	if t := comp.Timestamps; t != nil {
