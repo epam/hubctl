@@ -123,6 +123,24 @@
 			"revisionTime": "2019-12-06T20:55:28Z"
 		},
 		{
+			"checksumSHA1": "ibWF963SkfidmZlwAUxnMHuPAx4=",
+			"path": "github.com/Masterminds/goutils",
+			"revision": "41ac8693c5c10a92ea1ff5ac3a7f95646f6123b0",
+			"revisionTime": "2018-12-03T09:12:26Z"
+		},
+		{
+			"checksumSHA1": "csuNrrRQq3aTlHM7FsMnoahBvCw=",
+			"path": "github.com/Masterminds/sprig",
+			"revision": "25dce230792b748f794ea878db61fc5419410c9f",
+			"revisionTime": "2019-12-13T18:23:23Z"
+		},
+		{
+			"checksumSHA1": "qXXDddbp0y2kDH8M+n1j8bk97Ag=",
+			"path": "github.com/alexkappa/mustache",
+			"revision": "8bb9cfca2bfaaca0ed5695ab76327a88f8f7b583",
+			"revisionTime": "2019-11-13T13:07:23Z"
+		},
+		{
 			"checksumSHA1": "xSWzDrbpXi/TPqAzaCXbo1l3mlg=",
 			"path": "github.com/antlr/antlr4/runtime/Go/antlr",
 			"revision": "8be60804abf67d73d6c2ccd27883097ac083ac5b",
@@ -729,6 +747,18 @@
 			"revisionTime": "2019-10-16T23:15:34Z"
 		},
 		{
+			"checksumSHA1": "XA5Cb6SjffDe9iHph4QAB502azI=",
+			"path": "github.com/huandu/xstrings",
+			"revision": "73cc8800d807c1a3393060290e46ab19b565d584",
+			"revisionTime": "2020-01-12T23:16:33Z"
+		},
+		{
+			"checksumSHA1": "WyqvKiSo+Gub4uO41hhaW6360us=",
+			"path": "github.com/imdario/mergo",
+			"revision": "0856b6066dabf523bf2d7e0ca582e7ee15891391",
+			"revisionTime": "2020-01-17T09:06:55Z"
+		},
+		{
 			"checksumSHA1": "iCsyavJDnXC9OY//p52IWJWy7PY=",
 			"path": "github.com/jbenet/go-context/io",
 			"revision": "d14ea06fba99483203c19d92cfcd13ebe73135f4",
@@ -766,6 +796,12 @@
 			"revisionTime": "2019-12-11T04:17:20Z"
 		},
 		{
+			"checksumSHA1": "gpgfDOKGUOP/h+j1cM7T36NZFTQ=",
+			"path": "github.com/mitchellh/copystructure",
+			"revision": "9a1b6f44e8da0e0e374624fb0a825a231b00c537",
+			"revisionTime": "2018-08-24T00:35:38Z"
+		},
+		{
 			"checksumSHA1": "7zLQC+jG19ndjH24FVh/+ZliHac=",
 			"path": "github.com/mitchellh/go-homedir",
 			"revision": "af06845cf3004701891bf4fdb884bfe4920b3727",
@@ -776,6 +812,12 @@
 			"path": "github.com/mitchellh/mapstructure",
 			"revision": "3536a929edddb9a5b34bd6861dc4a9647cb459fe",
 			"revisionTime": "2018-10-05T04:51:35Z"
+		},
+		{
+			"checksumSHA1": "3GoWH/9S8qEa6qZLPaZD5ZjrorM=",
+			"path": "github.com/mitchellh/reflectwalk",
+			"revision": "3e2c75dfad4fbf904b58782a80fd595c760ad185",
+			"revisionTime": "2019-05-02T16:13:28Z"
 		},
 		{
 			"checksumSHA1": "v03IqMoovWMKfqpSNLGwZPdr2u4=",
@@ -1074,6 +1116,12 @@
 		{
 			"checksumSHA1": "eVbIS2/uPBbK7O3OmKsOJOoX35E=",
 			"path": "golang.org/x/crypto/poly1305",
+			"revision": "e9b2fee46413994441b28dfca259d911d963dfed",
+			"revisionTime": "2019-11-27T20:17:25Z"
+		},
+		{
+			"checksumSHA1": "o8ysWPosGVxkSVMZHfp2tYHBTu8=",
+			"path": "golang.org/x/crypto/scrypt",
 			"revision": "e9b2fee46413994441b28dfca259d911d963dfed",
 			"revisionTime": "2019-11-27T20:17:25Z"
 		},
