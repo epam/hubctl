@@ -173,7 +173,7 @@ func OutputsKV(outputs CapturedOutputs) map[string]string {
 	return kv
 }
 
-func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs) map[string]string {
+func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs, depends []string) map[string]string {
 	kv := make(map[string]string)
 	for _, parameter := range parameters {
 		kv[parameter.QName()] = parameter.Value
@@ -209,7 +209,7 @@ func ExpandParameters(componentName string, componentDepends []string,
 	parameters LockedParameters, outputs CapturedOutputs,
 	componentParameters []manifest.Parameter, environment map[string]string) ([]LockedParameter, []error) {
 
-	kv := ParametersAndOutputsKV(parameters, outputs)
+	kv := ParametersAndOutputsKV(parameters, outputs, nil) // `depends` is handled by FindValue()
 	kv["hub.componentName"] = componentName
 	// expand, check for cycles
 	expanded := make([]LockedParameter, 0, len(componentParameters)+3)

@@ -15,10 +15,10 @@ import (
 )
 
 func waitForReadyConditions(conditions []manifest.ReadyCondition,
-	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs) error {
+	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs, componentDepends []string) error {
 
 	for _, condition := range conditions {
-		err := waitForReadyCondition(condition, parameters, outputs)
+		err := waitForReadyCondition(condition, parameters, outputs, componentDepends)
 		if err != nil {
 			return err
 		}
@@ -26,16 +26,16 @@ func waitForReadyConditions(conditions []manifest.ReadyCondition,
 	return nil
 }
 
-func expandReadyConditionParameter(what string, value string, kv map[string]string) string {
+func expandReadyConditionParameter(what string, value string, componentDepends []string, kv map[string]string) string {
 	piggy := manifest.Parameter{Name: fmt.Sprintf("lifecycle.readyCondition.%s", what), Value: value}
-	parameters.ExpandParameter(&piggy, []string{}, kv)
+	parameters.ExpandParameter(&piggy, componentDepends, kv)
 	return piggy.Value
 }
 
 const defaultReadyConditionWaitSeconds = 1200
 
 func waitForReadyCondition(condition manifest.ReadyCondition,
-	params parameters.LockedParameters, outputs parameters.CapturedOutputs) error {
+	params parameters.LockedParameters, outputs parameters.CapturedOutputs, componentDepends []string) error {
 
 	if condition.PauseSeconds > 0 {
 		why := ""
@@ -56,16 +56,16 @@ func waitForReadyCondition(condition manifest.ReadyCondition,
 	if wait <= 0 {
 		wait = defaultReadyConditionWaitSeconds
 	}
-	kv := parameters.ParametersAndOutputsKV(params, outputs)
+	kv := parameters.ParametersAndOutputsKV(params, outputs, nil)
 	if condition.DNS != "" {
-		fqdn := expandReadyConditionParameter("DNS", condition.DNS, kv)
+		fqdn := expandReadyConditionParameter("DNS", condition.DNS, componentDepends, kv)
 		err := waitForFqdn(maybeStripPort(fqdn), wait)
 		if err != nil {
 			return err
 		}
 	}
 	if condition.URL != "" {
-		url := expandReadyConditionParameter("URL", condition.URL, kv)
+		url := expandReadyConditionParameter("URL", condition.URL, componentDepends, kv)
 		err := waitForUrl(url, wait)
 		if err != nil {
 			return err

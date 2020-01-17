@@ -424,7 +424,7 @@ NEXT_COMPONENT:
 		}
 
 		if err == nil && isDeploy {
-			err = waitForReadyConditions(componentManifest.Lifecycle.ReadyConditions, componentParameters, allOutputs)
+			err = waitForReadyConditions(componentManifest.Lifecycle.ReadyConditions, componentParameters, allOutputs, component.Depends)
 			if err != nil {
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
@@ -450,7 +450,7 @@ NEXT_COMPONENT:
 
 	stackReadyConditionFailed := false
 	if isDeploy {
-		err := waitForReadyConditions(stackManifest.Lifecycle.ReadyConditions, stackParameters, allOutputs)
+		err := waitForReadyConditions(stackManifest.Lifecycle.ReadyConditions, stackParameters, allOutputs, nil)
 		if err != nil {
 			message := fmt.Sprintf("Stack ready condition failed: %v", err)
 			if stateManifest != nil {
