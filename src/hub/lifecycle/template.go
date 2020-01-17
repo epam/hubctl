@@ -1,6 +1,7 @@
 package lifecycle
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -11,7 +12,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	gotemplate "text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/alexkappa/mustache"
 
 	"hub/config"
@@ -71,10 +74,14 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 
 	filenames := make([]string, 0, len(templates))
 	hasMustache := false
+	hasGo := false
 	for _, template := range templates {
 		filenames = append(filenames, template.Filename)
 		if !hasMustache && template.Kind == mustacheKind {
 			hasMustache = true
+		}
+		if !hasGo && template.Kind == goKind {
+			hasGo = true
 		}
 	}
 	cannot := checkStat(filenames)
@@ -89,14 +96,55 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	// during lifecycle operation `outputs` is nil - only parameters are available in templates
 	// outputs are for `hub render`
 	if outputs != nil {
-		kv = parameters.ParametersAndOutputsKV(params, outputs)
+		var depends []string
+		if hasMustache || hasGo {
+			depends = component.Depends
+		}
+		kv = parameters.ParametersAndOutputsKV(params, outputs, depends)
 	}
+	if config.Trace {
+		log.Printf("Template binding:\n%v", kv)
+	}
+	var mustacheKV map[string]string
 	if hasMustache {
-		kv = addMustacheCompatibleBindings(kv)
+		mustacheKV = mustacheCompatibleBindings(kv)
+		if config.Trace {
+			log.Printf("Mustache template binding:\n%v", mustacheKV)
+		}
 	}
+	var goKV map[string]interface{}
+	if hasGo {
+		goKV = goTemplateBindings(kv)
+		if config.Trace {
+			log.Printf("Go template binding:\n%v", goKV)
+		}
+	}
+
+	processor := func(content, filename, kind string) (string, []error) {
+		var outContent string
+		var err error
+		var errs []error
+		switch kind {
+		case "", curlyKind:
+			outContent, errs = processReplacement(content, filename, componentName, component.Depends, kv,
+				curlyReplacement, stripCurly)
+		case mustacheKind:
+			outContent, errs = processReplacement(content, filename, componentName, component.Depends, kv,
+				mustacheReplacement, stripMustache)
+		case trueMustacheKind:
+			outContent, err = processMustache(content, filename, componentName, mustacheKV)
+		case goKind:
+			outContent, err = processGo(content, filename, componentName, goKV)
+		}
+		if err != nil {
+			errs = append(errs, err)
+		}
+		return outContent, errs
+	}
+
 	errs := make([]error, 0)
 	for _, template := range templates {
-		errs = append(errs, processTemplate(template, componentName, component.Depends, kv)...)
+		errs = append(errs, processTemplate(template.Filename, template.Kind, componentName, processor)...)
 	}
 	return errs
 }
@@ -279,28 +327,28 @@ func checkStat(templates []string) []OpenErr {
 	return cannot
 }
 
-func processTemplate(template TemplateRef, componentName string, componentDepends []string,
-	kv map[string]string) []error {
+func processTemplate(filename, kind, componentName string,
+	processor func(string, string, string) (string, []error)) []error {
 
-	tmpl, err := os.Open(template.Filename)
+	tmpl, err := os.Open(filename)
 	if err != nil {
-		return []error{fmt.Errorf("Unable to open `%s` component template input `%s`: %v", componentName, template.Filename, err)}
+		return []error{fmt.Errorf("Unable to open `%s` component template input `%s`: %v", componentName, filename, err)}
 	}
 	byteContent, err := ioutil.ReadAll(tmpl)
 	if err != nil {
-		return []error{fmt.Errorf("Unable to read `%s` component template content `%s`: %v", componentName, template.Filename, err)}
+		return []error{fmt.Errorf("Unable to read `%s` component template content `%s`: %v", componentName, filename, err)}
 	}
 	statInfo, err := tmpl.Stat()
 	if err != nil {
 		util.Warn("Unable to stat `%s` component template input `%s`: %v",
-			componentName, template.Filename, err)
+			componentName, filename, err)
 	}
 	tmpl.Close()
 	content := string(byteContent)
 
-	outPath := template.Filename
 	if strings.HasSuffix(outPath, templateSuffix) {
 		outPath = outPath[:len(outPath)-len(templateSuffix)]
+	outPath := filename
 	}
 	out, err := os.Create(outPath)
 	if err != nil {
@@ -310,38 +358,17 @@ func processTemplate(template TemplateRef, componentName string, componentDepend
 	if statInfo != nil {
 		err = out.Chmod(statInfo.Mode())
 		if err != nil {
-			util.Warn("Unable to chmod `%s` component template output `%s`: %v",
-				componentName, template.Filename, err)
+			util.Warn("Unable to chmod `%s` component template output `%s`: %v", componentName, filename, err)
 		}
 	}
 
-	var outContent string
-	var errs []error
-	switch template.Kind {
-	case "", curlyKind:
-		outContent, errs = processReplacement(content, template.Filename, componentName, componentDepends,
-			kv, curlyReplacement, stripCurly)
-	case mustacheKind:
-		outContent, errs = processReplacement(content, template.Filename, componentName, componentDepends, kv,
-			mustacheReplacement, stripMustache)
-	case trueMustacheKind:
-		outContent, err = processMustache(content, template.Filename, componentName, componentDepends, kv)
-		if err != nil {
-			errs = append(errs, err)
-		}
-	default:
-		errs = append(errs, fmt.Errorf("Error processing `%s` component template `%s`: unknown `%s` template kind",
-			componentName, outPath, template.Kind))
-		return errs
-	}
-
+	outContent, errs := processor(content, filename, kind)
 	if len(outContent) > 0 {
 		written, err := strings.NewReader(outContent).WriteTo(out)
 		if err != nil || written != int64(len(outContent)) {
 			errs = append(errs, fmt.Errorf("Error writting `%s` component template output `%s`: %v", componentName, outPath, err))
 		}
 	}
-
 	return errs
 }
 
@@ -416,18 +443,15 @@ func processReplacement(content, filename, componentName string, componentDepend
 	return outContent, errs
 }
 
-func addMustacheCompatibleBindings(kv map[string]string) map[string]string {
+func mustacheCompatibleBindings(kv map[string]string) map[string]string {
+	mkv := make(map[string]string)
 	for k, v := range kv {
-		if strings.Contains(k, ".") {
-			kv[strings.ReplaceAll(k, ".", "_")] = v
-		}
+		mkv[strings.ReplaceAll(k, ".", "_")] = v
 	}
-	return kv
+	return mkv
 }
 
-func processMustache(content, filename, componentName string, componentDepends []string,
-	kv map[string]string) (string, error) {
-
+func processMustache(content, filename, componentName string, kv map[string]string) (string, error) {
 	template := mustache.New(mustache.SilentMiss(false))
 	err := template.ParseString(content)
 	if err != nil {
@@ -439,4 +463,47 @@ func processMustache(content, filename, componentName string, componentDepends [
 		return outContent, fmt.Errorf("Unable to render mustache template `%s`: %v", filename, err)
 	}
 	return outContent, nil
+}
+
+func goTemplateBindings(kv map[string]string) map[string]interface{} {
+	gkv := make(map[string]interface{})
+	for k, v := range kv {
+		// log.Printf("processing %s", k)
+		parts := strings.Split(k, ".")
+		innerkv := gkv
+		for i, part := range parts {
+			// log.Printf("part[%d] %s", i, part)
+			leaf := i == len(parts)-1
+			if leaf {
+				// log.Printf("setting %s %v", part, v)
+				innerkv[part] = v
+			} else {
+				ref, exist := innerkv[part]
+				if exist {
+					// log.Printf("exist %s as map[]", part)
+					innerkv = ref.(map[string]interface{})
+				} else {
+					// log.Printf("setting %s to map[]", part)
+					newkv := make(map[string]interface{})
+					innerkv[part] = newkv
+					innerkv = newkv
+				}
+			}
+
+		}
+	}
+	return gkv
+}
+
+func processGo(content, filename, componentName string, kv map[string]interface{}) (string, error) {
+	tmpl, err := gotemplate.New(filepath.Base(filename)).Funcs(sprig.TxtFuncMap()).Parse(content)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = tmpl.Execute(&buffer, kv)
+	if err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
 }

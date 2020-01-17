@@ -151,6 +151,9 @@ func AppendMapList(m map[string][]string, key, value string) {
 
 func Reverse(source []string) []string {
 	l := len(source)
+	if l < 2 {
+		return source
+	}
 	reversed := make([]string, l)
 	for i, str := range source {
 		reversed[l-i-1] = str

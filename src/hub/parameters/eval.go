@@ -182,6 +182,15 @@ func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs
 		kv[output.QName()] = output.Value
 		kv[output.Name] = output.Value
 	}
+	// for Go Template and Mustache bindings we rearrange outputs to have a plain non-Qname
+	// to take precedence according to `depends`
+	for _, dependsOn := range util.Reverse(depends) {
+		for _, output := range outputs {
+			if output.Component == dependsOn {
+				kv[output.Name] = output.Value
+			}
+		}
+	}
 	return kv
 }
 
