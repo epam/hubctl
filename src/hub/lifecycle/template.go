@@ -24,14 +24,16 @@ import (
 )
 
 const (
-	templateSuffix   = ".template"
 	curlyKind        = "curly"
 	mustacheKind     = "mustache"
 	trueMustacheKind = "_mustache"
 	goKind           = "go"
 )
 
-var kinds = []string{curlyKind, mustacheKind, trueMustacheKind, goKind}
+var (
+	templateSuffices = []string{".template", ".gotemplate"}
+	kinds            = []string{curlyKind, mustacheKind, trueMustacheKind, goKind}
+)
 
 type TemplateRef struct {
 	Filename string
@@ -264,10 +266,21 @@ func appendPlainFiles(acc []TemplateRef, baseDir string, files []string, kind st
 	for _, file := range files {
 		if !isGlob(file) {
 			filePath := path.Join(baseDir, file)
-			if !strings.HasSuffix(file, templateSuffix) {
-				info, err := os.Stat(filePath + templateSuffix)
-				if err == nil && !info.IsDir() {
-					filePath = filePath + templateSuffix
+			hasTemplateSuffix := false
+			for _, templateSuffix := range templateSuffices {
+				hasTemplateSuffix = strings.HasSuffix(file, templateSuffix)
+				if hasTemplateSuffix {
+					break
+				}
+
+			}
+			if !hasTemplateSuffix {
+				for _, templateSuffix := range templateSuffices {
+					info, err := os.Stat(filePath + templateSuffix)
+					if err == nil && !info.IsDir() {
+						filePath = filePath + templateSuffix
+						break
+					}
 				}
 			}
 			acc = append(acc, TemplateRef{Filename: filePath, Kind: kind})
@@ -346,9 +359,12 @@ func processTemplate(filename, kind, componentName string,
 	tmpl.Close()
 	content := string(byteContent)
 
-	if strings.HasSuffix(outPath, templateSuffix) {
-		outPath = outPath[:len(outPath)-len(templateSuffix)]
 	outPath := filename
+	for _, templateSuffix := range templateSuffices {
+		if strings.HasSuffix(outPath, templateSuffix) {
+			outPath = outPath[:len(outPath)-len(templateSuffix)]
+			break
+		}
 	}
 	out, err := os.Create(outPath)
 	if err != nil {
