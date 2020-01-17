@@ -79,7 +79,7 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	hasGo := false
 	for _, template := range templates {
 		filenames = append(filenames, template.Filename)
-		if !hasMustache && template.Kind == mustacheKind {
+		if !hasMustache && template.Kind == trueMustacheKind {
 			hasMustache = true
 		}
 		if !hasGo && template.Kind == goKind {
