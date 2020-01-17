@@ -50,6 +50,10 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	if err != nil {
 		return []error{err}
 	}
+	err = checkTemplateSetupKind(templateSetup)
+	if err != nil {
+		return []error{err}
+	}
 	templates := scanTemplates(componentName, dir, templateSetup)
 
 	if config.Verbose {
@@ -170,15 +174,38 @@ func expandParametersInTemplateSetup(templateSetup *manifest.TemplateSetup,
 	return &setup, nil
 }
 
+func checkTemplateSetupKind(templateSetup *manifest.TemplateSetup) error {
+	var err error
+	templateSetup.Kind, err = checkKind(templateSetup.Kind)
+	if err != nil {
+		return err
+	}
+	for i, extra := range templateSetup.Extra {
+		templateSetup.Extra[i].Kind, err = checkKind(extra.Kind)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkKind(kind string) (string, error) {
+	if kind == "" {
+		return curlyKind, nil
+	}
+	if util.Contains(kinds, kind) {
+		return kind, nil
+	}
+	return "", fmt.Errorf("Template kind `%s` not recognized; supported %v", kind, kinds)
+}
+
 func scanTemplates(componentName string, baseDir string, templateSetup *manifest.TemplateSetup) []TemplateRef {
 	templates := make([]TemplateRef, 0, 10)
 
-	templateSetup.Kind = checkKind(componentName, templateSetup.Kind)
 	templates = appendPlainFiles(templates, baseDir, templateSetup.Files, templateSetup.Kind)
 	templates = scanDirectories(componentName, templates, baseDir, templateSetup.Directories, templateSetup.Files, templateSetup.Kind)
 
 	for _, extra := range templateSetup.Extra {
-		extra.Kind = checkKind(componentName, extra.Kind)
 		templates = appendPlainFiles(templates, baseDir, extra.Files, extra.Kind)
 		templates = scanDirectories(componentName, templates, baseDir, extra.Directories, extra.Files, extra.Kind)
 	}
@@ -234,17 +261,6 @@ func scanDirectories(componentName string, acc []TemplateRef, baseDir string, di
 
 func isGlob(path string) bool {
 	return strings.Contains(path, "*") || strings.Contains(path, "[")
-}
-
-func checkKind(componentName string, kind string) string {
-	if kind == "" {
-		return curlyKind
-	}
-	if !util.Contains(kinds, kind) {
-		util.Warn("Component `%s` template kind `%s` not recognized; supported %v",
-			componentName, kind, kinds)
-	}
-	return kind
 }
 
 func checkStat(templates []string) []OpenErr {
