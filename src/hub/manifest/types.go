@@ -72,9 +72,9 @@ type Output struct {
 	Brief       string `yaml:",omitempty"`
 	Description string `yaml:",omitempty"`
 
-	Value     string `yaml:",omitempty"`
-	FromTfVar string `yaml:"fromTfVar,omitempty"`
-	Kind      string `yaml:",omitempty"`
+	Value     interface{} `yaml:",omitempty"`
+	FromTfVar string      `yaml:"fromTfVar,omitempty"`
+	Kind      string      `yaml:",omitempty"`
 }
 
 type Parameter struct {
@@ -84,9 +84,9 @@ type Parameter struct {
 	Brief       string `yaml:",omitempty"`
 	Description string `yaml:",omitempty"`
 
-	Default string `yaml:",omitempty"`
-	Value   string `yaml:",omitempty"`
-	Empty   string `yaml:",omitempty"` // "allow"
+	Default interface{} `yaml:",omitempty"`
+	Value   interface{} `yaml:",omitempty"`
+	Empty   string      `yaml:",omitempty"` // "allow"
 
 	FromEnv  string `yaml:"fromEnv,omitempty"`
 	FromFile string `yaml:"fromFile,omitempty"`

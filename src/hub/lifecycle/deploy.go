@@ -133,7 +133,7 @@ func Execute(request *Request) {
 	if stateManifest != nil {
 		for _, p := range stateManifest.StackParameters {
 			if p.Name == deploymentIdParameterName {
-				deploymentId = p.Value
+				deploymentId = util.String(p.Value)
 				break
 			}
 		}
@@ -157,7 +157,7 @@ func Execute(request *Request) {
 	stackParameters, errs := parameters.LockParameters(
 		manifest.FlattenParameters(stackManifest.Parameters, chosenManifestFilename),
 		extraExpansionValues,
-		func(parameter manifest.Parameter) (string, error) {
+		func(parameter manifest.Parameter) (interface{}, error) {
 			return AskParameter(parameter, environment,
 				request.Environment, request.StackInstance, request.Application,
 				isDeploy)
@@ -513,7 +513,7 @@ func maybeFatalIfMandatory(lifecycle *manifest.Lifecycle, componentName string, 
 }
 
 func addLockedParameter(params parameters.LockedParameters, name, env, value string) {
-	if p, exist := params[name]; !exist || p.Value == "" {
+	if p, exist := params[name]; !exist || util.Empty(p.Value) {
 		if exist && p.Env != "" {
 			env = p.Env
 		}
@@ -531,7 +531,7 @@ func addLockedParameter2(params []parameters.LockedParameter, name, env, value s
 			if p.Env == "" {
 				p.Env = env
 			}
-			if p.Value == "" {
+			if util.Empty(p.Value) {
 				p.Value = value
 			}
 			return params
@@ -633,7 +633,7 @@ func parametersInEnv(componentName string, componentParameters parameters.Locked
 		if parameter.Env == "" {
 			continue
 		}
-		currentValue := strings.TrimSpace(parameter.Value)
+		currentValue := strings.TrimSpace(util.MaybeJson(parameter.Value))
 		envParameters = append(envParameters, fmt.Sprintf("%s=%s", parameter.Env, currentValue))
 		name := parameter.QName()
 		setBy, exist := envSetBy[parameter.Env]

@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"hub/config"
+	"hub/util"
 )
 
 type CreateSecretResponse struct {
@@ -55,7 +56,7 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 	}
 
 	for _, existing := range parameters {
-		if existing.Value != "" && existing.Name == name &&
+		if !util.Empty(existing.Value) && existing.Name == name &&
 			((existing.Component == "" && component == "") || existing.Component == component) {
 			qname := name
 			if component != "" {

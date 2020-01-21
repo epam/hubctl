@@ -7,7 +7,7 @@ import (
 type LockedParameter struct {
 	Component string `yaml:",omitempty"`
 	Name      string
-	Value     string
+	Value     interface{}
 	Env       string `yaml:",omitempty"`
 }
 
@@ -17,11 +17,11 @@ type RawOutput struct {
 }
 
 type CapturedOutput struct {
-	Component string `yaml:",omitempty" json:"component,omitempty"`
-	Name      string `json:"name"`
-	Value     string `json:"value"`
-	Brief     string `yaml:",omitempty" json:"brief,omitempty"`
-	Kind      string `yaml:",omitempty" json:"kind,omitempty"`
+	Component string      `yaml:",omitempty" json:"component,omitempty"`
+	Name      string      `json:"name"`
+	Value     interface{} `json:"value"`
+	Brief     string      `yaml:",omitempty" json:"brief,omitempty"`
+	Kind      string      `yaml:",omitempty" json:"kind,omitempty"`
 }
 
 type LockedParameters map[string]LockedParameter
@@ -30,7 +30,7 @@ type CapturedOutputs map[string]CapturedOutput
 
 type ExpandedOutput struct {
 	Name  string
-	Value string
+	Value interface{}
 	Brief string `yaml:",omitempty"`
 	Kind  string `yaml:",omitempty"`
 }

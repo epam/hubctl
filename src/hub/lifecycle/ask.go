@@ -17,7 +17,7 @@ import (
 
 func AskParameter(parameter manifest.Parameter,
 	environment map[string]string, hubEnvironment, hubStackInstance, hubApplication string,
-	isDeploy bool) (string, error) {
+	isDeploy bool) (interface{}, error) {
 
 	qName := parameter.QName()
 
@@ -91,8 +91,8 @@ func AskParameter(parameter manifest.Parameter,
 		} else {
 			prompt = fmt.Sprintf("%s %s", prompt, qName)
 		}
-		if parameter.Default != "" {
-			prompt = fmt.Sprintf("%s [%s]", prompt, parameter.Default)
+		if !util.Empty(parameter.Default) {
+			prompt = fmt.Sprintf("%s [%v]", prompt, parameter.Default)
 		}
 		fmt.Printf("%s: ", prompt)
 		var value string
@@ -105,7 +105,7 @@ func AskParameter(parameter manifest.Parameter,
 		}
 	}
 
-	if parameter.Default != "" {
+	if !util.Empty(parameter.Default) {
 		return parameter.Default, nil
 	}
 

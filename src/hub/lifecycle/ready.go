@@ -26,10 +26,10 @@ func waitForReadyConditions(conditions []manifest.ReadyCondition,
 	return nil
 }
 
-func expandReadyConditionParameter(what string, value string, componentDepends []string, kv map[string]string) string {
+func expandReadyConditionParameter(what string, value string, componentDepends []string, kv map[string]interface{}) string {
 	piggy := manifest.Parameter{Name: fmt.Sprintf("lifecycle.readyCondition.%s", what), Value: value}
 	parameters.ExpandParameter(&piggy, componentDepends, kv)
-	return piggy.Value
+	return util.String(piggy.Value)
 }
 
 const defaultReadyConditionWaitSeconds = 1200

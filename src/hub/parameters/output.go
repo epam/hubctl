@@ -29,12 +29,16 @@ func OutputsFromList(toMerge ...[]CapturedOutput) CapturedOutputs {
 func MergeOutput(outputs CapturedOutputs, add CapturedOutput) {
 	qName := add.QName()
 	if config.Verbose {
-		if current, exists := outputs[qName]; exists && current.Value != add.Value && current.Value != "" &&
-			// suppress warning if plain value overwritten by secret
-			!(current.Kind == "" && strings.HasPrefix(add.Kind, "secret")) {
+		if current, exists := outputs[qName]; exists && !util.Empty(current.Value) {
+			curValue := util.String(current.Value)
+			addValue := util.String(add.Value)
+			if curValue != addValue &&
+				// suppress warning if plain value overwritten by secret
+				!(current.Kind == "" && strings.HasPrefix(add.Kind, "secret")) {
 
-			log.Printf("Output `%s` current value `%s` overridden by new value `%s`",
-				qName, util.Wrap(current.Value), util.Wrap(add.Value))
+				log.Printf("Output `%s` current value `%s` overridden by new value `%s`",
+					qName, util.Wrap(curValue), util.Wrap(addValue))
+			}
 		}
 	}
 	outputs[qName] = add
@@ -50,19 +54,19 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 	debugPrinted := false
 
 	for _, requestedOutput := range requestedOutputs {
-		var value string
+		var value interface{}
 		kind := requestedOutput.Kind
 		brief := requestedOutput.Brief
 		valueExist := false
 		// output from a specific component
 		componentOutputRequested := strings.Contains(requestedOutput.Name, ":")
 
-		if !componentOutputRequested && requestedOutput.Value == "" && requestedOutput.Name != "" {
+		if !componentOutputRequested && util.Empty(requestedOutput.Value) && requestedOutput.Name != "" {
 			requestedOutput.Value = fmt.Sprintf("${%s}", requestedOutput.Name)
 		}
 
 		if componentOutputRequested {
-			if requestedOutput.Value != "" {
+			if !util.Empty(requestedOutput.Value) {
 				util.Warn("Stack output `%s` refer to value `%s`, but it will be derived from component outputs",
 					requestedOutput.Name, requestedOutput.Value)
 			}
@@ -91,15 +95,16 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 			}
 			valueExist = exist
 		} else if RequireExpansion(requestedOutput.Value) {
+			requestedOutputValue := requestedOutput.Value.(string)
 			invoked := 0
 			found := 0
-			value = CurlyReplacement.ReplaceAllStringFunc(requestedOutput.Value,
+			value = CurlyReplacement.ReplaceAllStringFunc(requestedOutputValue,
 				func(match string) string {
 					invoked++
 					variable, isCel := StripCurly(match)
 					if isCel {
 						util.Warn("Stack output `%s = %s` CEL expression `%s` is not supported",
-							requestedOutput.Name, requestedOutput.Value, variable)
+							requestedOutput.Name, requestedOutputValue, variable)
 						return "(unsupported)"
 					}
 					substitution, exist := kvOutputs[variable]
@@ -109,15 +114,19 @@ func ExpandRequestedOutputs(parameters LockedParameters, outputs CapturedOutputs
 					if !exist {
 						if mustExist {
 							util.Warn("Stack output `%s = %s` refer to unknown substitution `%s`",
-								requestedOutput.Name, requestedOutput.Value, variable)
+								requestedOutput.Name, requestedOutputValue, variable)
 						}
 					} else if RequireExpansion(substitution) {
 						log.Fatalf("Stack output `%s = %s` refer to substitution `%s` that expands to `%s`. This is surely a bug.",
-							requestedOutput.Name, requestedOutput.Value, variable, substitution)
+							requestedOutput.Name, requestedOutputValue, variable, substitution)
 					} else {
 						found++
 					}
-					return substitution
+					if str, ok := substitution.(string); ok {
+						return str
+					} else {
+						return fmt.Sprintf("%v", substitution)
+					}
 				})
 			valueExist = invoked == found
 		} else {

@@ -62,7 +62,7 @@ func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []
 	kv := make(map[string][]parameters.LockedParameter)
 	// group parameters by plain name
 	for _, p := range lockedParams {
-		if strings.HasPrefix(p.Name, "hub.") || p.Value == "" {
+		if strings.HasPrefix(p.Name, "hub.") || util.Empty(p.Value) {
 			// TODO how to preserve user supplied hub.deploymentId?
 			// what about empty: allow?
 			continue
@@ -81,7 +81,7 @@ func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []
 		for _, p := range params {
 			if p.Component == "" {
 				wildcardExist = true
-				wildcardValue = p.Value
+				wildcardValue = util.String(p.Value)
 				break
 			}
 		}
@@ -91,7 +91,7 @@ func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []
 			// erase all parameters with component: qualifier having same value as wildcard
 			uniqParams = uniqParams[:0]
 			for _, p := range params {
-				if p.Component == "" || p.Value != wildcardValue {
+				if p.Component == "" || util.String(p.Value) != wildcardValue {
 					uniqParams = append(uniqParams, p)
 				}
 			}
@@ -104,7 +104,7 @@ func transformStackParametersToApi(lockedParams []parameters.LockedParameter) []
 				secretKind := guessSecretKind("", p.Name)
 				value = map[string]string{
 					"kind":     secretKind,
-					secretKind: p.Value,
+					secretKind: util.String(p.Value),
 				}
 				kind = "secret"
 			} else {
@@ -225,7 +225,7 @@ func transformStackOutputsToApi(stackOutputs []parameters.ExpandedOutput) []Outp
 			secretKind := guessSecretKind(o.Kind, name)
 			value = map[string]string{
 				"kind":     secretKind,
-				secretKind: o.Value,
+				secretKind: util.String(o.Value),
 			}
 			kind = "secret"
 		} else {

@@ -29,7 +29,7 @@ func PrintLockedParametersList(parameters []LockedParameter) {
 		if parameter.Env != "" {
 			env = fmt.Sprintf(" (env:%s)", parameter.Env)
 		}
-		value := parameter.Value
+		value := util.String(parameter.Value)
 		if !config.Trace && util.LooksLikeSecret(parameter.Name) && len(value) > 0 {
 			value = "(masked)"
 		} else {
@@ -86,11 +86,11 @@ func CapturedOutputsToList(outputs CapturedOutputs) []CapturedOutput {
 
 func PrintCapturedOutputsList(outputs []CapturedOutput) {
 	for _, output := range outputs {
-		value := fmt.Sprintf("`%s`", util.Wrap(output.Value))
+		value := fmt.Sprintf("`%s`", util.Wrap(util.String(output.Value)))
 		kind := ""
 		if output.Kind != "" {
 			kind = fmt.Sprintf("[%s] ", output.Kind)
-			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && len(output.Value) > 0 {
+			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && !util.Empty(output.Value) {
 				value = "(masked)"
 			}
 		}

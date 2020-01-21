@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -267,6 +268,16 @@ func Omit(list []string, value string) []string {
 	return filtered
 }
 
+func OmitAll(list []string, values []string) []string {
+	filtered := make([]string, 0, len(list))
+	for _, v := range list {
+		if !Contains(values, v) {
+			filtered = append(filtered, v)
+		}
+	}
+	return filtered
+}
+
 func Filter(list []string, patterns []string) []string {
 	filtered := make([]string, 0, len(list))
 	for _, v := range list {
@@ -357,6 +368,43 @@ func Wrap(str string) string {
 		str = str[:100] + "..."
 	}
 	return str
+}
+
+func Empty(value interface{}) bool {
+	if value == nil {
+		return true
+	}
+	if str, ok := value.(string); ok {
+		return str == ""
+	}
+	return false
+}
+
+func String(value interface{}) string {
+	if value == nil {
+		return ""
+	}
+	if str, ok := value.(string); ok {
+		return str
+	}
+	return fmt.Sprintf("%v", value)
+}
+
+func MaybeJson(value interface{}) string {
+	if value == nil {
+		return ""
+	}
+	if str, ok := value.(string); ok {
+		return str
+	}
+	valueBytes, err := json.Marshal(value)
+	if err != nil {
+		if config.Trace {
+			return fmt.Sprintf("(%v)", err)
+		}
+		return "(error)"
+	}
+	return string(valueBytes)
 }
 
 func TrimColor(str string) string {

@@ -141,7 +141,7 @@ func printStackOutputs(outputs []parameters.ExpandedOutput) {
 			if output.Brief != "" {
 				brief = fmt.Sprintf(" [%s]", output.Brief)
 			}
-			value := output.Value
+			value := util.String(output.Value)
 			valueMasked := false
 			if !config.Trace && strings.HasPrefix(output.Kind, "secret") && len(value) > 0 {
 				value = "(masked)"

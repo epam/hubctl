@@ -135,14 +135,16 @@ func mergeStateParameter(parameters parameters.LockedParameters, add parameters.
 	qName := add.QName()
 	current, exists := parameters[qName]
 	if exists {
-		if current.Value != add.Value {
-			if current.Value == "" {
+		curValue := util.String(current.Value)
+		addValue := util.String(add.Value)
+		if curValue != addValue {
+			if util.Empty(current.Value) {
 				util.Warn("Parameter `%s` empty value is replaced by value `%s` from state",
-					qName, util.Trim(add.Value))
+					qName, util.Trim(addValue))
 				current.Value = add.Value
 			} else {
 				util.Warn("Parameter `%s` current value `%s` does not match value `%s` from state - keeping current value",
-					qName, util.Trim(current.Value), util.Trim(add.Value))
+					qName, util.Trim(curValue), util.Trim(addValue))
 			}
 		}
 		if current.Env != add.Env {
@@ -190,13 +192,13 @@ func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depen
 				current, exists := outputs[qName]
 				overwrite := false
 				if exists {
-					if current.Value != output.Value {
-						if current.Value != "" {
-							util.Warn("Loaded output `%s` current value `%s` does not match new value `%s` loaded from dependency `%s` - using new value",
+					if util.String(current.Value) != util.String(output.Value) {
+						if !util.Empty(current.Value) {
+							util.Warn("Loaded output `%s` current value `%v` does not match new value `%v` loaded from dependency `%s` - using new value",
 								qName, current.Value, output.Value, dependencyName)
 							overwrite = true // TODO review overwrite logic
-						} else if output.Value != "" {
-							util.Warn("Loaded output `%s` empty value replaced by new value `%s` loaded from dependency `%s`",
+						} else if !util.Empty(output.Value) {
+							util.Warn("Loaded output `%s` empty value replaced by new value `%v` loaded from dependency `%s`",
 								qName, output.Value, dependencyName)
 							overwrite = true
 						}

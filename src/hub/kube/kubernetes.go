@@ -56,7 +56,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 	componentName := manifest.ComponentQualifiedNameFromRef(component)
 	flavor := "k8s-aws"
 	if o, exist := componentOutputs[parameters.OutputQualifiedName(kubernetesFlavorOutput, componentName)]; exist {
-		flavor = o.Value
+		flavor = util.String(o.Value)
 	}
 
 	domainQName := parameters.OutputQualifiedName(kubernetesDomainOutput, componentName)
@@ -300,12 +300,12 @@ func mayOutput(params parameters.LockedParameters,
 			qName := parameters.OutputQualifiedName(name, component)
 			output, exist := outputs[qName]
 			if exist {
-				return output.Value, true
+				return util.String(output.Value), true
 			}
 		}
 		param, exist := params[name]
 		if exist {
-			return param.Value, true
+			return util.String(param.Value), true
 		}
 	}
 	return "", false

@@ -3,6 +3,7 @@ package lifecycle
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/alexkappa/mustache"
+	"gopkg.in/yaml.v2"
 
 	"hub/config"
 	"hub/manifest"
@@ -107,7 +109,7 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	if config.Trace {
 		log.Printf("Template binding:\n%v", kv)
 	}
-	var mustacheKV map[string]string
+	var mustacheKV map[string]interface{}
 	if hasMustache {
 		mustacheKV = mustacheCompatibleBindings(kv)
 		if config.Trace {
@@ -151,7 +153,7 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 	return errs
 }
 
-func maybeExpandParametersInTemplateGlob(glob string, kv map[string]string, section string, index int) (string, error) {
+func maybeExpandParametersInTemplateGlob(glob string, kv map[string]interface{}, section string, index int) (string, error) {
 	if !parameters.RequireExpansion(glob) {
 		return glob, nil
 	}
@@ -162,14 +164,14 @@ func maybeExpandParametersInTemplateGlob(glob string, kv map[string]string, sect
 	return value, nil
 }
 
-func expandParametersInTemplateGlob(what string, value string, kv map[string]string) (string, []error) {
+func expandParametersInTemplateGlob(what string, value string, kv map[string]interface{}) (string, []error) {
 	piggy := manifest.Parameter{Name: fmt.Sprintf("templates.%s", what), Value: value}
 	errs := parameters.ExpandParameter(&piggy, []string{}, kv)
-	return piggy.Value, errs
+	return util.String(piggy.Value), errs
 }
 
 func expandParametersInTemplateSetup(templateSetup *manifest.TemplateSetup,
-	kv map[string]string) (*manifest.TemplateSetup, error) {
+	kv map[string]interface{}) (*manifest.TemplateSetup, error) {
 
 	setup := manifest.TemplateSetup{
 		Kind:        templateSetup.Kind,
@@ -391,6 +393,8 @@ func processTemplate(filename, kind, componentName string,
 var (
 	curlyReplacement    = regexp.MustCompile("\\$\\{[a-zA-Z0-9_\\.\\|:/-]+\\}")
 	mustacheReplacement = regexp.MustCompile("\\{\\{[a-zA-Z0-9_\\.\\|:/-]+\\}\\}")
+
+	templateSubstitutionSupportedEncodings = []string{"base64", "unbase64", "json", "yaml"}
 )
 
 func stripCurly(match string) string {
@@ -401,16 +405,16 @@ func stripMustache(match string) string {
 	return match[2 : len(match)-2]
 }
 
-func valueEncoding(variable string) (string, string) {
-	i := strings.Index(variable, "/")
-	if i <= 0 || i == len(variable)-1 {
-		return variable, ""
+func valueEncodings(variable string) (string, []string) {
+	if strings.Contains(variable, "/") {
+		parts := strings.Split(variable, "/")
+		return parts[0], parts[1:]
 	}
-	return variable[0:i], variable[i+1:]
+	return variable, nil
 }
 
 func processReplacement(content, filename, componentName string, componentDepends []string,
-	kv map[string]string, replacement *regexp.Regexp, strip func(string) string) (string, []error) {
+	kv map[string]interface{}, replacement *regexp.Regexp, strip func(string) string) (string, []error) {
 
 	errs := make([]error, 0)
 	replaced := false
@@ -418,39 +422,57 @@ func processReplacement(content, filename, componentName string, componentDepend
 	outContent := replacement.ReplaceAllStringFunc(content,
 		func(variable string) string {
 			variable = strip(variable)
-			variable, encoding := valueEncoding(variable)
+			variable, encodings := valueEncodings(variable)
 			substitution, exist := parameters.FindValue(variable, componentName, componentDepends, kv)
 			if !exist {
 				errs = append(errs, fmt.Errorf("Template `%s` refer to unknown substitution `%s`", filename, variable))
-				substitution = "(unknown)"
-			} else {
-				if parameters.RequireExpansion(substitution) {
-					util.WarnOnce("Template `%s` substitution `%s` refer to a value `%s` that is not expanded",
-						filename, variable, substitution)
-				}
+				return "(unknown)"
+			}
+			if parameters.RequireExpansion(substitution) {
+				util.WarnOnce("Template `%s` substitution `%s` refer to a value `%s` that is not expanded",
+					filename, variable, substitution)
 			}
 			if config.Trace {
-				log.Printf("--- %s | %s => %s", variable, componentName, substitution)
+				log.Printf("--- %s | %s => %v", variable, componentName, substitution)
 			}
 			replaced = true
-			if encoding != "" {
-				if encoding == "base64" {
-					substitution = base64.StdEncoding.EncodeToString([]byte(substitution))
-				} else if encoding == "unbase64" {
-					bytes, err := base64.StdEncoding.DecodeString(substitution)
-					if err != nil {
-						util.Warn("Unable to decode `%s` base64 value `%s`: %v", variable, util.Trim(substitution), err)
-					} else {
-						substitution = string(bytes)
-					}
-				} else {
-					util.Warn("Unknown encoding `%s` processing template `%s` substitution `%s`",
-						encoding, filename, variable)
+			if len(encodings) > 0 {
+				if unknown := util.OmitAll(encodings, templateSubstitutionSupportedEncodings); len(unknown) > 0 {
+					errs = append(errs, fmt.Errorf("Unknown encoding(s) %v processing template `%s` substitution `%s`",
+						unknown, filename, variable))
 				}
-			} else {
-				substitution = strings.TrimSpace(substitution)
+				if util.Contains(encodings, "json") {
+					jsonBytes, err := json.Marshal(substitution)
+					if err != nil {
+						errs = append(errs, fmt.Errorf("Unable to marshal JSON from %v while processing template `%s` substitution `%s`: %v",
+							substitution, filename, variable, err))
+					} else {
+						substitution = string(jsonBytes)
+					}
+				} else if util.Contains(encodings, "yaml") {
+					// TODO YAML fragment on a single line
+					yamlBytes, err := yaml.Marshal(substitution)
+					if err != nil {
+						errs = append(errs, fmt.Errorf("Unable to marshal YAML from %v while processing template `%s` substitution `%s`: %v",
+							substitution, filename, variable, err))
+					} else {
+						substitution = string(yamlBytes)
+					}
+				}
+				strSubstitution := util.String(substitution)
+				if util.Contains(encodings, "base64") {
+					strSubstitution = base64.StdEncoding.EncodeToString([]byte(strSubstitution))
+				} else if util.Contains(encodings, "unbase64") {
+					bytes, err := base64.StdEncoding.DecodeString(strSubstitution)
+					if err != nil {
+						util.Warn("Unable to decode `%s` base64 value `%s`: %v", variable, util.Trim(strSubstitution), err)
+					} else {
+						strSubstitution = string(bytes)
+					}
+				}
+				return strSubstitution
 			}
-			return substitution
+			return strings.TrimSpace(util.String(substitution))
 		})
 
 	if !replaced {
@@ -459,15 +481,15 @@ func processReplacement(content, filename, componentName string, componentDepend
 	return outContent, errs
 }
 
-func mustacheCompatibleBindings(kv map[string]string) map[string]string {
-	mkv := make(map[string]string)
+func mustacheCompatibleBindings(kv map[string]interface{}) map[string]interface{} {
+	mkv := make(map[string]interface{})
 	for k, v := range kv {
 		mkv[strings.ReplaceAll(k, ".", "_")] = v
 	}
 	return mkv
 }
 
-func processMustache(content, filename, componentName string, kv map[string]string) (string, error) {
+func processMustache(content, filename, componentName string, kv map[string]interface{}) (string, error) {
 	template := mustache.New(mustache.SilentMiss(false))
 	err := template.ParseString(content)
 	if err != nil {
@@ -475,13 +497,12 @@ func processMustache(content, filename, componentName string, kv map[string]stri
 	}
 	outContent, err := template.RenderString(kv)
 	if err != nil {
-		util.PrintMap(kv)
 		return outContent, fmt.Errorf("Unable to render mustache template `%s`: %v", filename, err)
 	}
 	return outContent, nil
 }
 
-func goTemplateBindings(kv map[string]string) map[string]interface{} {
+func goTemplateBindings(kv map[string]interface{}) map[string]interface{} {
 	gkv := make(map[string]interface{})
 	for k, v := range kv {
 		parts := strings.Split(k, ".")

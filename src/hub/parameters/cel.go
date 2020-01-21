@@ -25,7 +25,7 @@ func init() {
 	CEL = env
 }
 
-func CelEval(expr string, component string, depends []string, kv map[string]string) (string, error) {
+func CelEval(expr string, component string, depends []string, kv map[string]interface{}) (string, error) {
 	ast, issues := CEL.Parse(expr)
 	if issues != nil && issues.Err() != nil {
 		return "(parse error)", fmt.Errorf("CEL parse error: %v", issues.Err())
@@ -45,7 +45,7 @@ func CelEval(expr string, component string, depends []string, kv map[string]stri
 type celActivation struct {
 	component string
 	depends   []string
-	kv        map[string]string
+	kv        map[string]interface{}
 }
 
 func (a *celActivation) ResolveName(name string) (ref.Val, bool) {
@@ -53,7 +53,7 @@ func (a *celActivation) ResolveName(name string) (ref.Val, bool) {
 	if config.Trace {
 		print := "(unknown)"
 		if exist {
-			print = fmt.Sprintf("`%s`", util.Wrap(value))
+			print = fmt.Sprintf("`%s`", util.Wrap(util.String(value)))
 		}
 		log.Printf("CEL resolving: %s => %s", name, print)
 	}
@@ -67,6 +67,6 @@ func (*celActivation) Parent() interpreter.Activation {
 	return nil
 }
 
-func newCelActivation(component string, depends []string, kv map[string]string) interpreter.Activation {
+func newCelActivation(component string, depends []string, kv map[string]interface{}) interpreter.Activation {
 	return &celActivation{component, depends, kv}
 }

@@ -132,10 +132,10 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 
 		if global || componentName == "" {
 			for _, parameter := range state.StackParameters {
-				explained.StackParameters[parameter.QName()] = parameter.Value
+				explained.StackParameters[parameter.QName()] = util.String(parameter.Value)
 			}
 			for _, output := range state.StackOutputs {
-				explained.StackOutputs[output.Name] = output.Value
+				explained.StackOutputs[output.Name] = util.String(output.Value)
 			}
 			explained.Provides = state.Provides
 		}
@@ -152,7 +152,7 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 						RawOutputs: make(map[string]string),
 					}
 					for _, parameter := range step.Parameters {
-						comp.Parameters[parameter.Name] = parameter.Value
+						comp.Parameters[parameter.Name] = util.String(parameter.Value)
 					}
 					comp.Outputs = DiffOutputs(step.CapturedOutputs, prevOutputs)
 					prevOutputs = step.CapturedOutputs
@@ -230,16 +230,16 @@ func printLockedParameters(parameters []parameters.LockedParameter) {
 		if parameter.Env != "" {
 			env = fmt.Sprintf(" (env:%s)", parameter.Env)
 		}
-		fmt.Printf("\t%s => `%s`%s\n", qName, util.Wrap(parameter.Value), env)
+		fmt.Printf("\t%s => `%s`%s\n", qName, util.Wrap(util.String(parameter.Value)), env)
 	}
 }
 
 func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 	keys := make(map[string]string)
 	for _, p := range prev {
-		qName := p.QName()
-		keys[qName] = p.Value
-		keys[p.Name] = p.Value
+		str := util.String(p.Value)
+		keys[p.QName()] = str
+		keys[p.Name] = str
 	}
 	for _, c := range curr {
 		if strings.HasPrefix(c.Name, "hub.components.") {
@@ -257,10 +257,10 @@ func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 			if c.Brief != "" {
 				brief = fmt.Sprintf(" [%s]", c.Brief)
 			}
-			value := util.Wrap(c.Value)
+			value := util.Wrap(util.String(c.Value))
 			if !overExist {
 				fmt.Printf("\t%s%s%s => `%s`\n", kind, c.Name, brief, value)
-			} else if c.Value != over {
+			} else if util.String(c.Value) != over {
 				fmt.Printf("\t%s%s%s => `%s` (was: `%s`)\n", kind, c.Name, brief, value, util.Wrap(over))
 			} else {
 				fmt.Printf("\t%s%s%s => `%s`\n", kind, qName, brief, value)
@@ -272,7 +272,7 @@ func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 func DiffOutputs(curr, prev []parameters.CapturedOutput) map[string]string {
 	keys := make(map[string]string)
 	for _, p := range prev {
-		keys[p.QName()] = p.Value
+		keys[p.QName()] = util.String(p.Value)
 	}
 	diff := make(map[string]string)
 	for _, c := range curr {
@@ -280,7 +280,7 @@ func DiffOutputs(curr, prev []parameters.CapturedOutput) map[string]string {
 			continue
 		}
 		if _, exist := keys[c.QName()]; !exist {
-			diff[c.Name] = c.Value
+			diff[c.Name] = util.String(c.Value)
 		}
 	}
 	return diff

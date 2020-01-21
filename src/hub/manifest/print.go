@@ -11,8 +11,8 @@ import (
 func printParameters(parameters []Parameter) {
 	for _, p := range parameters {
 		def := ""
-		if p.Default != "" {
-			def = fmt.Sprintf(" [%s]", util.Wrap(p.Default))
+		if !util.Empty(p.Default) {
+			def = fmt.Sprintf(" [%s]", util.Wrap(util.String(p.Default)))
 		}
 		from := ""
 		if p.FromEnv != "" || p.FromFile != "" {
@@ -22,7 +22,7 @@ func printParameters(parameters []Parameter) {
 		if p.Env != "" {
 			env = fmt.Sprintf(" (env:%s)", p.Env)
 		}
-		value := p.Value
+		value := util.String(p.Value)
 		if value == "" && p.Kind == "user" {
 			value = "*ask*"
 		} else {

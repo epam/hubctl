@@ -158,8 +158,8 @@ func checkStateMatch(state *state.StateManifest, elaborate *manifest.Manifest, s
 		if stackParam, exist := stackParameters[name]; exist {
 			for _, stateParam := range state.StackParameters {
 				if stateParam.QName() == name {
-					if stateParam.Value != stackParam.Value {
-						errs = append(errs, fmt.Errorf("Parameter `%s` state value `%s` does not match stack parameter value `%s`",
+					if util.String(stateParam.Value) != util.String(stackParam.Value) {
+						errs = append(errs, fmt.Errorf("Parameter `%s` state value `%v` does not match stack parameter value `%v`",
 							name, stateParam.Value, stackParam.Value))
 					}
 					break

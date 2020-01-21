@@ -446,7 +446,7 @@ func calculateOptionalFalseParameters(componentName string, params parameters.Lo
 					for _, p := range params {
 						if p.Name == term && (p.Component == "" || p.Component == componentName) {
 							parameterExists = true
-							if util.Contains(falseParameterValues, p.Value) {
+							if util.Contains(falseParameterValues, util.String(p.Value)) {
 								falseParameters = append(falseParameters, p.QName())
 								if optionalFor == "*" {
 									util.WarnOnce("Optional parameter `lifecycle.requires.optional = %s` targets all components as wildcard;\n\tYou may want to narrow specification to `%[1]s:component`",

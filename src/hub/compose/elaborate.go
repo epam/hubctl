@@ -87,7 +87,7 @@ func Elaborate(manifestFilename string,
 			if len(outputs) > 0 {
 				apiParameters := make([]string, 0, len(kube.KubernetesParameters))
 				for _, output := range outputs {
-					if util.Contains(kube.KubernetesParameters, output.Name) && output.Value != "" {
+					if util.Contains(kube.KubernetesParameters, output.Name) && !util.Empty(output.Value) {
 						apiParameters = append(apiParameters, output.Name)
 					}
 				}
@@ -366,7 +366,7 @@ func checkParameters(parametersAssorti [][]manifest.Parameter) {
 				util.Warn("Parameter `%s` specify unknown `kind: %s`",
 					parameter.QName(), parameter.Kind)
 			}
-			if parameter.Kind == "link" && parameter.Value == "" {
+			if parameter.Kind == "link" && util.Empty(parameter.Value) {
 				util.Warn("Parameter `%s` of kind `link` has no value assigned",
 					parameter.QName())
 			}
@@ -421,14 +421,14 @@ func findKubernetesProvider(st *state.StateManifest) []parameters.CapturedOutput
 }
 
 func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest) {
-	stateStackOutputs := make(map[string]string)
+	stateStackOutputs := make(map[string]interface{})
 
 	// rely on explicit stack outputs only?
 	// for apps installed on overlay stack we must look into
 	// stack parameters to obtain kubernetes credentials
 	for _, parameter := range st.StackParameters {
 		// should we filter out `link` parameters?
-		if parameter.Component == "" && parameter.Value != "" {
+		if parameter.Component == "" && !util.Empty(parameter.Value) {
 			stateStackOutputs[parameter.Name] = parameter.Value
 		}
 	}
@@ -447,14 +447,14 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 		if strings.HasPrefix(parameter.Name, "hub.") {
 			continue
 		}
-		if parameter.Value == "" {
+		if util.Empty(parameter.Value) {
 			value, exist := stateStackOutputs[parameter.Name]
 			if exist {
 				if parameter.FromEnv == "" {
 					parameter.Value = value
 				} else {
-					if parameter.Default != "" {
-						util.Warn("Overwritting empty parameter `%s` `default: %s` with state value `%s` (due to `fromEnv: %s`)",
+					if !util.Empty(parameter.Default) {
+						util.Warn("Overwritting empty parameter `%s` `default: %v` with state value `%v` (due to `fromEnv: %s`)",
 							parameter.QName(), parameter.Default, value, parameter.FromEnv)
 					}
 					parameter.Default = value
@@ -476,11 +476,11 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 
 func warnNoValue(parameters []manifest.Parameter) {
 	for _, parameter := range parameters {
-		if parameter.Value == "" {
+		if util.Empty(parameter.Value) {
 			who := "Parameter"
 			noDefault := ""
 			if parameter.Kind == "user" {
-				if parameter.Default != "" || parameter.FromEnv != "" || parameter.FromFile != "" {
+				if !util.Empty(parameter.Default) || parameter.FromEnv != "" || parameter.FromFile != "" {
 					continue
 				}
 				who = "User-level parameter"
@@ -494,8 +494,8 @@ func warnNoValue(parameters []manifest.Parameter) {
 
 func warnFromEnvValueMismatch(parameters []manifest.Parameter) {
 	for _, parameter := range parameters {
-		if parameter.Kind == "user" && parameter.FromEnv != "" && parameter.Value != "" {
-			if value, exist := os.LookupEnv(parameter.FromEnv); exist && value != parameter.Value {
+		if parameter.Kind == "user" && parameter.FromEnv != "" && !util.Empty(parameter.Value) {
+			if value, exist := os.LookupEnv(parameter.FromEnv); exist && value != util.String(parameter.Value) {
 				util.Warn("Parameter `%s` value `%s` differs from value `%s` provided by `fromEnv:` environment variable `%s`",
 					parameter.QName(), parameter.Value, value, parameter.FromEnv)
 			}
@@ -517,7 +517,7 @@ func transformApplicationIntoComponent(stack *manifest.Manifest, components []ma
 	componentOutputs := make([]manifest.Output, 0, len(stack.Outputs))
 	stackOutputs := make([]manifest.Output, 0, len(stack.Outputs))
 	for _, output := range stack.Outputs {
-		if output.Value != "" || output.FromTfVar != "" {
+		if !util.Empty(output.Value) || output.FromTfVar != "" {
 			componentOutputs = append(componentOutputs, output)
 			stackOutput := manifest.Output{
 				Name:        output.Name,
@@ -645,7 +645,7 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 					util.Warn("Parameter `%s` specify `kind: link` on hub-component.yaml level - this is not supported",
 						parameter.QName())
 				}
-				if parameter.Kind != "user" && parameter.Value == "" && parameter.Default != "" {
+				if parameter.Kind != "user" && util.Empty(parameter.Value) && !util.Empty(parameter.Default) {
 					util.Warn("Parameter `%s` specify `default:` on hub-component.yaml level - use `value:` instead",
 						parameter.QName())
 				}
@@ -769,8 +769,8 @@ func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 	env := mergeField(base.Env, over.Env)
 	fromEnv := mergeField(base.FromEnv, over.FromEnv)
 	fromFile := mergeField(base.FromFile, over.FromFile)
-	defaultValue := mergeField(base.Default, over.Default)
-	value := mergeField(base.Value, over.Value)
+	defaultValue := mergeValue(base.Default, over.Default)
+	value := mergeValue(base.Value, over.Value)
 	if fromEnv != "" && overrides != nil {
 		envValue, exist := overrides[fromEnv]
 		if exist {
@@ -779,7 +779,7 @@ func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 	}
 	// TODO process fromFile?
 	empty := mergeField(base.Empty, over.Empty)
-	if value != "" {
+	if !util.Empty(value) {
 		empty = ""
 	}
 	merged := manifest.Parameter{
@@ -802,11 +802,17 @@ func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 }
 
 func mergeField(base string, over string) string {
-	out := base
 	if over != "" {
-		out = over
+		return over
 	}
-	return out
+	return base
+}
+
+func mergeValue(base interface{}, over interface{}) interface{} {
+	if !util.Empty(over) {
+		return over
+	}
+	return base
 }
 
 func connectRequires(parentStackName string, parentStackProvides []string,
@@ -1136,7 +1142,7 @@ func mergeOutputs(parent, child []manifest.Output) []manifest.Output {
 				found = true
 				outputs[i] = manifest.Output{
 					Name:        output.Name,
-					Value:       mergeField(exist.Value, output.Value),
+					Value:       mergeValue(exist.Value, output.Value),
 					FromTfVar:   mergeField(exist.FromTfVar, output.FromTfVar),
 					Kind:        mergeField(exist.Kind, output.Kind),
 					Brief:       mergeField(exist.Brief, output.Brief),

@@ -3,6 +3,7 @@ package lifecycle
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,7 +16,12 @@ import (
 	"hub/util"
 )
 
-var outputsMarker = []byte("Outputs:\n")
+const fileRefPrefix = "file://"
+
+var (
+	outputsMarker            = []byte("Outputs:\n")
+	outputSupportedEncodings = []string{"base64", "json"}
+)
 
 func captureOutputs(componentName, componentDir string,
 	componentParameters parameters.LockedParameters, requestedOutputs []manifest.Output,
@@ -65,55 +71,69 @@ func expandRequestedOutputs(componentName, componentDir string,
 			Kind:      requestedOutput.Kind,
 		}
 		if requestedOutput.FromTfVar != "" {
-			variable, encoding := valueEncoding(requestedOutput.FromTfVar)
+			variable, encodings := valueEncodings(requestedOutput.FromTfVar)
 			value, exist := tfOutputs[variable]
 			if !exist {
 				errs = append(errs, fmt.Errorf("Unable to capture raw output `%s` for component `%s` output `%s`",
 					variable, componentName, requestedOutput.Name))
 				value = "(unknown)"
-			}
-			if exist && encoding != "" {
-				if encoding == "base64" {
-					bValue, err := base64.StdEncoding.DecodeString(value)
+			} else {
+				if strings.HasPrefix(value, fileRefPrefix) && len(value) > len(fileRefPrefix) {
+					filename := value[len(fileRefPrefix):]
+					if !filepath.IsAbs(filename) {
+						filename = filepath.Join(componentDir, filename)
+					}
+					bytes, err := ioutil.ReadFile(filename)
 					if err != nil {
-						errs = append(errs, fmt.Errorf("Unable to decode base64 `%s` while capturing output `%s` from raw output `%s`: %v",
-							util.Trim(value), requestedOutput.FromTfVar, variable, err))
+						util.Warn("Unable to read raw output `%s` from `%s` for component `%s` output `%s`: %v",
+							variable, filename, componentName, requestedOutput.Name, err)
+						// pass value as is
 					} else {
-						value = string(bValue)
-					}
-				} else {
-					errs = append(errs, fmt.Errorf("Unknown encoding `%s` capturing output `%s` from raw output `%s`",
-						encoding, requestedOutput.FromTfVar, variable))
-				}
-			}
-			fileRefPrefix := "file://"
-			if strings.HasPrefix(value, fileRefPrefix) && len(value) > len(fileRefPrefix) {
-				filename := value[len(fileRefPrefix):]
-				if !filepath.IsAbs(filename) {
-					filename = filepath.Join(componentDir, filename)
-				}
-				bytes, err := ioutil.ReadFile(filename)
-				if err != nil {
-					util.Warn("Unable to read raw output `%s` from `%s` for component `%s` output `%s`: %v",
-						variable, filename, componentName, requestedOutput.Name, err)
-					// pass value as is
-				} else {
-					value = string(bytes)
-					if strings.Count(value, "\n") <= 1 {
-						value = strings.Trim(value, " \r\n")
+						value = string(bytes)
+						if strings.Count(value, "\n") <= 1 {
+							value = strings.Trim(value, " \r\n")
+						}
 					}
 				}
+				if len(encodings) > 0 {
+					if unknown := util.OmitAll(encodings, outputSupportedEncodings); len(unknown) > 0 {
+						errs = append(errs, fmt.Errorf("Unknown encoding(s) %v capturing output `%s` from raw output `%s`",
+							unknown, requestedOutput.FromTfVar, variable))
+					}
+					if util.Contains(encodings, "base64") {
+						bValue, err := base64.StdEncoding.DecodeString(value)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to decode base64 `%s` while capturing output `%s` from raw output `%s`: %v",
+								util.Trim(value), requestedOutput.FromTfVar, variable, err))
+						} else {
+							value = string(bValue)
+						}
+					}
+					if util.Contains(encodings, "json") {
+						var iValue interface{}
+						err := json.Unmarshal([]byte(value), &iValue)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to unmarshal JSON `%s` while capturing output `%s` from raw output `%s`: %v",
+								util.Trim(value), requestedOutput.FromTfVar, variable, err))
+						} else {
+							output.Value = iValue
+						}
+					}
+				}
 			}
-			output.Value = value
+			if output.Value == nil { // TODO decoded nil from JSON null?
+				output.Value = value
+			}
 		} else {
-			if requestedOutput.Value == "" {
+			if util.Empty(requestedOutput.Value) {
 				requestedOutput.Value = fmt.Sprintf("${%s}", requestedOutput.Name)
 			}
 			if parameters.RequireExpansion(requestedOutput.Value) {
-				value := parameters.CurlyReplacement.ReplaceAllStringFunc(requestedOutput.Value,
+				requestedOutputValue := requestedOutput.Value.(string)
+				value := parameters.CurlyReplacement.ReplaceAllStringFunc(requestedOutputValue,
 					func(match string) string {
 						expr, isCel := parameters.StripCurly(match)
-						var substitution string
+						var substitution interface{}
 						if isCel {
 							var err error
 							substitution, err = parameters.CelEval(expr, componentName, nil, kv)
@@ -125,16 +145,16 @@ func expandRequestedOutputs(componentName, componentDir string,
 							substitution, exist = parameters.FindValue(expr, componentName, nil, kv)
 							if !exist {
 								errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to unknown substitution `%s`",
-									componentName, requestedOutput.Name, requestedOutput.Value, expr))
+									componentName, requestedOutput.Name, requestedOutputValue, expr))
 								substitution = "(unknown)"
 							}
 						}
 						if parameters.RequireExpansion(substitution) {
 							errs = append(errs, fmt.Errorf("Component `%s` output `%s = %s` refer to substitution `%s` that expands to `%s` - this is surely a bug",
-								componentName, requestedOutput.Name, requestedOutput.Value, expr, substitution))
+								componentName, requestedOutput.Name, requestedOutputValue, expr, substitution))
 							substitution = "(bug)"
 						}
-						return substitution
+						return util.String(substitution)
 					})
 				output.Value = value
 			} else {

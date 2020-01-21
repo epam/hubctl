@@ -19,28 +19,31 @@ func StripCurly(match string) (string, bool) {
 	return match[2 : len(match)-1], match[0] == '#'
 }
 
-func RequireExpansion(value string) bool {
-	return strings.Contains(value, "${") || strings.Contains(value, "#{")
+func RequireExpansion(value interface{}) bool {
+	if str, ok := value.(string); ok {
+		return strings.Contains(str, "${") || strings.Contains(str, "#{")
+	}
+	return false
 }
 
 func LockParameters(parameters []manifest.Parameter,
 	extraValues []manifest.Parameter,
-	ask func(manifest.Parameter) (string, error)) (LockedParameters, []error) {
+	ask func(manifest.Parameter) (interface{}, error)) (LockedParameters, []error) {
 
 	for _, parameter := range parameters {
-		if parameter.Default != "" && parameter.Kind != "user" {
+		if !util.Empty(parameter.Default) && parameter.Kind != "user" {
 			kind := ""
 			if parameter.Kind != "" {
 				kind = fmt.Sprintf(" but `%s`", parameter.Kind)
 			}
 			util.Warn("Parameter `%s` default value `%s` won't be used as parameter is not `user` kind%s",
-				parameter.Name, util.Wrap(parameter.Default), kind)
+				parameter.Name, util.Wrap(util.String(parameter.Default)), kind)
 		}
 	}
 	errs := make([]error, 0)
 	// populate empty user-level parameters from environment or user input
 	for i, parameter := range parameters {
-		if parameter.Value == "" && parameter.Kind == "user" && len(parameter.Parameters) == 0 {
+		if util.Empty(parameter.Value) && parameter.Kind == "user" && len(parameter.Parameters) == 0 {
 			value, err := ask(parameter)
 			parameters[i].Value = value
 			if err != nil {
@@ -49,7 +52,7 @@ func LockParameters(parameters []manifest.Parameter,
 		}
 	}
 	// create key-value map for parameter expansion
-	kv := make(map[string]string)
+	kv := make(map[string]interface{})
 	for _, extra := range extraValues {
 		kv[extra.QName()] = extra.Value
 	}
@@ -94,8 +97,13 @@ func ParametersWithoutLinks(parameters LockedParameters) LockedParameters {
 	return withoutLinks
 }
 
-func ExpandParameter(parameter *manifest.Parameter, componentDepends []string, kv map[string]string) []error {
-	value, errs, _ := expandValue(parameter, parameter.Value, componentDepends, kv, 0)
+func ExpandParameter(parameter *manifest.Parameter, componentDepends []string, kv map[string]interface{}) []error {
+	str, ok := parameter.Value.(string)
+	if !ok {
+		return []error{fmt.Errorf("Unable to expand parameter `%s` value `%+v`, which is not a string",
+			parameter.QName(), parameter.Value)}
+	}
+	value, errs, _ := expandValue(parameter, str, componentDepends, kv, 0)
 	parameter.Value = value
 	return errs
 }
@@ -103,7 +111,7 @@ func ExpandParameter(parameter *manifest.Parameter, componentDepends []string, k
 const maxExpansionDepth = 10
 
 func expandValue(parameter *manifest.Parameter, value string, componentDepends []string,
-	kv map[string]string, depth int) (string, []error, bool) {
+	kv map[string]interface{}, depth int) (string, []error, bool) {
 
 	if depth >= maxExpansionDepth {
 		return "(loop)", []error{fmt.Errorf("Probably loop expanding parameter `%s` value `%s`, reached `%s` at depth %d",
@@ -132,7 +140,11 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 						parameter.QName(), parameter.Value, expr, depth))
 					substitution = "(unknown)"
 				} else {
-					substitution = found
+					if str, ok := found.(string); ok {
+						substitution = str
+					} else {
+						substitution = fmt.Sprintf("%v", found)
+					}
 				}
 			}
 			if config.Trace {
@@ -156,16 +168,16 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 	return expandedValue, errs, mask
 }
 
-func ParametersKV(parameters LockedParameters) map[string]string {
-	kv := make(map[string]string)
+func ParametersKV(parameters LockedParameters) map[string]interface{} {
+	kv := make(map[string]interface{})
 	for _, parameter := range parameters {
 		kv[parameter.QName()] = parameter.Value
 	}
 	return kv
 }
 
-func OutputsKV(outputs CapturedOutputs) map[string]string {
-	kv := make(map[string]string)
+func OutputsKV(outputs CapturedOutputs) map[string]interface{} {
+	kv := make(map[string]interface{})
 	for _, output := range outputs {
 		kv[output.QName()] = output.Value
 		kv[output.Name] = output.Value
@@ -173,8 +185,8 @@ func OutputsKV(outputs CapturedOutputs) map[string]string {
 	return kv
 }
 
-func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs, depends []string) map[string]string {
-	kv := make(map[string]string)
+func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs, depends []string) map[string]interface{} {
+	kv := make(map[string]interface{})
 	for _, parameter := range parameters {
 		kv[parameter.QName()] = parameter.Value
 	}
@@ -195,7 +207,7 @@ func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs
 }
 
 func FindValue(parameterName string, componentName string, componentDepends []string,
-	kv map[string]string) (string, bool) {
+	kv map[string]interface{}) (interface{}, bool) {
 
 	fqName := parameterQualifiedName(parameterName, componentName)
 	v, exist := kv[fqName]
@@ -237,10 +249,10 @@ func ExpandParameters(componentName string, componentDepends []string,
 				util.Warn("Component `%s` user-level parameter `%s` must be propagated to stack level parameter",
 					componentName, fqName)
 			}
-			if parameter.Value == "" && parameter.Default != "" {
+			if util.Empty(parameter.Value) && !util.Empty(parameter.Default) {
 				parameter.Value = parameter.Default
 			}
-			if parameter.Value == "" {
+			if util.Empty(parameter.Value) {
 				if parameter.Empty == "allow" {
 					if config.Debug {
 						log.Printf("Empty parameter `%s` value allowed", fqName)
@@ -257,7 +269,7 @@ func ExpandParameters(componentName string, componentDepends []string,
 		}
 
 		if config.Trace {
-			log.Printf("--- %s | %s => %s", parameter.Name, componentName, parameter.Value)
+			log.Printf("--- %s | %s => %v", parameter.Name, componentName, parameter.Value)
 		}
 
 		expanded = append(expanded, LockedParameter{Name: parameter.Name, Value: parameter.Value, Env: parameter.Env})
@@ -287,7 +299,7 @@ func mergeParameter(parameters LockedParameters, add LockedParameter) {
 	qName := add.QName()
 	current, exists := parameters[qName]
 	if exists {
-		if current.Value != add.Value && current.Value != "" {
+		if util.String(current.Value) != util.String(add.Value) && !util.Empty(current.Value) {
 			util.Warn("Parameter `%s` current value `%s` does not match new value `%s`",
 				qName, current.Value, add.Value)
 		}
