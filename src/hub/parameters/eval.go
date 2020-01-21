@@ -140,7 +140,9 @@ func expandValue(parameter *manifest.Parameter, value string, componentDepends [
 						parameter.QName(), parameter.Value, expr, depth))
 					substitution = "(unknown)"
 				} else {
-					if str, ok := found.(string); ok {
+					if found == nil {
+						substitution = ""
+					} else if str, ok := found.(string); ok {
 						substitution = str
 					} else {
 						substitution = fmt.Sprintf("%v", found)
