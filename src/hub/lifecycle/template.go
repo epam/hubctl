@@ -484,22 +484,17 @@ func processMustache(content, filename, componentName string, kv map[string]stri
 func goTemplateBindings(kv map[string]string) map[string]interface{} {
 	gkv := make(map[string]interface{})
 	for k, v := range kv {
-		// log.Printf("processing %s", k)
 		parts := strings.Split(k, ".")
 		innerkv := gkv
 		for i, part := range parts {
-			// log.Printf("part[%d] %s", i, part)
 			leaf := i == len(parts)-1
 			if leaf {
-				// log.Printf("setting %s %v", part, v)
 				innerkv[part] = v
 			} else {
 				ref, exist := innerkv[part]
 				if exist {
-					// log.Printf("exist %s as map[]", part)
 					innerkv = ref.(map[string]interface{})
 				} else {
-					// log.Printf("setting %s to map[]", part)
 					newkv := make(map[string]interface{})
 					innerkv[part] = newkv
 					innerkv = newkv
