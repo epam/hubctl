@@ -35,9 +35,9 @@ var applicationInstallCmd = &cobra.Command{
 	{
 		"name": "a-node-01",
 		"description": "NodeJS microservice with Express",
-		"platform": "2",
-		"requires": ["jenkins", "github", "harbor"],
 		"application": "nodejs-backend",
+		"requires": ["jenkins", "github", "harbor"],
+		"platform": "2",
 		"parameters": [
 			{
 				"name": "application.name",
@@ -98,7 +98,20 @@ func installApplication(args []string) error {
 		return errors.New("Install Application command has no arguments")
 	}
 
-	api.InstallApplication(os.Stdin, waitAndTailDeployLogs)
+	if createRaw {
+		api.RawInstallApplication(os.Stdin, waitAndTailDeployLogs)
+	} else {
+		createBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil || len(createBytes) < 3 {
+			return fmt.Errorf("Unable to read data (read %d bytes): %v", len(createBytes), err)
+		}
+		var req api.ApplicationRequest
+		err = json.Unmarshal(createBytes, &req)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshal data: %v", err)
+		}
+		api.InstallApplication(req, waitAndTailDeployLogs)
+	}
 
 	return nil
 }
@@ -144,6 +157,8 @@ func init() {
 		"Show logs")
 	applicationGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
+	applicationInstallCmd.Flags().BoolVarP(&createRaw, "raw", "r", false,
+		"Send data as is, do not trim non-POST-able API object fields")
 	applicationPatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
 		"Send patch data as is, do not trim non-PATCH-able API object fields")
 	applicationInstallCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,

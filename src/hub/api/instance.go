@@ -470,15 +470,56 @@ func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
 	return strings.Join(str, "\n"+ident+"\t")
 }
 
-func CreateStackInstance(body io.Reader) {
-	stackInstance, err := createStackInstance(body)
+func CreateStackInstance(req StackInstanceRequest) {
+	stackInstance, err := createStackInstance(req)
 	if err != nil {
 		log.Fatalf("Unable to create SuperHub Stack Instance: %v", err)
 	}
 	formatStackInstance(stackInstance)
 }
 
-func createStackInstance(body io.Reader) (*StackInstance, error) {
+func createStackInstance(req StackInstanceRequest) (*StackInstance, error) {
+	if req.Template != "" && !util.IsUint(req.Template) {
+		template, err := templateByName(req.Template)
+		if err != nil {
+			return nil, err
+		}
+		req.Template = template.Id
+	}
+	if req.Environment != "" && !util.IsUint(req.Environment) {
+		environment, err := environmentByName(req.Environment)
+		if err != nil {
+			return nil, err
+		}
+		req.Environment = environment.Id
+	}
+	if req.Platform != "" && !util.IsUint(req.Platform) {
+		platform, err := stackInstanceByDomain(req.Platform)
+		if err != nil {
+			return nil, err
+		}
+		req.Platform = platform.Id
+	}
+	var jsResp StackInstance
+	code, err := post(hubApi(), stackInstancesResource, &req, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 && code != 201 {
+		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Stack Instance, expected [200, 201] HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func RawCreateStackInstance(body io.Reader) {
+	stackInstance, err := rawCreateStackInstance(body)
+	if err != nil {
+		log.Fatalf("Unable to create SuperHub Stack Instance: %v", err)
+	}
+	formatStackInstance(stackInstance)
+}
+
+func rawCreateStackInstance(body io.Reader) (*StackInstance, error) {
 	var jsResp StackInstance
 	code, err := post2(hubApi(), stackInstancesResource, body, &jsResp)
 	if err != nil {

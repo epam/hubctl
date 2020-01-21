@@ -423,7 +423,6 @@ type Application struct {
 	InflightOperations []InflightOperation    `json:"inflightOperations,omitempty"`
 }
 
-// unused
 type ApplicationRequest struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description,omitempty"`

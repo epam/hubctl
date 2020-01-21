@@ -234,7 +234,20 @@ func createInstance(args []string) error {
 		return errors.New("Create Instance command has no arguments")
 	}
 
-	api.CreateStackInstance(os.Stdin)
+	if createRaw {
+		api.RawCreateStackInstance(os.Stdin)
+	} else {
+		createBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil || len(createBytes) < 3 {
+			return fmt.Errorf("Unable to read data (read %d bytes): %v", len(createBytes), err)
+		}
+		var req api.StackInstanceRequest
+		err = json.Unmarshal(createBytes, &req)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshal data: %v", err)
+		}
+		api.CreateStackInstance(req)
+	}
 
 	return nil
 }
@@ -445,6 +458,8 @@ func init() {
 		"Show logs")
 	instanceGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
+	instanceCreateCmd.Flags().BoolVarP(&createRaw, "raw", "r", false,
+		"Send data as is, do not trim non-POST-able API object fields")
 	instancePatchCmd.Flags().BoolVarP(&patchReplace, "replace", "", true,
 		"Replace patched fields, do not merge")
 	instancePatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,

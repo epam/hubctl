@@ -205,15 +205,42 @@ func componentsByName(name string, onlyCustomComponents bool) ([]Component, erro
 	return jsResp, nil
 }
 
-func CreateComponent(body io.Reader) {
-	component, err := createComponent(body)
+func CreateComponent(req ComponentRequest) {
+	component, err := createComponent(req)
 	if err != nil {
 		log.Fatalf("Unable to create SuperHub Component: %v", err)
 	}
 	formatComponent(component)
 }
 
-func createComponent(body io.Reader) (*Component, error) {
+func createComponent(req ComponentRequest) (*Component, error) {
+	if req.Template != "" && !util.IsUint(req.Template) {
+		template, err := templateByName(req.Template)
+		if err != nil {
+			return nil, err
+		}
+		req.Template = template.Id
+	}
+	var jsResp Component
+	code, err := post(hubApi(), componentsResource, &req, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 && code != 201 {
+		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Component, expected [200, 201] HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func RawCreateComponent(body io.Reader) {
+	component, err := rawCreateComponent(body)
+	if err != nil {
+		log.Fatalf("Unable to create SuperHub Component: %v", err)
+	}
+	formatComponent(component)
+}
+
+func rawCreateComponent(body io.Reader) (*Component, error) {
 	var jsResp Component
 	code, err := post2(hubApi(), componentsResource, body, &jsResp)
 	if err != nil {

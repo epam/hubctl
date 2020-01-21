@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -202,8 +203,23 @@ func applicationsByName(name string) ([]Application, error) {
 	return jsResp, nil
 }
 
-func InstallApplication(body io.Reader, waitAndTailDeployLogs bool) {
-	application, err := installApplication(body)
+func InstallApplication(req ApplicationRequest, waitAndTailDeployLogs bool) {
+	if req.Platform != "" && !util.IsUint(req.Platform) {
+		platform, err := stackInstanceByDomain(req.Platform)
+		if err != nil {
+			log.Fatalf("Unable to install SuperHub Application: %v", err)
+		}
+		req.Platform = platform.Id
+	}
+	reqBody, err := json.Marshal(&req)
+	if err != nil {
+		log.Fatalf("Unable to install SuperHub Application: %v", err)
+	}
+	RawInstallApplication(bytes.NewReader(reqBody), waitAndTailDeployLogs)
+}
+
+func RawInstallApplication(body io.Reader, waitAndTailDeployLogs bool) {
+	application, err := rawInstallApplication(body)
 	if err != nil {
 		log.Fatalf("Unable to install SuperHub Application: %v", err)
 	}
@@ -216,7 +232,7 @@ func InstallApplication(body io.Reader, waitAndTailDeployLogs bool) {
 	}
 }
 
-func installApplication(body io.Reader) (*Application, error) {
+func rawInstallApplication(body io.Reader) (*Application, error) {
 	var jsResp Application
 	code, err := post2(hubApi(), applicationsResource, body, &jsResp)
 	if err != nil {

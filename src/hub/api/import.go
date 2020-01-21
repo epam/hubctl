@@ -234,11 +234,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		templateRequest.Tags = []string{adapterTag}
 		templateRequest.TeamsPermissions = environment.TeamsPermissions // copy permissions from Environment
 
-		templateBytes, err = json.Marshal(&templateRequest)
-		if err != nil {
-			return fmt.Errorf("Unable to marshall Template request into JSON: %v", err)
-		}
-		template, err = createTemplate(bytes.NewReader(templateBytes))
+		template, err = createTemplate(templateRequest)
 		if err != nil {
 			return fmt.Errorf("Unable to create adapter Template: %v", err)
 		}
@@ -307,11 +303,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	}
 	instanceRequest.Parameters = parameters
 
-	instanceBytes, err = json.Marshal(&instanceRequest)
-	if err != nil {
-		return fmt.Errorf("Unable to marshall Stack Instance request into JSON: %v", err)
-	}
-	instance, err := createStackInstance(bytes.NewReader(instanceBytes))
+	instance, err := createStackInstance(instanceRequest)
 	if err != nil {
 		return fmt.Errorf("Unable to create adapter Stack Instance: %v", err)
 	}

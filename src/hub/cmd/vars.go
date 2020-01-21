@@ -38,4 +38,5 @@ var (
 	jsonFormat            bool
 	patchReplace          bool
 	patchRaw              bool
+	createRaw             bool
 )

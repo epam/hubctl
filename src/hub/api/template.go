@@ -275,15 +275,35 @@ func templateGitStatus(id string) (*TemplateStatus, error) {
 	return &jsResp, nil
 }
 
-func CreateTemplate(body io.Reader) {
-	template, err := createTemplate(body)
+func CreateTemplate(req StackTemplateRequest) {
+	template, err := createTemplate(req)
 	if err != nil {
 		log.Fatalf("Unable to create SuperHub Template: %v", err)
 	}
 	formatTemplate(template)
 }
 
-func createTemplate(body io.Reader) (*StackTemplate, error) {
+func createTemplate(req StackTemplateRequest) (*StackTemplate, error) {
+	var jsResp StackTemplate
+	code, err := post(hubApi(), templatesResource, &req, &jsResp)
+	if err != nil {
+		return nil, err
+	}
+	if code != 200 && code != 201 {
+		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Template, expected [200, 201] HTTP", code)
+	}
+	return &jsResp, nil
+}
+
+func RawCreateTemplate(body io.Reader) {
+	template, err := rawCreateTemplate(body)
+	if err != nil {
+		log.Fatalf("Unable to create SuperHub Template: %v", err)
+	}
+	formatTemplate(template)
+}
+
+func rawCreateTemplate(body io.Reader) (*StackTemplate, error) {
 	var jsResp StackTemplate
 	code, err := post2(hubApi(), templatesResource, body, &jsResp)
 	if err != nil {

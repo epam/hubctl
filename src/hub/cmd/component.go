@@ -126,7 +126,20 @@ func createComponent(args []string) error {
 		return errors.New("Create Component Registration command has no arguments")
 	}
 
-	api.CreateComponent(os.Stdin)
+	if createRaw {
+		api.RawCreateComponent(os.Stdin)
+	} else {
+		createBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil || len(createBytes) < 3 {
+			return fmt.Errorf("Unable to read data (read %d bytes): %v", len(createBytes), err)
+		}
+		var req api.ComponentRequest
+		err = json.Unmarshal(createBytes, &req)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshal data: %v", err)
+		}
+		api.CreateComponent(req)
+	}
 
 	return nil
 }
@@ -170,6 +183,8 @@ func init() {
 		"Only custom components")
 	componentGetCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
 		"JSON output")
+	componentCreateCmd.Flags().BoolVarP(&createRaw, "raw", "r", false,
+		"Send data as is, do not trim non-POST-able API object fields")
 	componentPatchCmd.Flags().BoolVarP(&patchRaw, "raw", "r", false,
 		"Send patch data as is, do not trim non-PATCH-able API object fields")
 	componentCmd.AddCommand(componentGetCmd)
