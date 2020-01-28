@@ -11,6 +11,7 @@ import (
 var (
 	reset              bool
 	recurse            bool
+	subtree            bool
 	optimizeGitRemotes bool
 )
 
@@ -29,7 +30,7 @@ func pull(args []string) error {
 	}
 
 	manifest := args[0]
-	git.Pull(manifest, componentsBaseDir, reset, recurse, optimizeGitRemotes)
+	git.Pull(manifest, componentsBaseDir, reset, recurse, optimizeGitRemotes, subtree)
 
 	return nil
 }
@@ -40,8 +41,10 @@ func init() {
 	pullCmd.Flags().BoolVarP(&optimizeGitRemotes, "optimize-git-remotes", "", true,
 		"Optimize Git remote with local clone (same remote repository is encountered more than once)")
 	pullCmd.Flags().BoolVarP(&reset, "reset", "r", false,
-		"Hard-reset Git tree prior to update (kinda broken?)")
-	pullCmd.Flags().BoolVarP(&recurse, "recurse", "s", true,
-		"Recurse into fromStack")
+		"Stash and reset Git tree prior to update")
+	pullCmd.Flags().BoolVarP(&recurse, "recurse", "", true,
+		"Recurse into `fromStack`")
+	pullCmd.Flags().BoolVarP(&subtree, "subtree", "s", false,
+		"Pull components as Git subtrees")
 	RootCmd.AddCommand(pullCmd)
 }

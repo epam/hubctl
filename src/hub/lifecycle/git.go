@@ -5,8 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/src-d/go-git.v4"
-
+	"hub/git"
 	"hub/util"
 )
 
@@ -35,39 +34,28 @@ func gitStatus(dir string, calculateStatus bool) (map[string]string, error) {
 		}
 		break
 	}
-
-	repo, err := git.PlainOpen(dir)
+	name, rev, err := git.HeadInfo(dir)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open Git repo in `%s`: %v", dir, err)
-	}
-	worktree, err := repo.Worktree()
-	if err != nil {
-		return nil, fmt.Errorf("Unable to open Git worktree in `%s`: %v", dir, err)
-	}
-	head, err := repo.Head()
-	if err != nil {
-		return nil, fmt.Errorf("Unable to obtain Git repo HEAD info in `%s`: %v", dir, err)
+		return nil, err
 	}
 	clean := "not calculated"
 	if calculateStatus {
-		status, err := worktree.Status()
+		isClean, _, err := git.Status(dir)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to get Git status in `%s`: %v", dir, err)
-		}
-		if status.IsClean() {
-			clean = "clean"
+			util.Warn("%v", err)
 		} else {
-			clean = "dirty"
+			if isClean {
+				clean = "clean"
+			} else {
+				clean = "dirty"
+			}
 		}
 	}
-	refs := head.Strings()
-	name := refs[0]
-	ref := refs[1]
-	if len(ref) == 40 {
-		ref = ref[:7]
+	if len(rev) == 40 {
+		rev = rev[:7]
 	}
 	return map[string]string{
-		"ref":   fmt.Sprintf("%s %s", name, ref),
+		"ref":   fmt.Sprintf("%s %s", name, rev),
 		"clean": clean,
 	}, nil
 }

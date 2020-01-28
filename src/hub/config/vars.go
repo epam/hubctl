@@ -34,6 +34,8 @@ var (
 	Encrypted               bool
 	EncryptionMode          string
 	CryptoPassword          string
+
+	GitBinDefault = "/usr/bin/git"
 )
 
 func Update() {

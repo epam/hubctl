@@ -1,24 +1,23 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 
 	"hub/config"
 	"hub/manifest"
 	"hub/util"
 )
 
-func Pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes bool) {
+func Pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool) {
 
-	components, repos, manifests := pull(manifestFilename, baseDir, reset, recurse, optimizeGitRemotes,
+	components, repos, manifests := pull(manifestFilename, baseDir, reset, recurse, optimizeGitRemotes, asSubtree,
 		make([]string, 0), make([]LocalGitRepo, 0), make([]string, 0))
 
 	if len(repos) == 0 {
@@ -31,7 +30,7 @@ func Pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 	}
 }
 
-func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes bool,
+func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool,
 	components []string, repos []LocalGitRepo, manifests []string) ([]string, []LocalGitRepo, []string) {
 
 	stackManifest, rest, _, err := manifest.ParseManifest([]string{manifestFilename})
@@ -43,8 +42,9 @@ func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 	}
 
 	baseDirCurrent := baseDir
+	stackBaseDir := util.StripDotDirs(filepath.Dir(manifestFilename))
 	if baseDirCurrent == "" {
-		baseDirCurrent = util.StripDotDirs(filepath.Dir(manifestFilename))
+		baseDirCurrent = stackBaseDir
 	}
 	if config.Debug {
 		log.Printf("Base directory for sources is `%s`", baseDirCurrent)
@@ -55,11 +55,24 @@ func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 		stackName = stackName[0:i]
 	}
 
-	components, repos = getGit(stackManifest.Meta.Source.Git, baseDirCurrent, stackName,
-		stackName, reset, optimizeGitRemotes, components, repos)
+	components, repos, err = getGit(stackManifest.Meta.Source.Git, baseDirCurrent, stackName,
+		stackName, reset, optimizeGitRemotes, false, components, repos)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 	for _, component := range stackManifest.Components {
-		components, repos = getGit(component.Source.Git, baseDirCurrent, manifest.ComponentSourceDirNameFromRef(&component),
-			manifest.ComponentQualifiedNameFromRef(&component), reset, optimizeGitRemotes, components, repos)
+		components, repos, err = getGit(component.Source.Git,
+			baseDirCurrent, manifest.ComponentSourceDirFromRef(&component, stackBaseDir, baseDirCurrent), // TODO proper dir
+			manifest.ComponentQualifiedNameFromRef(&component),
+			reset, optimizeGitRemotes, asSubtree,
+			components, repos)
+		if err != nil {
+			if config.Force {
+				util.Warn("%v", err)
+			} else {
+				log.Fatalf("%v", err)
+			}
+		}
 	}
 
 	manifests = append(manifests, manifestFilename)
@@ -69,18 +82,18 @@ func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 		if config.Debug {
 			log.Printf("Recursing into %s", fromStackManifestFilename)
 		}
-		components, repos, manifests = pull(fromStackManifestFilename, baseDir, reset, recurse, optimizeGitRemotes,
+		components, repos, manifests = pull(fromStackManifestFilename, baseDir, reset, recurse, optimizeGitRemotes, asSubtree,
 			components, repos, manifests)
 	}
 
 	return components, repos, manifests
 }
 
-func getGit(source manifest.Git, baseDir string, relDir string, componentName string, reset, optimizeGitRemotes bool,
-	components []string, repos []LocalGitRepo) ([]string, []LocalGitRepo) {
+func getGit(source manifest.Git, baseDir string, relDir string, componentName string, reset, optimizeGitRemotes, asSubtree bool,
+	components []string, repos []LocalGitRepo) ([]string, []LocalGitRepo, error) {
 
-	if source.Remote == "" || componentExistInList(componentName, components) {
-		return components, repos
+	if source.Remote == "" || util.Contains(components, componentName) {
+		return components, repos, nil
 	}
 
 	if source.LocalDir != "" {
@@ -93,21 +106,21 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 		var err error
 		dir, err = filepath.Abs(relDir)
 		if err != nil {
-			log.Fatalf("Error determining absolute path to pull into %s: %v", relDir, err)
+			return components, repos,
+				fmt.Errorf("Error determining absolute path to pull into %s: %v", relDir, err)
 		}
 	}
 	if config.Debug {
 		log.Printf("Component `%s` Git repo dir is `%s`", componentName, dir)
 	}
-	if dirExistInList(dir, repos) {
-		log.Fatalf("Directory %s used twice to pull Git repo", dir)
+	if dirInRepoList(dir, repos) {
+		return components, repos,
+			fmt.Errorf("Directory %s used twice to pull Git repo", dir)
 	}
 
-	clone := emptyDir(dir)
-
-	progress := os.Stdout
-	if !config.Verbose {
-		progress = nil
+	clone, err := emptyDir(dir, !asSubtree)
+	if err != nil {
+		return components, repos, err
 	}
 
 	remote := source.Remote
@@ -122,51 +135,76 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 		}
 	}
 
-	var repo *git.Repository
-	var err error
+	gitBin := gitBinPath()
+
 	if clone {
 		if config.Verbose {
 			log.Printf("Cloning from %s", remoteVerbose)
 		}
-		repo, err = git.PlainClone(dir, false, &git.CloneOptions{
-			URL:           remote,
-			ReferenceName: plumbing.ReferenceName(source.Ref),
-			SingleBranch:  true,
-			Depth:         1,
-			Progress:      progress,
-		})
-		if err != nil {
-			log.Fatalf("Unable to clone Git repo %s at `%s` into `%s`: %v", remoteVerbose, source.Ref, dir, err)
+		if asSubtree {
+			return components, repos, errors.New("not implemented")
+		} else {
+			cmd := exec.Cmd{
+				Path: gitBin,
+				Dir:  dir,
+				Args: []string{"git", "clone", "--branch", source.Ref, "--single-branch", "--no-tags", remote, dir},
+			}
+			gitDebug(&cmd)
+			err = cmd.Run()
+			if err != nil {
+				return components, repos,
+					fmt.Errorf("Unable to clone Git repo %s at `%s` into `%s`: %v", remoteVerbose, source.Ref, dir, err)
+			}
 		}
 	} else {
 		if config.Verbose {
 			log.Printf("Updating from %s", remoteVerbose)
 		}
-		repo, err = git.PlainOpen(dir)
-		if err != nil {
-			log.Fatalf("Unable to open Git repo `%s`: %v", dir, err)
-		}
-		worktree, err := repo.Worktree()
-		if err != nil {
-			log.Fatalf("Unable to open Git repo worktree `%s`: %v", dir, err)
-		}
-		if reset {
-			err = worktree.Reset(&git.ResetOptions{Mode: git.HardReset})
-			if err != nil {
-				log.Fatalf("Unable to hard-reset Git repo worktree `%s`: %v", dir, err)
+		if asSubtree {
+			// ensure remote with name = remote-<component name>
+			// fetch source.Ref as _remote-<component name>/<Ref> remote branch
+			// remember current branch
+			// checkout _remote-<component name>/<Ref> as _remote-<component name>-<Ref>
+			// split source.SubDir into _split-<component name>
+			// pop to current branch
+			// subtree merge into `dir` from _split-<component name>
+			// delete _split-<component name>
+			// delete _remote-<component name>-<Ref>
+			// in case of error - show error, then note user to:
+			// - return to current branch
+			// - delete _split and _remote branches
+			return components, repos, errors.New("not implemented")
+		} else {
+			if reset {
+				cmd := exec.Cmd{
+					Path: gitBin,
+					Dir:  dir,
+					Args: []string{"git", "stash", "--include-untracked"},
+				}
+				gitDebug(&cmd)
+				err = cmd.Run()
+				if err != nil {
+					return components, repos,
+						fmt.Errorf("Unable to stash Git repo worktree `%s`: %v", dir, err)
+				}
+			}
+			cmd := exec.Cmd{
+				Path: gitBin,
+				Dir:  dir,
+				Args: []string{"git", "pull", "origin", source.Ref},
+			}
+			gitDebug(&cmd)
+			err = cmd.Run()
+			if err != nil && !upToDate(err) {
+				return components, repos,
+					fmt.Errorf("Unable to pull Git repo %s into `%s`: %v", remoteVerbose, dir, err)
 			}
 		}
-		err = worktree.Pull(&git.PullOptions{
-			ReferenceName: plumbing.ReferenceName(source.Ref),
-			Progress:      progress,
-		})
-		if err != nil && !upToDate(err) {
-			log.Fatalf("Unable to pull Git repo %s into `%s`: %v", remoteVerbose, dir, err)
-		}
 	}
-	ref, err := repo.Head()
+
+	headName, _, err := HeadInfo(dir)
 	if err != nil {
-		log.Fatalf("Unable to determine Git repo `%s` HEAD ref: %v", dir, err)
+		util.Warn("%v", err)
 	}
 
 	return append(components, componentName),
@@ -174,66 +212,70 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 			Remote:          source.Remote,
 			OptimizedRemote: remote,
 			Ref:             source.Ref,
-			HeadRef:         ref.String(),
+			HeadRef:         headName,
 			SubDir:          source.SubDir,
 			AbsDir:          dir,
-		})
+		}),
+		nil
 }
 
-func emptyDir(dir string) bool {
+func emptyDir(dir string, removeContentIfForced bool) (bool, error) {
 	dirInfo, err := os.Stat(dir)
 	if err != nil {
 		if !util.NoSuchFile(err) {
-			log.Fatalf("Unable to stat `%s`: %v", dir, err)
+			return false, fmt.Errorf("Unable to stat `%s`: %v", dir, err)
 		}
-		return true
+		return true, nil
 	}
 	if !dirInfo.IsDir() {
 		if config.Force {
 			err = os.Remove(dir)
 			if err != nil {
-				log.Fatalf("Unable to force remove `%s`: %v", dir, err)
+				return false, fmt.Errorf("Unable to force remove `%s`: %v", dir, err)
 			}
 		} else {
-			log.Fatalf("Pull target `%s` is not a directory, add --force to override", dir)
+			return false, fmt.Errorf("Pull target `%s` is not a directory, add -f / --force to override", dir)
 		}
 	}
 	gitDir := filepath.Join(dir, ".git")
 	gitInfo, err := os.Stat(gitDir)
 	if err != nil {
 		if !util.NoSuchFile(err) {
-			log.Fatalf("Unable to stat `%s`: %v", dir, err)
+			return false, fmt.Errorf("Unable to stat `%s`: %v", dir, err)
 		}
 		dirFD, err := os.Open(dir)
 		if err != nil {
-			log.Fatalf("Unable to open dir `%s`: %v", dir, err)
+			return false, fmt.Errorf("Unable to open dir `%s`: %v", dir, err)
 		}
 		fileNames, err := dirFD.Readdirnames(1)
 		if err != nil && err != io.EOF {
-			log.Fatalf("Unable to read dir `%s`: %v", dir, err)
+			return false, fmt.Errorf("Unable to read dir `%s`: %v", dir, err)
 		}
 		if config.Trace {
 			log.Printf("Dir content: %v", fileNames)
 		}
 		if len(fileNames) > 0 {
+			if !removeContentIfForced {
+				return false, nil
+			}
 			if config.Force {
 				err := os.RemoveAll(dir)
 				if err != nil {
-					log.Fatalf("Unable to force clean dir `%s`: %v", dir, err)
+					return false, fmt.Errorf("Unable to force clean dir `%s`: %v", dir, err)
 				}
+				os.Mkdir(dir, dirMode)
 			} else {
-				log.Fatalf("Pull target `%s` is not an empty directory, add --force to override", dir)
+				return false, fmt.Errorf("Pull target `%s` is not an empty directory, add -f / --force to override", dir)
 			}
 		}
 		dirFD.Close()
-		return true
+		return true, nil
 	} else {
 		if !gitInfo.IsDir() {
-			log.Fatalf("Pull target `%s` is not a Git repo", dir)
+			return false, fmt.Errorf("Pull target `%s` is not a Git repo", dir)
 		}
 	}
-	return false
-
+	return false, nil
 }
 
 func maybeRemote(origin string) bool {
@@ -250,19 +292,10 @@ func findLocalClone(repos []LocalGitRepo, remote string, ref string) string {
 }
 
 func upToDate(err error) bool {
-	return err == git.NoErrAlreadyUpToDate || strings.Contains(err.Error(), "already up-to-date")
+	return strings.Contains(err.Error(), "already up-to-date")
 }
 
-func componentExistInList(componentName string, components []string) bool {
-	for _, comp := range components {
-		if componentName == comp {
-			return true
-		}
-	}
-	return false
-}
-
-func dirExistInList(dir string, repos []LocalGitRepo) bool {
+func dirInRepoList(dir string, repos []LocalGitRepo) bool {
 	for _, repo := range repos {
 		if dir == repo.AbsDir {
 			return true
