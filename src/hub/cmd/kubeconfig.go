@@ -19,7 +19,7 @@ var (
 
 var kubeconfigCmd = &cobra.Command{
 	Use:   "kubeconfig hub.yaml.state[,s3://bucket/hub.yaml.state] [more.yaml.state]",
-	Short: "Create ~/.kube/config from state file",
+	Short: "Create ~/.kube/config entry from state file",
 	Long: `Create or update kubectl context with Kubernetes key files stored in state file.
 The context name is stack FQDN, ie. dns.domain.
 State files are separate command line arguments or separated by comma - to match

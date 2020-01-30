@@ -18,7 +18,7 @@ var (
 
 var loginCmd = &cobra.Command{
 	Use:   "login [https://api.agilestacks.io] [-u email] [-p password]",
-	Short: "Obtain login token for subsequent Hub API calls",
+	Short: "Obtain Login Token for subsequent Hub API calls",
 	Long: `Sign-in to Hub API service to obtain a Login Token.
 
 The token is used to call API service to manage Secrets, print Environment or Stack Instance

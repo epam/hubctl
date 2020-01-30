@@ -24,9 +24,9 @@ var (
 
 var explainCmd = &cobra.Command{
 	Use:   "explain [hub.yaml.elaborate] hub.yaml.state[,s3://bucket/hub.yaml.state]",
-	Short: "Explain stack outputs, provides, and parameters evolution",
-	Long: `Display user-level stack outputs, history of parameters evolution during deployment,
-and component's capabilities. Parameters history is read from state file. Elaborate file is optional.`,
+	Short: "Explain stack outputs, provides, and parameters",
+	Long: `Display stack outputs, component's parameters, outputs, and capabilities.
+Parameters history is read from state file. Elaborate file is optional.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return explain(args)
 	},
