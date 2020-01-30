@@ -46,5 +46,5 @@ func init() {
 		"Recurse into `fromStack`")
 	pullCmd.Flags().BoolVarP(&subtree, "subtree", "s", false,
 		"Pull components as Git subtrees")
-	RootCmd.AddCommand(pullCmd)
+	// RootCmd.AddCommand(pullCmd)
 }
