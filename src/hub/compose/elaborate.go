@@ -476,7 +476,7 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 
 func warnNoValue(parameters []manifest.Parameter) {
 	for _, parameter := range parameters {
-		if util.Empty(parameter.Value) {
+		if parameter.Value == nil {
 			who := "Parameter"
 			noDefault := ""
 			if parameter.Kind == "user" {
