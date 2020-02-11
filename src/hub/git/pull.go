@@ -135,7 +135,7 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 		}
 	}
 
-	gitBin := gitBinPath()
+	gitBin := GitBinPath()
 
 	if clone {
 		if config.Verbose {

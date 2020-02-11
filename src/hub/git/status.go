@@ -12,7 +12,7 @@ func HeadInfo(dir string) (string, string, error) {
 	name := "(unknown)"
 	rev := "(unknown)"
 	var out bytes.Buffer
-	gitBin := gitBinPath()
+	gitBin := GitBinPath()
 
 	cmd := exec.Cmd{
 		Path:   gitBin,
@@ -51,7 +51,7 @@ func Status(dir string) (bool, string, error) {
 	status := "(unknown)"
 	var out bytes.Buffer
 	cmd := exec.Cmd{
-		Path:   gitBinPath(),
+		Path:   GitBinPath(),
 		Dir:    dir,
 		Args:   []string{"git", "status"},
 		Stdout: &out,

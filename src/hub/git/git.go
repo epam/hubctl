@@ -12,7 +12,7 @@ import (
 
 var dirMode = os.FileMode(0755)
 
-func gitBinPath() string {
+func GitBinPath() string {
 	return gitSubCommandBinPath("git")
 }
 
