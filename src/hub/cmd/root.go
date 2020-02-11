@@ -24,8 +24,7 @@ var RootCmd = &cobra.Command{
 Hub CLi is a lifecycle and stack composition tool:
 - template and stack creation, stack lifecycle;
 - stack instance parameters, output variables and status;
-- enumeration of templates, stacks, components;
-- inventory.`,
+- enumeration of templates, stack instances, components via SuperHub inventory.`,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.Update()
