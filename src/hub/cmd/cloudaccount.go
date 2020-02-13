@@ -34,7 +34,7 @@ the particular Cloud Account (specify Id or search by full domain name)`,
 }
 
 var cloudAccounOnboardCmd = &cobra.Command{
-	Use:   "onboard <domain> <aws | azure | gcp> <region> [credentials...]",
+	Use:   "onboard <domain> <aws | azure | gcp> <default region> [credentials...]",
 	Short: "Onboard Cloud Account",
 	Long: `Onboard Cloud Account to SuperHub.
 
@@ -42,17 +42,17 @@ Domain must be a sub-domain of superhub.io or prefix, for example dev-01.superhu
 
 AWS:
 
-	$ hub api cloudaccount onboard dev-01.superhub.io aws <access key> <secret key>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws <profile>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws <Role ARN>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws  # credentials from OS environment, default profile, or EC2 metadata
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2 <access key> <secret key>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2 <profile>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2 <Role ARN>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2  # credentials from OS environment, default profile, or EC2 metadata
 
 A cross account role will be created in your AWS account. The keys are not stored in SuperHub.
 
 Azure:
 
-	$ hub api cloudaccount onboard dev-01.superhub.io azure creds.json
-	$ hub api cloudaccount onboard dev-01.superhub.io azure  # credentials from $AZURE_AUTH_LOCATION
+	$ hub api cloudaccount onboard dev-01.superhub.io azure eastus2 creds.json
+	$ hub api cloudaccount onboard dev-01.superhub.io azure eastus2  # credentials from $AZURE_AUTH_LOCATION
 
 where creds.json is a file with Service Principal credentials created by:
 
@@ -66,8 +66,8 @@ https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
 
 GCP:
 
-	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp creds.json
-	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
+	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp us-central1 creds.json
+	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp us-central1  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
 
 where creds.json is a file with Service Account credentials usually used via GOOGLE_APPLICATION_CREDENTIALS environment variable.
 

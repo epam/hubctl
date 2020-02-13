@@ -21,7 +21,7 @@ var RootCmd = &cobra.Command{
 	Short: "Hub CLI is a lifecycle and stack composition tool",
 	Long: `Hub CLI is an interface to SuperHub.
 
-Hub CLi is a lifecycle and stack composition tool:
+Hub CLI is a lifecycle and stack composition tool:
 - template and stack creation, stack lifecycle;
 - stack instance parameters, output variables and status;
 - enumeration of templates, stack instances, components via SuperHub inventory.`,
