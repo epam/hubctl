@@ -129,7 +129,7 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 	for _, name := range order {
 		if component, exist := stateComponents[name]; exist {
 			noSecretOutputs := filterOutSecretOutputs(component.CapturedOutputs)
-			outputs := state.DiffOutputs(noSecretOutputs, prevOutputs)
+			outputs := transformComponentOutputsToApi(state.DiffOutputs(noSecretOutputs, prevOutputs))
 			prevOutputs = noSecretOutputs
 			version := component.Meta.Version
 			if version == "" && component.Version != "" {
@@ -177,6 +177,18 @@ func filterOutSecretOutputs(outputs []parameters.CapturedOutput) []parameters.Ca
 		}
 	}
 	return filtered
+}
+
+func transformComponentOutputsToApi(outputs []parameters.CapturedOutput) []ComponentOutput {
+	apiOutputs := make([]ComponentOutput, 0, len(outputs))
+	for _, output := range outputs {
+		apiOutputs = append(apiOutputs, ComponentOutput{
+			Name:  output.Name,
+			Value: output.Value,
+			Brief: output.Brief,
+		})
+	}
+	return apiOutputs
 }
 
 func appendKubernetesOutputs(outputs []parameters.ExpandedOutput, components map[string]*state.StateStep) []parameters.ExpandedOutput {

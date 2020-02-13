@@ -149,12 +149,15 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 						Status:     step.Status,
 						Message:    step.Message,
 						Parameters: make(map[string]string),
+						Outputs:    make(map[string]string),
 						RawOutputs: make(map[string]string),
 					}
 					for _, parameter := range step.Parameters {
 						comp.Parameters[parameter.Name] = util.String(parameter.Value)
 					}
-					comp.Outputs = DiffOutputs(step.CapturedOutputs, prevOutputs)
+					for _, output := range DiffOutputs(step.CapturedOutputs, prevOutputs) {
+						comp.Outputs[output.Name] = util.String(output.Value)
+					}
 					prevOutputs = step.CapturedOutputs
 					if rawOutputs {
 						for _, output := range step.RawOutputs {
@@ -269,18 +272,22 @@ func printDiffOutputs(curr, prev []parameters.CapturedOutput) {
 	}
 }
 
-func DiffOutputs(curr, prev []parameters.CapturedOutput) map[string]string {
-	keys := make(map[string]string)
+func DiffOutputs(curr, prev []parameters.CapturedOutput) []parameters.CapturedOutput {
+	keys := make(map[string]struct{})
 	for _, p := range prev {
-		keys[p.QName()] = util.String(p.Value)
+		keys[p.QName()] = struct{}{}
 	}
-	diff := make(map[string]string)
+	sz := len(curr) - len(prev)
+	if sz < 0 {
+		sz = 0
+	}
+	diff := make([]parameters.CapturedOutput, 0, sz)
 	for _, c := range curr {
 		if strings.HasPrefix(c.Name, "hub.components.") {
 			continue
 		}
 		if _, exist := keys[c.QName()]; !exist {
-			diff[c.Name] = util.String(c.Value)
+			diff = append(diff, c)
 		}
 	}
 	return diff

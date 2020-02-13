@@ -417,15 +417,22 @@ func formatComponentStatus(comp ComponentStatus) string {
 	return str
 }
 
-func formatComponentOutputs(outputs map[string]string, ident string) string {
+func formatComponentOutputs(outputs []ComponentOutput, ident string) string {
 	keys := make([]string, 0, len(outputs))
-	for key := range outputs {
-		keys = append(keys, key)
+	values := make(map[string]ComponentOutput)
+	for _, output := range outputs {
+		keys = append(keys, output.Name)
+		values[output.Name] = output
 	}
 	sort.Strings(keys)
 	str := make([]string, 0, len(outputs))
 	for _, name := range keys {
-		str = append(str, fmt.Sprintf("%s: %s", name, outputs[name]))
+		output := values[name]
+		brief := ""
+		if output.Brief != "" {
+			brief = fmt.Sprintf(" [%s]", output.Brief)
+		}
+		str = append(str, fmt.Sprintf("%s%s: %+v", name, brief, output.Value))
 	}
 	return strings.Join(str, "\n\t"+ident)
 }
