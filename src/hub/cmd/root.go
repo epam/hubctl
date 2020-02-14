@@ -38,8 +38,6 @@ Hub CLI is a lifecycle and stack composition tool:
 	},
 }
 
-// Execute adds all child commands to the root command sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -95,13 +93,13 @@ func initConfig() {
 		viper.SetConfigFile(config.ConfigFile)
 	} else {
 		if err == nil {
-			// Search config in home directory with name ".automation-hub" (without extension).
+			// Search config in home directory with name ".hub-config" (without extension).
 			viper.AddConfigPath(home)
-			viper.SetConfigName(".automation-hub")
+			viper.SetConfigName(".hub-config")
 		}
 	}
 	if config.CacheFile == "" && err == nil {
-		config.CacheFile = fmt.Sprintf("%s/.automation-hub-cache.yaml", home)
+		config.CacheFile = fmt.Sprintf("%s/.hub-cache.yaml", home)
 	}
 
 	viper.SetEnvPrefix("hub")
