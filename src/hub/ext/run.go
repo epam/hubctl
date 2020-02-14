@@ -16,13 +16,13 @@ const hubDir = ".hub"
 func scriptPath(what string) (string, error) {
 	script := "hub-" + what
 
-	// TODO check $PATH after ./.hub/ ?
-	path, err := exec.LookPath(script)
-	if err == nil {
-		return path, nil
+	searchDirs := []string{filepath.Join(".", hubDir)}
+
+	customHubDir := os.Getenv("HUB_EXTENSIONS")
+	if customHubDir != "" {
+		searchDirs = append(searchDirs, customHubDir)
 	}
 
-	searchDirs := []string{filepath.Join(".", hubDir)}
 	home := os.Getenv("HOME")
 	if home != "" {
 		searchDirs = append(searchDirs, filepath.Join(home, hubDir))
@@ -31,6 +31,7 @@ func scriptPath(what string) (string, error) {
 			util.Warn("Unable to lookup $HOME: no home directory set in OS environment")
 		}
 	}
+
 	searchDirs = append(searchDirs, "/usr/local/share/hub", "/usr/share/hub")
 
 	for _, dir := range searchDirs {
@@ -48,7 +49,12 @@ func scriptPath(what string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("Extension not found in $PATH, nor %v", searchDirs)
+	path, err := exec.LookPath(script)
+	if err == nil {
+		return path, nil
+	}
+
+	return "", fmt.Errorf("Extension not found in %v, $HUB_EXTENSIONS, $PATH", searchDirs)
 }
 
 func RunExtension(what string, args []string) {
