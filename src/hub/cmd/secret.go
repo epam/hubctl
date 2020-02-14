@@ -13,12 +13,21 @@ import (
 	"hub/util"
 )
 
-var secretCmd = &cobra.Command{
-	Use:   "secret [entity kind/]<selector> <secret name>[|component] <secret kind> <value | key:value | - ...>",
-	Short: "Create secret parameter in Environment, Template, or Stack Instance",
+var secretCmd = cobra.Command{
+	Use:   "secret <get | create> ...",
+	Short: "Manage %s secrets",
+}
+
+var getSecretCmd = cobra.Command{
+	Use:   "get <selector> <secret uuid>",
+	Short: "Get secret parameter value",
+}
+
+var createSecretCmd = cobra.Command{
+	Use:   "create <selector> <secret name>[|component] <secret kind> <value | key:value | - ...>",
+	Short: "Create secret parameter",
 	Long: `To create Secret, provide:
 
-- optionally, entity kind is one of: environment (default), stackTemplate, stackInstance
 - selector is either environment name or id, template name or id, instance full domain name or id
 - secret name
 - secret kind, one of: password cloudAccount cloudAccessKeys privateKey
@@ -36,24 +45,28 @@ var secretCmd = &cobra.Command{
 	license: licenseKey
 	*token: *token
 - of secret "value" is "-" then it is read from stdin`,
-
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return secret(args)
-	},
 }
 
-func secret(args []string) error {
-	if len(args) < 4 {
-		return errors.New("Secret command has four of more arguments")
+func getSecret(entityKind string, args []string) error {
+	if len(args) != 2 {
+		return errors.New("Get Secret command has two mandatory arguments - entity selector and secret UUID")
 	}
 
-	entityKind := "environment"
 	selector := args[0]
-	if spec := strings.SplitN(selector, "/", 2); len(spec) == 2 {
-		entityKind = spec[0]
-		selector = spec[1]
+	uuid := args[1]
+
+	api.GetSecret(entityKind, selector, uuid, jsonFormat)
+
+	return nil
+}
+
+func createSecret(entityKind string, args []string) error {
+	if len(args) < 4 {
+		return errors.New("Create Secret command has four of more arguments")
 	}
-	supportedKinds := []string{"environment", "stackTemplate", "stackInstance"}
+
+	selector := args[0]
+	supportedKinds := []string{"environment", "template", "instance"}
 	if !util.Contains(supportedKinds, entityKind) {
 		return fmt.Errorf("Bad entity kind `%s`; supported %v", entityKind, supportedKinds)
 	}
@@ -99,5 +112,34 @@ func secret(args []string) error {
 }
 
 func init() {
-	apiCmd.AddCommand(secretCmd)
+	parents := map[string]*cobra.Command{
+		"cloudaccount": cloudAccountCmd,
+		"environment":  environmentCmd,
+		"template":     templateCmd,
+		"instance":     instanceCmd,
+		"application":  applicationCmd,
+	}
+
+	for entityKind, entityCmd := range parents {
+		k := entityKind
+		getCmd := &cobra.Command{}
+		*getCmd = getSecretCmd
+		getCmd.RunE = func(cmd *cobra.Command, args []string) error { return getSecret(k, args) }
+		getCmd.Flags().BoolVarP(&jsonFormat, "json", "j", false,
+			"JSON output")
+
+		createCmd := &cobra.Command{}
+		*createCmd = createSecretCmd
+		createCmd.RunE = func(cmd *cobra.Command, args []string) error { return createSecret(k, args) }
+
+		parentCmd := &cobra.Command{}
+		*parentCmd = secretCmd
+		parentCmd.Short = fmt.Sprintf(secretCmd.Short, entityKind)
+
+		if entityKind != "cloudaccount" && entityKind != "application" {
+			parentCmd.AddCommand(createCmd)
+		}
+		parentCmd.AddCommand(getCmd)
+		entityCmd.AddCommand(parentCmd)
+	}
 }

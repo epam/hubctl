@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 
 	"hub/config"
 	"hub/util"
@@ -29,7 +31,7 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 			resource = environmentsResource
 			parameters = env.Parameters
 		}
-	case "stackTemplate":
+	case "template":
 		template, err := templateBy(selector)
 		qErr = err
 		if err == nil && template != nil {
@@ -37,7 +39,7 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 			resource = templatesResource
 			parameters = template.Parameters
 		}
-	case "stackInstance":
+	case "instance":
 		instance, err := stackInstanceBy(selector)
 		qErr = err
 		if err == nil && instance != nil {
@@ -81,12 +83,12 @@ func CreateSecret(entityKind, selector, name, component, kind string, values map
 			if err == nil {
 				formatEnvironment(env)
 			}
-		case "stackTemplate":
+		case "template":
 			template, err := templateById(id)
 			if err == nil {
 				formatTemplate(template)
 			}
-		case "stackInstance":
+		case "instance":
 			instance, err := stackInstanceBy(id)
 			if err == nil {
 				formatStackInstance(instance)
@@ -113,6 +115,90 @@ func createSecret(resource, id, name, component, kind string, values map[string]
 			code, id, name)
 	}
 	return jsResp.Id, nil
+}
+
+func GetSecret(entityKind, selector, uuid string, jsonFormat bool) {
+	if config.Debug {
+		log.Printf("Getting %s/%s secret `%s`", entityKind, selector, uuid)
+	}
+
+	id := ""
+	resource := ""
+	var qErr error
+
+	switch entityKind {
+	case "cloudaccount":
+		cloudAccount, err := cloudAccountBy(selector)
+		qErr = err
+		if err == nil && cloudAccount != nil {
+			id = cloudAccount.Id
+		}
+		resource = cloudAccountsResource
+	case "environment":
+		env, err := environmentBy(selector)
+		qErr = err
+		if err == nil && env != nil {
+			id = env.Id
+		}
+		resource = environmentsResource
+	case "template":
+		template, err := templateBy(selector)
+		qErr = err
+		if err == nil && template != nil {
+			id = template.Id
+		}
+		resource = templatesResource
+	case "instance":
+		instance, err := stackInstanceBy(selector)
+		qErr = err
+		if err == nil && instance != nil {
+			id = instance.Id
+		}
+		resource = stackInstancesResource
+	case "application":
+		application, err := applicationBy(selector)
+		qErr = err
+		if err == nil && application != nil {
+			id = application.Id
+		}
+		resource = applicationsResource
+	default:
+		log.Fatalf("Unknown entity kind `%s`", entityKind)
+	}
+	if id == "" && qErr == nil {
+		qErr = errors.New("Not Found")
+	}
+	if qErr != nil {
+		msg := fmt.Sprintf("Unable to query %s %s: %v", entityKind, selector, qErr)
+		if config.Force && util.IsUint(selector) {
+			util.Warn("%s", msg)
+			id = selector
+		} else {
+			log.Fatal(msg)
+		}
+	}
+
+	resource = fmt.Sprintf("%s/%s", resource, id)
+
+	resp, err := secret(resource, uuid)
+	if err != nil {
+		log.Fatalf("Unable to get secret: %v", err)
+	}
+
+	if jsonFormat {
+		out, err := json.MarshalIndent(resp, "", "  ")
+		if err != nil {
+			log.Fatalf("Error marshalling JSON response for output: %v", err)
+		}
+		os.Stdout.Write(out)
+		os.Stdout.Write([]byte("\n"))
+	} else {
+		str, kind := formatSecret(resp)
+		if config.Debug {
+			log.Printf("Secret kind: %s", kind)
+		}
+		fmt.Println(str)
+	}
 }
 
 func secret(resource, id string) (map[string]string, error) {
