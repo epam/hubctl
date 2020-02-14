@@ -31,6 +31,7 @@ func scriptPath(what string) (string, error) {
 			util.Warn("Unable to lookup $HOME: no home directory set in OS environment")
 		}
 	}
+	searchDirs = append(searchDirs, "/usr/local/share/hub", "/usr/share/hub")
 
 	for _, dir := range searchDirs {
 		path := filepath.Join(dir, script)
