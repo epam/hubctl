@@ -3,12 +3,14 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"hub/config"
 	"hub/ext"
+	"hub/util"
 )
 
 var (
@@ -61,6 +63,13 @@ and refreshing dependencies.`,
 
 func extension(what string, args []string) error {
 	config.AggWarnings = false
+	if hub := os.Getenv(envVarNameHubCli); hub == "" {
+		if bin, err := os.Executable(); err == nil {
+			os.Setenv(envVarNameHubCli, bin)
+		} else {
+			util.Warn("Unable to determine path to Hub CLI executable - `hub <extension>` might be broken: %v", err)
+		}
+	}
 	ext.RunExtension(what, args)
 	return nil
 }

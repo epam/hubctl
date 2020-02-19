@@ -41,7 +41,7 @@ var deployCmd = &cobra.Command{
 }
 
 func setOsEnvForNestedCli(manifests []string, stateManifests []string, componentsBaseDir string) {
-	// for nested `hub invoke` and `hub render`
+	// for nested `hub invoke`, `render`, and `util otp`
 	if bin, err := os.Executable(); err == nil {
 		os.Setenv(envVarNameHubCli, bin)
 		// TODO a local state that is not up-to-date, but remote is?
