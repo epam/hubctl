@@ -102,30 +102,33 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 		kind = "gcp"
 	}
 	parameters := []Parameter{
-		{Name: "component.k8s-worker-nodes.size", Value: instanceType},
-		{Name: "component.k8s-worker-nodes.count", Value: count},
+		{Name: "component.worker-pool.size", Value: instanceType},
+		{Name: "component.worker-pool.count", Value: count},
 	}
 	if maxCount > 0 {
 		parameters = append(parameters,
-			Parameter{Name: "component.k8s-worker-nodes.maxCount", Value: maxCount})
+			Parameter{Name: "component.worker-pool.maxCount", Value: maxCount})
 	}
 	if volumeSize > 0 {
 		parameters = append(parameters,
-			Parameter{Name: "component.k8s-worker-nodes.volume.size", Value: volumeSize})
+			Parameter{Name: "component.worker-pool.volume.size", Value: volumeSize})
+	}
+	if autoscale {
+		parameters = append(parameters,
+			Parameter{Name: "component.worker-pool.autoscaling.enabled", Value: autoscale})
 	}
 	switch kind {
 	case "aws":
 		price := ""
 		if spotPrice > 0 {
-			price = fmt.Sprintf("%.2f", spotPrice) // TODO what if price is less than a cent?
+			price = fmt.Sprintf("%.4f", spotPrice)
 		}
 		parameters = append(parameters,
-			Parameter{Name: "component.k8s-worker-nodes.spotPrice", Value: price},
-			Parameter{Name: "component.k8s-worker-nodes.autoscale.enabled", Value: autoscale})
+			Parameter{Name: "component.worker-pool.aws.spotPrice", Value: price})
 
 	case "gcp":
 		parameters = append(parameters,
-			Parameter{Name: "component.k8s-worker-nodes.preemptible", Value: preemptibleVMs})
+			Parameter{Name: "component.worker-pool.gcp.preemptible.enabled", Value: preemptibleVMs})
 	}
 	req := &WorkerpoolRequest{
 		Name:       name,
@@ -172,15 +175,15 @@ func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAnd
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 	}
 	parameters := []Parameter{
-		{Name: "component.k8s-worker-nodes.count", Value: count},
+		{Name: "component.worker-pool.count", Value: count},
 	}
 	if instanceType != "" {
 		parameters = append(parameters,
-			Parameter{Name: "component.k8s-worker-nodes.size", Value: instanceType})
+			Parameter{Name: "component.worker-pool.size", Value: instanceType})
 	}
 	if maxCount > 0 {
 		parameters = append(parameters,
-			Parameter{Name: "component.k8s-worker-nodes.maxCount", Value: maxCount})
+			Parameter{Name: "component.worker-pool.maxCount", Value: maxCount})
 	}
 	req := &WorkerpoolPatch{
 		Parameters: parameters,
