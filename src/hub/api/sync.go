@@ -15,7 +15,9 @@ import (
 func SyncStackInstance(selector, status string, stateFilenames []string) {
 	patch := StackInstancePatch{Status: &StackInstanceStatus{Status: status}}
 
+	replace := false
 	if len(stateFilenames) > 0 {
+		replace = true
 		state := state.MustParseStateFiles(stateFilenames)
 
 		patch = TransformStateToApi(state)
@@ -32,7 +34,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	if config.Verbose {
 		log.Print("Syncing Stack Instance state to SuperHub")
 	}
-	patched, err := PatchStackInstance(selector, patch, true)
+	patched, err := PatchStackInstance(selector, patch, replace)
 	if err != nil {
 		log.Fatalf("Unable to sync Stack Instance: %v", err)
 	}
