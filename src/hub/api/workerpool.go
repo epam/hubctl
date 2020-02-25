@@ -102,7 +102,7 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 		kind = "gcp"
 	}
 	parameters := []Parameter{
-		{Name: "component.worker-pool.size", Value: instanceType},
+		{Name: "component.worker-pool.instance.size", Value: instanceType},
 		{Name: "component.worker-pool.count", Value: count},
 	}
 	if maxCount > 0 {
