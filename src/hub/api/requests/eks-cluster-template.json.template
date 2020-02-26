@@ -1,0 +1,21 @@
+{
+    "name": "${name}",
+    "description": "EKS Cluster",
+    "stack": "eks:1",
+    "componentsEnabled": ["stack-k8s-eks", "tiller", "traefik", "dex", "cert-manager"],
+    "verbs": ["deploy", "undeploy"],
+    "tags": ["platform=eks"],
+    "parameters": [{
+        "name": "dns.domain"
+    }, {
+        "name": "component.ingress.urlPrefix",
+        "value": "app"
+    }, {
+        "name": "component.ingress.ssoUrlPrefix",
+        "value": "apps"
+    }, {
+        "name": "component.cert-manager.enabled",
+        "value": true
+    }],
+    "teamsPermissions": []
+}

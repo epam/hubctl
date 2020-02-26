@@ -7,6 +7,8 @@
         "name": "dns.domain",
         "value": ""
     }, {
+        "name": "cloud.region"
+    }, {
         "name": "kubernetes.api.endpoint",
         "value": ""
     }, {
@@ -23,6 +25,6 @@
         "value": "apps"
     }, {
         "name": "component.cert-manager.enabled",
-        "value": "true"
+        "value": true
     }]
 }

@@ -19,6 +19,21 @@ import (
 	"hub/util"
 )
 
+type ClusterOptions struct {
+	InstanceType   string
+	Count          int
+	MaxCount       int
+	SpotPrice      float32
+	PreemptibleVMs bool
+	VolumeSize     int
+
+	Acm               bool
+	CertManager       bool
+	Autoscaler        bool
+	KubeDashboard     bool
+	KubeDashboardMode string
+}
+
 type ImportConfig struct {
 	TemplateNameFormat string
 	SecretsOrder       []Secret
@@ -71,29 +86,27 @@ var importConfigs = map[string]ImportConfig{
 	},
 }
 
-func ImportKubernetes(kind, name, environment, template string,
+func CreateKubernetes(kind, name, environment, template string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
-	pems io.Reader, clusterBearerToken,
-	nativeRegion, nativeEndpoint, nativeClusterName,
-	ingressIpOrHost, azureResourceGroup string) {
+	nativeRegion, nativeZone, nativeClusterName,
+	eksAdmin, azureResourceGroup string,
+	options ClusterOptions) {
 
-	err := errors.New("Not implemented")
-	if importConfig, exist := importConfigs[kind]; exist {
-		err = importK8s(importConfig, kind, name, environment, template,
-			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
-			pems, clusterBearerToken,
-			nativeRegion, nativeEndpoint, nativeClusterName, ingressIpOrHost, azureResourceGroup)
-	}
+	err := createK8s(kind, name, environment, template,
+		autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
+		nativeRegion, nativeZone, nativeClusterName,
+		eksAdmin, azureResourceGroup,
+		options)
 	if err != nil {
-		log.Fatalf("Unable to import `%s` Kubernetes: %v", kind, err)
+		log.Fatalf("Unable to create `%s` Kubernetes: %v", kind, err)
 	}
 }
 
-func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templateSelector string,
+func createK8s(kind, name, environmentSelector, templateSelector string,
 	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
-	pems io.Reader, clusterBearerToken,
-	nativeRegion, nativeEndpoint, nativeClusterName,
-	ingressIpOrHost, azureResourceGroup string) error {
+	nativeRegion, nativeZone, nativeClusterName,
+	eksAdmin, azureResourceGroup string,
+	options ClusterOptions) error {
 
 	environment, err := environmentBy(environmentSelector)
 	if err != nil {
@@ -103,24 +116,210 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve Cloud Account: %v", err)
 	}
-
-	if strings.Contains(name, ".") {
-		suffix := "." + cloudAccount.BaseDomain
-		i := strings.LastIndex(name, suffix)
-		if !strings.HasSuffix(name, suffix) || i < 1 {
-			return fmt.Errorf("`%s` looks like FQDN, but Cloud Account base domain is `%s`", name, cloudAccount.BaseDomain)
-		}
-		name = name[:i]
+	err = verifyClusterCloudAccountKind(kind, cloudAccount)
+	if err != nil {
+		return err
 	}
-	fqdn := fmt.Sprintf("%s.%s", name, cloudAccount.BaseDomain)
+	name, fqdn, err := verifyClusterBaseDomain(name, cloudAccount)
+	if err != nil {
+		return err
+	}
+
+	platformTag := "platform=" + kind
+	if templateSelector == "" && autoCreateTemplate {
+		templateSelector = fmt.Sprintf("%s in %s", strings.ToUpper(kind), environment.Name)
+	}
+
+	var template *StackTemplate
+
+	if templateSelector != "" && !createNewTemplate {
+		template, err = templateBy(templateSelector)
+		if err != nil && !strings.HasSuffix(err.Error(), " found") { // TODO proper 404 handling
+			return fmt.Errorf("Unable to retrieve cluster Template: %v", err)
+		}
+		if template != nil && !util.Contains(template.Tags, platformTag) {
+			util.Warn("Template `%s` [%s] contain no `%s` tag", template.Name, template.Id, platformTag)
+		}
+	}
+
+	if template == nil {
+		if !autoCreateTemplate {
+			return fmt.Errorf("No cluster Template found by `%s`", templateSelector)
+		}
+
+		asset := fmt.Sprintf("%s/%s-cluster-template.json.template", requestsBindata, kind)
+		templateBytes, err := bindata.Asset(asset)
+		if err != nil {
+			return fmt.Errorf("No %s embedded: %v", asset, err)
+		}
+		var templateRequest StackTemplateRequest
+		err = json.Unmarshal(templateBytes, &templateRequest)
+		if err != nil {
+			return fmt.Errorf("Unable to unmarshall JSON into Template request: %v", err)
+		}
+
+		// TODO with createNewTemplate = true we can get a 400 HTTP
+		// due to duplicate Template name which should be unique across organization
+		templateRequest.Name = templateSelector // let use user-supplied selector as Template name, hope it's not id
+		templateRequest.Tags = []string{platformTag}
+		templateRequest.TeamsPermissions = environment.TeamsPermissions // copy permissions from Environment
+
+		template, err = createTemplate(templateRequest)
+		if err != nil {
+			return fmt.Errorf("Unable to create cluster Template: %v", err)
+		}
+		err = initTemplate(template.Id)
+		if err != nil {
+			return fmt.Errorf("Unable to initialize cluster Template: %v", err)
+		}
+		if config.Verbose {
+			log.Printf("Created %s cluster template `%s`", kind, template.Name)
+		}
+	}
+
+	asset := fmt.Sprintf("%s/%s-cluster-instance.json.template", requestsBindata, kind)
+	instanceBytes, err := bindata.Asset(asset)
+	if err != nil {
+		return fmt.Errorf("No %s embedded: %v", asset, err)
+	}
+	var instanceRequest StackInstanceRequest
+	err = json.Unmarshal(instanceBytes, &instanceRequest)
+	if err != nil {
+		return fmt.Errorf("Unable to unmarshall JSON into Stack Instance request: %v", err)
+	}
+
+	instanceRequest.Name = name
+	instanceRequest.Tags = template.Tags
+	instanceRequest.Environment = environment.Id
+	instanceRequest.Template = template.Id
+	parameters := make([]Parameter, 0, len(instanceRequest.Parameters))
+	for _, p := range instanceRequest.Parameters {
+		rm := false
+		switch p.Name {
+		case "dns.name":
+			p.Value = name
+		case "dns.domain":
+			p.Value = fqdn
+		case "cloud.region":
+			if nativeRegion != "" {
+				p.Value = nativeRegion
+			} else {
+				rm = true
+			}
+		case "cloud.availabilityZone":
+			if nativeZone != "" && !strings.Contains(nativeZone, ",") {
+				p.Value = nativeZone
+			} else {
+				rm = true
+			}
+		case "cloud.availabilityZones":
+			if nativeZone != "" && strings.Contains(nativeZone, ",") {
+				p.Value = nativeZone
+			} else {
+				rm = true
+			}
+		case "component.kubernetes.eks.admin":
+			p.Value = eksAdmin
+		case "component.kubernetes.eks.cluster", "component.kubernetes.gke.cluster", "component.kubernetes.aks.cluster":
+			p.Value = nativeClusterName
+		case "cloud.azureResourceGroupName":
+			if azureResourceGroup != "" {
+				p.Value = azureResourceGroup
+			} else {
+				rm = true
+			}
+		case "component.kubernetes.worker.size", "component.kubernetes.gke.nodeMachineType": // TODO worker.instance.size
+			p.Value = options.InstanceType
+		case "component.kubernetes.worker.count", "component.kubernetes.gke.minNodeCount":
+			p.Value = options.Count
+		case "component.kubernetes.worker.maxCount", "component.kubernetes.gke.maxNodeCount":
+			if options.MaxCount != 0 {
+				p.Value = options.MaxCount
+			} else {
+				rm = true
+			}
+		case "component.kubernetes.worker.volume.size":
+			if options.VolumeSize != 0 {
+				p.Value = options.VolumeSize
+			} else {
+				rm = true
+			}
+		case "component.kubernetes.worker.spotPrice": // TODO worker.aws.spotPrice
+			if options.SpotPrice > 0 {
+				p.Value = options.SpotPrice
+			}
+		case "component.kubernetes.gke.preemptibleNodes": // TODO worker.gcp.preemptible.enabled
+			p.Value = options.PreemptibleVMs
+		}
+		p = clusterOptions(p, options)
+		if !rm {
+			parameters = append(parameters, p)
+		}
+	}
+	instanceRequest.Parameters = parameters
+
+	instance, err := createStackInstance(instanceRequest)
+	if err != nil {
+		return fmt.Errorf("Unable to create cluster Stack Instance: %v", err)
+	}
+
+	_, err = commandStackInstance(instance.Id, "deploy", nil, waitAndTailDeployLogs, dryRun)
+	if err != nil {
+		return fmt.Errorf("Unable to deploy cluster Stack Instance: %v", err)
+	}
+
+	return nil
+}
+
+func ImportKubernetes(kind, name, environment, template string,
+	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
+	pems io.Reader, clusterBearerToken,
+	nativeRegion, nativeZone, nativeEndpoint, nativeClusterName,
+	ingressIpOrHost, azureResourceGroup string,
+	options ClusterOptions) {
+
+	err := errors.New("Not implemented")
+	if importConfig, exist := importConfigs[kind]; exist {
+		err = importK8s(importConfig, kind, name, environment, template,
+			autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun,
+			pems, clusterBearerToken,
+			nativeRegion, nativeZone, nativeEndpoint, nativeClusterName,
+			ingressIpOrHost, azureResourceGroup,
+			options)
+	}
+	if err != nil {
+		log.Fatalf("Unable to import `%s` Kubernetes: %v", kind, err)
+	}
+}
+
+func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templateSelector string,
+	autoCreateTemplate, createNewTemplate, waitAndTailDeployLogs, dryRun bool,
+	pems io.Reader, clusterBearerToken,
+	nativeRegion, nativeZone, nativeEndpoint, nativeClusterName,
+	ingressIpOrHost, azureResourceGroup string,
+	options ClusterOptions) error {
+
+	environment, err := environmentBy(environmentSelector)
+	if err != nil {
+		return fmt.Errorf("Unable to retrieve Environment: %v", err)
+	}
+	cloudAccount, err := cloudAccountById(environment.CloudAccount)
+	if err != nil {
+		return fmt.Errorf("Unable to retrieve Cloud Account: %v", err)
+	}
+	err = verifyClusterCloudAccountKind(kind, cloudAccount)
+	if err != nil {
+		return err
+	}
+	name, fqdn, err := verifyClusterBaseDomain(name, cloudAccount)
+	if err != nil {
+		return err
+	}
 
 	ingressIp := ""
 	ingressHost := ""
 
 	if kind == "eks" {
-		if !strings.HasPrefix(cloudAccount.Kind, "aws") {
-			return fmt.Errorf("Cloud Account %s is not AWS but `%s`", cloudAccount.BaseDomain, cloudAccount.Kind)
-		}
 		if nativeEndpoint == "" {
 			cac, err := awsCloudAccountCredentials(cloudAccount.Id)
 			if err != nil {
@@ -204,10 +403,10 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 
 	if templateSelector != "" && !createNewTemplate {
 		template, err = templateBy(templateSelector)
-		if err != nil && !strings.HasSuffix(err.Error(), " found") { // TODO proper 404 handling
+		if err != nil && !strings.HasSuffix(err.Error(), " found") {
 			return fmt.Errorf("Unable to retrieve adapter Template: %v", err)
 		}
-		if template != nil && (template.Tags == nil || !util.Contains(template.Tags, adapterTag)) {
+		if template != nil && !util.Contains(template.Tags, adapterTag) {
 			util.Warn("Template `%s` [%s] contain no `%s` tag", template.Name, template.Id, adapterTag)
 		}
 	}
@@ -268,9 +467,15 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		switch p.Name {
 		case "dns.domain":
 			p.Value = fqdn
-		case "cloud.region": // TODO cloud.availabilityZone for GKE cluster deployed into single zone
+		case "cloud.region":
 			if nativeRegion != "" {
 				p.Value = nativeRegion
+			} else {
+				rm = true
+			}
+		case "cloud.availabilityZone":
+			if nativeZone != "" {
+				p.Value = nativeZone
 			} else {
 				rm = true
 			}
@@ -297,6 +502,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 				rm = true
 			}
 		}
+		p = clusterOptions(p, options)
 		if !rm {
 			parameters = append(parameters, p)
 		}
@@ -328,6 +534,41 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	}
 
 	return nil
+}
+
+func verifyClusterCloudAccountKind(clusterKind string, cloudAccount *CloudAccount) error {
+	mustBeCloudKind := ""
+	switch clusterKind {
+	case "k8s-aws", "eks", "metal", "hybrid", "openshift":
+		if !strings.HasPrefix(cloudAccount.Kind, "aws") {
+			mustBeCloudKind = "AWS"
+		}
+	case "gke":
+		if cloudAccount.Kind != "gcp" {
+			mustBeCloudKind = "GCP"
+		}
+	case "aks":
+		if cloudAccount.Kind != "azure" {
+			mustBeCloudKind = "Azure"
+		}
+	}
+	if mustBeCloudKind != "" {
+		return fmt.Errorf("Cloud Account %s is not %s but `%s`", cloudAccount.BaseDomain, mustBeCloudKind, cloudAccount.Kind)
+	}
+	return nil
+}
+
+func verifyClusterBaseDomain(name string, cloudAccount *CloudAccount) (string, string, error) {
+	if strings.Contains(name, ".") {
+		suffix := "." + cloudAccount.BaseDomain
+		i := strings.LastIndex(name, suffix)
+		if !strings.HasSuffix(name, suffix) || i < 1 {
+			return "", "", fmt.Errorf("`%s` looks like FQDN, but Cloud Account base domain is `%s`", name, cloudAccount.BaseDomain)
+		}
+		name = name[:i]
+	}
+	fqdn := fmt.Sprintf("%s.%s", name, cloudAccount.BaseDomain)
+	return name, fqdn, nil
 }
 
 var pemBlockTypeToSecretKind = map[string]string{
@@ -372,4 +613,20 @@ func readImportSecrets(secretsOrder []Secret, pems io.Reader) ([]Secret, error) 
 		err = fmt.Errorf("Expected at least %d secrets, read %d", len(secretsOrder)-1, len(secrets))
 	}
 	return secrets, err
+}
+
+func clusterOptions(p Parameter, options ClusterOptions) Parameter {
+	switch p.Name {
+	case "component.acm.enabled":
+		p.Value = options.Acm
+	case "component.cert-manager.enabled":
+		p.Value = options.CertManager
+	case "component.cluster-autoscaler.enabled":
+		p.Value = options.Autoscaler
+	case "component.kubernetes-dashboard.enabled":
+		p.Value = options.KubeDashboard
+	case "component.kubernetes-dashboard.rbac.kind":
+		p.Value = options.KubeDashboardMode
+	}
+	return p
 }

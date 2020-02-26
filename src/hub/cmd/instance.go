@@ -503,7 +503,7 @@ func init() {
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolPreemptibleVMs, "preemptible-vms", "p", false,
 		"GCP use preemptible VMs")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolAutoscale, "autoscale", "a", false,
-		"Autoscale worker pool with cluster-autoscaler (stack-k8s-aws based Kubernetes only)")
+		"Autoscale worker pool with cluster-autoscaler (Agile Stacks and EKS Kubernetes only)")
 	instanceWorkerpoolCreateCmd.Flags().IntVarP(&workerpoolVolumeSize, "volume-size", "z", 0,
 		"Node root volume size (default 30GB)")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
