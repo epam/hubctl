@@ -505,7 +505,7 @@ func init() {
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolAutoscale, "autoscale", "a", false,
 		"Autoscale worker pool with cluster-autoscaler (Agile Stacks and EKS Kubernetes only)")
 	instanceWorkerpoolCreateCmd.Flags().IntVarP(&workerpoolVolumeSize, "volume-size", "z", 0,
-		"Node root volume size (default 30GB)")
+		"Node root volume size (default 50GB)")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
