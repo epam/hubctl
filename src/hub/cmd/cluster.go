@@ -328,7 +328,7 @@ func init() {
 	createClusterCmd.Flags().BoolVarP(&autoCreateTemplate, "create-template", "", true,
 		"Create adapter template if no existing template is found for reuse")
 	createClusterCmd.Flags().BoolVarP(&createNewTemplate, "create-new-template", "", false,
-		"Do not reuse existing template, always create fresh one")
+		"Do not reuse existing template, always create fresh one (set name via --template)")
 	createClusterCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	createClusterCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
@@ -381,7 +381,7 @@ func init() {
 	importClusterCmd.Flags().BoolVarP(&autoCreateTemplate, "create-template", "", true,
 		"Create adapter template if no existing template is found for reuse")
 	importClusterCmd.Flags().BoolVarP(&createNewTemplate, "create-new-template", "", false,
-		"Do not reuse existing template, always create fresh one")
+		"Do not reuse existing template, always create fresh one (set name via --template)")
 	importClusterCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	importClusterCmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
