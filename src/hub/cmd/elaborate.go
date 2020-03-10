@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	elaborateOutput           string
-	elaboratePlatformProvides string
+	elaborateOutput                  string
+	elaboratePlatformProvides        string
+	elaborateUseStateStackParameters bool
 )
 
 var elaborateCmd = &cobra.Command{
@@ -38,7 +39,7 @@ func elaborate(args []string) error {
 	elaborateManifests := util.SplitPaths(elaborateOutput)
 	stateManifests := util.SplitPaths(stateManifestExplicit)
 	compose.Elaborate(manifest, parameters, environmentOverrides, elaboratePlatformProvides,
-		stateManifests, elaborateManifests, componentsBaseDir)
+		stateManifests, elaborateUseStateStackParameters, elaborateManifests, componentsBaseDir)
 
 	return nil
 }
@@ -54,5 +55,7 @@ func init() {
 		"Path to component sources base directory (default to manifest dir)")
 	elaborateCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",
 		"Path to state file(s) to load Platform stack outputs as input parameters, for example hub.yaml.state,s3://bucket/hub.yaml.state")
+	elaborateCmd.Flags().BoolVarP(&elaborateUseStateStackParameters, "state-stack-parameters", "", true,
+		"Also use stack parameters (from state) to load input parameters, otherwise only stack outputs are used")
 	RootCmd.AddCommand(elaborateCmd)
 }

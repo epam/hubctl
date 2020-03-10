@@ -42,7 +42,7 @@ var environment map[string]string
 
 func Elaborate(manifestFilename string,
 	parametersFilenames []string, environmentOverrides, explicitProvides string,
-	stateManifests []string, elaborateManifests []string, componentsBaseDir string) {
+	stateManifests []string, useStateStackParameters bool, elaborateManifests []string, componentsBaseDir string) {
 
 	if config.Verbose {
 		parametersFrom := ""
@@ -115,7 +115,7 @@ func Elaborate(manifestFilename string,
 		// we might get in trouble here setting `dns.domain` from Kubernetes state on empty
 		// `kind: user` parameter with `fromEnv:`
 		// at least there will be a warning for mismatched values
-		setValuesFromState(stackManifest.Parameters, st)
+		setValuesFromState(stackManifest.Parameters, st, useStateStackParameters)
 		stackManifest.Requires = connectStateProvides(stackManifest.Requires, st.Provides)
 		platformProvides = util.MergeUnique(platformProvides, util.SortedKeys2(st.Provides))
 	}
@@ -420,16 +420,17 @@ func findKubernetesProvider(st *state.StateManifest) []parameters.CapturedOutput
 	return nil
 }
 
-func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest) {
+func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest, useStateStackParameters bool) {
 	stateStackOutputs := make(map[string]interface{})
 
-	// rely on explicit stack outputs only?
 	// for apps installed on overlay stack we must look into
 	// stack parameters to obtain kubernetes credentials
-	for _, parameter := range st.StackParameters {
-		// should we filter out `link` parameters?
-		if parameter.Component == "" && !util.Empty(parameter.Value) {
-			stateStackOutputs[parameter.Name] = parameter.Value
+	if useStateStackParameters {
+		for _, parameter := range st.StackParameters {
+			// should we filter out `link` parameters?
+			if parameter.Component == "" && !util.Empty(parameter.Value) {
+				stateStackOutputs[parameter.Name] = parameter.Value
+			}
 		}
 	}
 	for _, output := range st.StackOutputs {
