@@ -167,8 +167,8 @@ type BinVersion struct {
 var binVersion = map[string]BinVersion{
 	"gcloud":  {"246.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
 	"gsutil":  {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
-	"vault":   {"1.2.4", regexp.MustCompile("Vault v([\\d.]+)")},
-	"kubectl": {"1.14.7", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
+	"vault":   {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
+	"kubectl": {"1.16.8", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
 	"helm":    {"2.16.1", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
 }
 
