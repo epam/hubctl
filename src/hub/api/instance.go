@@ -17,7 +17,10 @@ import (
 
 const stackInstancesResource = "hub/api/v1/instances"
 
-var stackInstancesCache = make(map[string]*StackInstance)
+var (
+	stackInstancesCache = make(map[string]*StackInstance)
+	queryMarkers        = []string{"<", ">", "="}
+)
 
 func StackInstances(selector string, showSecrets, showLogs, showBackups, jsonFormat bool) {
 	instances, err := stackInstancesBy(selector)
@@ -219,8 +222,20 @@ func stackInstanceBy(selector string) (*StackInstance, error) {
 	return stackInstanceById(selector)
 }
 
+func maybeQuery(selector string) bool {
+	for _, marker := range queryMarkers {
+		if strings.Contains(selector, marker) {
+			return true
+		}
+	}
+	return false
+}
+
 func stackInstancesBy(selector string) ([]StackInstance, error) {
 	if !util.IsUint(selector) {
+		if maybeQuery(selector) {
+			return stackInstancesByQuery(selector)
+		}
 		return stackInstancesByDomain(selector)
 	}
 	instance, err := stackInstanceById(selector)
@@ -264,10 +279,18 @@ func stackInstanceByDomain(domain string) (*StackInstance, error) {
 	return &instance, nil
 }
 
+func stackInstancesByQuery(query string) ([]StackInstance, error) {
+	return stackInstancesByField(query, "query")
+}
+
 func stackInstancesByDomain(domain string) ([]StackInstance, error) {
+	return stackInstancesByField(domain, "domain")
+}
+
+func stackInstancesByField(selector, field string) ([]StackInstance, error) {
 	path := stackInstancesResource
-	if domain != "" {
-		path += "?domain=" + url.QueryEscape(domain)
+	if selector != "" {
+		path = fmt.Sprintf("%s?%s=%s", path, field, url.QueryEscape(selector))
 	}
 	var jsResp []StackInstance
 	code, err := get(hubApi(), path, &jsResp)
