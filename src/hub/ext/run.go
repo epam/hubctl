@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"hub/config"
 	"hub/util"
@@ -13,8 +14,7 @@ import (
 
 const hubDir = ".hub"
 
-func scriptPath(what string) (string, error) {
-	script := "hub-" + what
+func scriptPath(what, args []string) (string, []string, error) {
 
 	searchDirs := []string{filepath.Join(".", hubDir)}
 
@@ -34,47 +34,56 @@ func scriptPath(what string) (string, error) {
 
 	searchDirs = append(searchDirs, "/usr/local/share/hub", "/usr/share/hub")
 
-	for _, dir := range searchDirs {
-		path := filepath.Join(dir, script)
-		_, err := os.Stat(path)
-		if err != nil {
-			if util.NoSuchFile(err) {
-				continue
+	for i := len(what); i > 0; i-- {
+		script := "hub-" + strings.Join(what[0:i], "-")
+		newArgs := append(what[i:], args...)
+
+		if config.Trace {
+			log.Printf("Trying %s with args %v", script, newArgs)
+		}
+
+		for _, dir := range searchDirs {
+			path := filepath.Join(dir, script)
+			_, err := os.Stat(path)
+			if err != nil {
+				if util.NoSuchFile(err) {
+					continue
+				}
+				util.Warn("Unable to stat `%s`: %v", path, err)
+			} else {
+				// TODO check file mode
+				// TODO allow extension placement in a dedicated subdirectory
+				return path, newArgs, nil
 			}
-			util.Warn("Unable to stat `%s`: %v", path, err)
-		} else {
-			// TODO check file mode
-			// TODO allow extension placement in a dedicated subdirectory
-			return path, nil
+		}
+
+		path, err := exec.LookPath(script)
+		if err == nil {
+			return path, newArgs, nil
 		}
 	}
 
-	path, err := exec.LookPath(script)
-	if err == nil {
-		return path, nil
-	}
-
-	return "", fmt.Errorf("Extension not found in %v, $HUB_EXTENSIONS, $PATH", searchDirs)
+	return "", nil, fmt.Errorf("Extension not found in %v, $HUB_EXTENSIONS, $PATH", searchDirs)
 }
 
-func RunExtension(what string, args []string) {
+func RunExtension(what, args []string) {
 	code, err := runExtension(what, args)
 	if err != nil {
-		log.Fatalf("Unable to call `%s` extension: %v", what, err)
+		log.Fatalf("Unable to call %v extension: %v", what, err)
 	}
 	os.Exit(code)
 }
 
-func runExtension(what string, args []string) (int, error) {
+func runExtension(what, args []string) (int, error) {
 	if config.Debug {
-		log.Printf("Calling extension `%s` with args %v", what, args)
+		log.Printf("Searching extension %v with args %v", what, args)
 	}
-	executable, err := scriptPath(what)
+	executable, args, err := scriptPath(what, args)
 	if err != nil {
 		return 0, err
 	}
 	if config.Debug {
-		log.Printf("Found extension %s", executable)
+		log.Printf("Found extension %s %v", executable, args)
 	}
 	cmd := exec.Cmd{
 		Path:   executable,

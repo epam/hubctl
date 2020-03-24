@@ -21,7 +21,7 @@ var extensionCmd = cobra.Command{
 	Use:   "",
 	Short: "`%s` extension",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return extension(cmd.Use, args)
+		return extension([]string{cmd.Use}, args)
 	},
 	DisableFlagParsing: true,
 }
@@ -61,7 +61,7 @@ and refreshing dependencies.`,
 	},
 }
 
-func extension(what string, args []string) error {
+func extension(what []string, args []string) error {
 	config.AggWarnings = false
 	if hub := os.Getenv(envVarNameHubCli); hub == "" {
 		if bin, err := os.Executable(); err == nil {
@@ -75,20 +75,25 @@ func extension(what string, args []string) error {
 }
 
 func arbitraryExtension(args []string) error {
-	what := ""
+	stopWhat := false
+	what := make([]string, 0, 1)
 	finalArgs := make([]string, 0, len(args))
 	for i, arg := range args {
 		if !strings.HasPrefix(arg, "-") {
-			what = arg
-			if i < len(args)-1 {
+			if !stopWhat {
+				what = append(what, arg)
+			} else if i < len(args)-1 {
 				finalArgs = append(finalArgs, args[i+1:]...)
+				break
 			}
-			break
 		} else {
 			finalArgs = append(finalArgs, arg)
+			if len(what) > 0 {
+				stopWhat = true
+			}
 		}
 	}
-	if what == "" {
+	if len(what) == 0 {
 		return errors.New("Extensions command has at least one mandatory argument - the name of extension command to call")
 	}
 
