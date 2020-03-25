@@ -1,0 +1,335 @@
+{
+  "status": {
+    "status": "deployed",
+    "components": [
+      {
+        "name": "stack-k8s-eks",
+        "status": "deployed",
+        "meta": {
+          "brief": "AWS EKS"
+        },
+        "outputs": [
+          {
+            "name": "cloud.ec2.master.ignitionProfileS3",
+            "value": "s3://agilestacks.bestofzeeto.superhub.io/vpcchild.bestofzeeto.superhub.io/stack-k8s-aws/ignition/ignition_master.json"
+          },
+          {
+            "name": "cloud.ec2.worker.ignitionProfileS3",
+            "value": "s3://agilestacks.bestofzeeto.superhub.io/vpcchild.bestofzeeto.superhub.io/stack-k8s-aws/ignition/ignition_worker.json"
+          },
+          {
+            "name": "cloud.iam.worker.instanceProfile",
+            "value": "worker-profile-vpcchild-bestofzeeto.superhub.io"
+          },
+          {
+            "name": "cloud.role.master",
+            "value": "master-vpcchild-bestofze20200325082941223100000006"
+          },
+          {
+            "name": "cloud.role.worker",
+            "value": "worker-vpcchild-bestofzeeto-sup20200325082940728600000002"
+          },
+          {
+            "name": "cloud.vpc.cidr",
+            "value": "10.0.0.0/16"
+          },
+          {
+            "name": "cloud.vpc.id",
+            "value": "vpc-03c2ab23d8e33facd"
+          },
+          {
+            "name": "cloud.vpc.master.sg.id",
+            "value": "sg-059e5123a884bb1e3"
+          },
+          {
+            "name": "cloud.vpc.master.subnet.id",
+            "value": "subnet-0bc9f8bc1177227b1"
+          },
+          {
+            "name": "cloud.vpc.worker.sg.id",
+            "value": "sg-0b84c3b4100ed9e90"
+          },
+          {
+            "name": "cloud.vpc.worker.subnet.id",
+            "value": "subnet-0c7f8c6f3d8b846b5"
+          },
+          {
+            "name": "cloud.vpc.worker.subnet.ids",
+            "value": "subnet-0c7f8c6f3d8b846b5"
+          },
+          {
+            "name": "component.kubernetes.volumePluginDir",
+            "value": "/var/lib/kubelet/volumeplugins"
+          },
+          {
+            "name": "dns.domain",
+            "value": "vpcchild.bestofzeeto.superhub.io",
+            "brief": "Cluster domain"
+          },
+          {
+            "name": "kubernetes.api.endpoint",
+            "value": "api.vpcchild.bestofzeeto.superhub.io:6443"
+          },
+          {
+            "name": "kubernetes.api.host",
+            "value": "api.vpcchild.bestofzeeto.superhub.io"
+          },
+          {
+            "name": "kubernetes.api.port",
+            "value": "6443"
+          },
+          {
+            "name": "kubernetes.flavor",
+            "value": "k8s-aws"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:54:40.266011817Z",
+          "end": "2020-03-25T08:58:19.924268662Z"
+        }
+      },
+      {
+        "name": "tiller",
+        "status": "deployed",
+        "meta": {
+          "brief": "Helm's Tiller - cluster side"
+        },
+        "outputs": [
+          {
+            "name": "component.tiller.namespace",
+            "value": "kube-system",
+            "brief": "Tiller's Kubernetes namespace"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:54:39.626880832Z",
+          "end": "2020-03-25T08:54:40.265931205Z"
+        }
+      },
+      {
+        "name": "automation-tasks-namespace",
+        "status": "deployed",
+        "meta": {
+          "brief": "Plain Kubernetes namespace"
+        },
+        "timestamps": {
+          "start": "2020-03-25T08:54:39.495450488Z",
+          "end": "2020-03-25T08:54:39.626849572Z"
+        }
+      },
+      {
+        "name": "cert-manager",
+        "status": "deployed",
+        "version": "0.12.0",
+        "meta": {
+          "title": "Let’s Encrypt",
+          "brief": "Automate the management and issuance of TLS certificates",
+          "description": "Let’s Encrypt is a free, automated, and open certificate authority (CA), run for the public’s benefit. It is a service provided by the Internet Security Research Group (ISRG)\n",
+          "version": "0.12.0",
+          "maturity": "ga"
+        },
+        "outputs": [
+          {
+            "name": "component.tls.kind",
+            "value": "letsencrypt"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:54:36.580209315Z",
+          "end": "2020-03-25T08:54:39.495405653Z"
+        }
+      },
+      {
+        "name": "traefik",
+        "status": "deployed",
+        "version": "$traefik_version",
+        "meta": {
+          "title": "Traefik",
+          "brief": "Ingress controller",
+          "description": "Træfik (pronounced like traffic) is a modern HTTP reverse proxy and load balancer made to deploy microservices with ease.\n",
+          "version": "$traefik_version",
+          "maturity": "ga"
+        },
+        "outputs": [
+          {
+            "name": "component.ingress.dashboard.url",
+            "value": "https://apps.vpcchild.bestofzeeto.superhub.io/dashboard/"
+          },
+          {
+            "name": "component.ingress.fqdn",
+            "value": "app.vpcchild.bestofzeeto.superhub.io",
+            "brief": "FQDN of ingress"
+          },
+          {
+            "name": "component.ingress.kubernetes.ingressClass",
+            "value": ""
+          },
+          {
+            "name": "component.ingress.loadBalancer",
+            "value": "a415631ea6e7411eaacd00ae5e31f38c-617703199.us-east-1.elb.amazonaws.com"
+          },
+          {
+            "name": "component.ingress.loadBalancerDnsRecordType",
+            "value": "CNAME"
+          },
+          {
+            "name": "component.ingress.protocol",
+            "value": "https"
+          },
+          {
+            "name": "component.ingress.ssoFqdn",
+            "value": "apps.vpcchild.bestofzeeto.superhub.io",
+            "brief": "FQDN of ingress protected by SSO"
+          },
+          {
+            "name": "component.ingress.ssoUrlPrefix",
+            "value": "apps"
+          },
+          {
+            "name": "component.ingress.urlPrefix",
+            "value": "app"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:53:52.337665052Z",
+          "end": "2020-03-25T08:54:36.580181334Z"
+        }
+      },
+      {
+        "name": "dex",
+        "status": "deployed",
+        "version": "2.18.0",
+        "meta": {
+          "title": "Dex",
+          "brief": "Dex OIDC and OAuth2 provider",
+          "description": "Dex is an identity service that uses OpenID Connect to drive authentication for other apps. Dex is NOT a user-management system, but acts as a portal to other identity providers through \"connectors\"; This lets dex defer authentication to LDAP servers, SAML providers, or established identity providers like GitHub, Google, and Active Directory. Clients write their authentication logic once to talk to dex, then dex handles the protocols for a given backend.\n",
+          "version": "2.18.0",
+          "maturity": "ga"
+        },
+        "outputs": [
+          {
+            "name": "component.dex.issuer",
+            "value": "https://auth.vpcchild.bestofzeeto.superhub.io"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:53:10.902693159Z",
+          "end": "2020-03-25T08:53:52.337386626Z"
+        }
+      },
+      {
+        "name": "istio",
+        "status": "deployed",
+        "version": "1.4.3",
+        "meta": {
+          "title": "Istio",
+          "brief": "Service mesh",
+          "description": "Service mesh for providing a uniform way to integrate microservices, manage traffic flow across microservices, enforce policies and aggregate telemetry data",
+          "version": "1.4.3",
+          "maturity": "beta"
+        },
+        "outputs": [
+          {
+            "name": "component.istio.ingressGateway",
+            "value": "ingressgateway",
+            "brief": "Used to link a Gateway resource to current istio (`spec.selector.istio`)"
+          },
+          {
+            "name": "component.istio.ingressGateway.default.fqdn",
+            "value": "mesh.vpcchild.bestofzeeto.superhub.io"
+          },
+          {
+            "name": "component.istio.ingressGateway.default.name",
+            "value": "default-ingressgateway"
+          },
+          {
+            "name": "component.istio.kiali.url",
+            "value": "https://istio-kiali.apps.vpcchild.bestofzeeto.superhub.io",
+            "brief": "Istio Service Graph"
+          },
+          {
+            "name": "component.istio.namespace",
+            "value": "istio-system"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:53:05.488536639Z",
+          "end": "2020-03-25T08:53:10.90254247Z"
+        }
+      },
+      {
+        "name": "cluster-autoscaler",
+        "status": "deployed",
+        "version": "1.14.7",
+        "meta": {
+          "title": "Autoscaler",
+          "brief": "Kubernetes Cluster Autoscaler",
+          "description": "Cluster Autoscaler is a tool that automatically adjusts the size of the Kubernetes cluster \"when one of the following conditions is true: there are pods that failed to run in the cluster\" due to insufficient resources, there are nodes in the cluster that have been underutilized for an extended period of time and their pods can be placed on other existing nodes.\n",
+          "version": "1.14.7",
+          "maturity": "ga"
+        },
+        "timestamps": {
+          "start": "2020-03-25T08:53:04.915975885Z",
+          "end": "2020-03-25T08:53:05.48830345Z"
+        }
+      },
+      {
+        "name": "kube-dashboard2",
+        "status": "deployed",
+        "version": "$kube_dashboard_version",
+        "meta": {
+          "title": "Dashboard v2",
+          "brief": "Kubernetes Dashboard",
+          "description": "Dashboard is a web-based Kubernetes user interface. You can use Dashboard to deploy containerized applications to a Kubernetes cluster, troubleshoot your containerized application, and manage the cluster itself along with its attendant resources. You can use Dashboard to get an overview of applications running on your cluster, as well as for creating or modifying individual Kubernetes resources (such as Deployments, Jobs, DaemonSets, etc). For example, you can scale a Deployment, initiate a rolling update, restart a pod or deploy new applications using a deploy wizard.\n",
+          "version": "$kube_dashboard_version",
+          "maturity": "beta",
+          "icon": "https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg"
+        },
+        "outputs": [
+          {
+            "name": "component.kubernetes-dashboard.url",
+            "value": "https://kubernetes.apps.vpcchild.bestofzeeto.superhub.io",
+            "brief": "Kubernetes Dashboard"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:53:04.072928101Z",
+          "end": "2020-03-25T08:53:04.915634291Z"
+        }
+      },
+      {
+        "name": "prometheus-operator",
+        "status": "deployed",
+        "version": "2.13.1",
+        "meta": {
+          "title": "Prometheus",
+          "brief": "Cluster monitoring",
+          "description": "Prometheus is a systems and service monitoring system. It collects metrics from configured targets at given intervals, evaluates rule expressions, displays the results, and can trigger alerts if some condition is observed to be true.\n",
+          "version": "2.13.1",
+          "maturity": "beta"
+        },
+        "outputs": [
+          {
+            "name": "component.prometheus.alertmanager.url",
+            "value": "https://alertmanager.apps.vpcchild.bestofzeeto.superhub.io",
+            "brief": "Alertmanager URL"
+          },
+          {
+            "name": "component.prometheus.grafana.url",
+            "value": "https://grafana.apps.vpcchild.bestofzeeto.superhub.io",
+            "brief": "Grafana URL"
+          },
+          {
+            "name": "component.prometheus.url",
+            "value": "https://prometheus.apps.vpcchild.bestofzeeto.superhub.io",
+            "brief": "Prometheus URL"
+          }
+        ],
+        "timestamps": {
+          "start": "2020-03-25T08:52:55.45860393Z",
+          "end": "2020-03-25T08:53:04.072804236Z"
+        }
+      }
+    ]
+  }
+}
