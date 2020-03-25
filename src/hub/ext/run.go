@@ -63,7 +63,11 @@ func scriptPath(what, args []string) (string, []string, error) {
 		}
 	}
 
-	return "", nil, fmt.Errorf("Extension not found in %v, $HUB_EXTENSIONS, $PATH", searchDirs)
+	printCustomHubDir := ""
+	if customHubDir != "" {
+		printCustomHubDir = fmt.Sprintf(", $HUB_EXTENSIONS=%s", customHubDir)
+	}
+	return "", nil, fmt.Errorf("Extension not found in %v%s, $PATH", searchDirs, printCustomHubDir)
 }
 
 func RunExtension(what, args []string) {
