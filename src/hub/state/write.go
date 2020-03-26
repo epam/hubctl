@@ -161,6 +161,8 @@ func UpdateComponentStatus(manifest *StateManifest, name string, meta *manifest.
 			icon = meta.Icon
 		}
 		componentState.Meta = ComponentMetadata{
+			Origin:      meta.Origin,
+			Kind:        meta.Kind,
 			Title:       meta.Title,
 			Brief:       meta.Brief,
 			Description: meta.Description,

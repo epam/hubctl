@@ -214,6 +214,8 @@ type PlatformRef struct {
 }
 
 type ComponentMetadata struct {
+	Origin      string `json:"origin,omitempty"`
+	Kind        string `json:"kind,omitempty"`
 	Title       string `json:"title,omitempty"`
 	Brief       string `json:"brief,omitempty"`
 	Description string `json:"description,omitempty"`
@@ -236,7 +238,7 @@ type Timestamps struct {
 type ComponentStatus struct {
 	Name       string             `json:"name"`
 	Status     string             `json:"status"`
-	Version    string             `json:"version,omitempty"` // TODO deprecate in favor of Meta
+	Version    string             `json:"version,omitempty"` // TODO deprecate in favor of Meta.Version
 	Meta       *ComponentMetadata `json:"meta,omitempty"`
 	Message    string             `json:"message,omitempty"`
 	Outputs    []ComponentOutput  `json:"outputs,omitempty"`

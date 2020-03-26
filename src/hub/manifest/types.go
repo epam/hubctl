@@ -17,6 +17,8 @@ type SourceLocation struct {
 
 type Metadata struct {
 	Name        string
+	Origin      string            `yaml:",omitempty"`
+	Kind        string            `yaml:",omitempty"`
 	Title       string            `yaml:",omitempty"`
 	Brief       string            `yaml:",omitempty"`
 	Description string            `yaml:",omitempty"`

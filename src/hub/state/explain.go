@@ -114,7 +114,7 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 			for _, component := range components {
 				if step, exist := state.Components[component]; exist {
 					fmt.Printf("Component: %s\n", headColor(component))
-					printComponenentState(step, prevOutputs, rawOutputs)
+					printComponenentState(component, step, prevOutputs, rawOutputs)
 					prevOutputs = step.CapturedOutputs
 				}
 			}
@@ -197,12 +197,18 @@ var headColor = func(str string) string {
 	return str
 }
 
-func printComponenentState(step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
+func printComponenentState(componentName string, step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
 	fmt.Printf("-- Timestamp: %v\n", step.Timestamp.Truncate(time.Second))
 	if t := step.Timestamps; !t.End.IsZero() && !t.Start.IsZero() {
 		fmt.Printf("-- Duration: %v\n", t.End.Sub(t.Start).Round(time.Second).String())
 	}
 	fmt.Printf("-- Status: %s\n", step.Status)
+	if step.Meta.Origin != "" && step.Meta.Origin != componentName {
+		fmt.Printf("-- Origin: %s\n", step.Meta.Origin)
+	}
+	if step.Meta.Kind != "" && step.Meta.Kind != step.Meta.Origin {
+		fmt.Printf("-- Kind: %s\n", step.Meta.Kind)
+	}
 	if step.Meta.Title != "" {
 		fmt.Printf("-- Title: %s\n", step.Meta.Title)
 	}

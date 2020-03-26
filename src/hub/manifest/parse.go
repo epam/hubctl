@@ -110,9 +110,13 @@ func ParseComponentsManifests(components []ComponentRef, stackBaseDir string, co
 			log.Printf("Component `%s` manifest `%s` contains more than one YAML document, only first is used",
 				ComponentQualifiedNameFromRef(&component), filename)
 		}
-		if component.Name != manifest.Meta.Name {
-			manifest.Meta.Name = component.Name
+		if manifest.Meta.Origin == "" {
+			manifest.Meta.Origin = manifest.Meta.Name
 		}
+		if manifest.Meta.Kind == "" {
+			manifest.Meta.Kind = manifest.Meta.Name
+		}
+		manifest.Meta.Name = component.Name
 		manifests = append(manifests, *manifest)
 	}
 

@@ -21,6 +21,8 @@ type Timestamps struct {
 }
 
 type ComponentMetadata struct {
+	Origin      string `yaml:",omitempty"`
+	Kind        string `yaml:",omitempty"`
 	Title       string `yaml:",omitempty"`
 	Brief       string `yaml:",omitempty"`
 	Description string `yaml:",omitempty"`

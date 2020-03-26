@@ -141,8 +141,10 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 				ComponentStatus{
 					Name:    name,
 					Status:  component.Status,
-					Version: version,
+					Version: version, // TODO deprecate in favor of Meta.Version
 					Meta: &ComponentMetadata{
+						Origin:      component.Meta.Origin,
+						Kind:        component.Meta.Kind,
 						Title:       component.Meta.Title,
 						Brief:       component.Meta.Brief,
 						Description: component.Meta.Description,

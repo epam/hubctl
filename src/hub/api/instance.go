@@ -406,9 +406,19 @@ func formatStackOutputs(resource string, outputs []Output, showSecrets bool) (st
 
 func formatComponentStatus(comp ComponentStatus) string {
 	ident := "\t\t\t"
+	origin := ""
 	title := ""
 	version := ""
 	if meta := comp.Meta; meta != nil {
+		if meta.Origin != "" && meta.Origin != comp.Name {
+			origin = meta.Origin
+		}
+		if meta.Kind != "" && meta.Kind != meta.Origin {
+			origin = fmt.Sprintf("%s/%s", origin, meta.Kind)
+		}
+		if origin != "" {
+			origin = origin + " "
+		}
 		if meta.Title != "" {
 			title = fmt.Sprintf(" %s", meta.Title)
 		}
@@ -417,8 +427,8 @@ func formatComponentStatus(comp ComponentStatus) string {
 	if version == "" && comp.Version != "" {
 		version = comp.Version
 	}
-	if version != "" {
-		version = fmt.Sprintf(" [%s]", version)
+	if version != "" || origin != "" {
+		version = fmt.Sprintf(" [%s%s]", origin, version)
 	}
 	message := ""
 	if comp.Message != "" {
