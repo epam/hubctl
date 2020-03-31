@@ -187,7 +187,25 @@ func OutputsKV(outputs CapturedOutputs) map[string]interface{} {
 	return kv
 }
 
-func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs, depends []string) map[string]interface{} {
+func ParametersAndOutputsKV(parameters LockedParameters, outputs CapturedOutputs, outputFilter func(CapturedOutput) bool) map[string]interface{} {
+	kv := make(map[string]interface{})
+	for _, parameter := range parameters {
+		kv[parameter.QName()] = parameter.Value
+	}
+	for _, output := range outputs {
+		if outputFilter != nil && !outputFilter(output) {
+			if config.Trace {
+				log.Printf("Output `%s` hidden", output.QName())
+			}
+			continue
+		}
+		kv[output.QName()] = output.Value
+		kv[output.Name] = output.Value
+	}
+	return kv
+}
+
+func ParametersAndOutputsKVWithDepends(parameters LockedParameters, outputs CapturedOutputs, depends []string) map[string]interface{} {
 	kv := make(map[string]interface{})
 	for _, parameter := range parameters {
 		kv[parameter.QName()] = parameter.Value
@@ -228,11 +246,15 @@ func FindValue(parameterName string, componentName string, componentDepends []st
 	return v, exist
 }
 
-func ExpandParameters(componentName string, componentDepends []string,
+func ExpandParameters(componentName, componentKind string, componentDepends []string,
 	parameters LockedParameters, outputs CapturedOutputs,
 	componentParameters []manifest.Parameter, environment map[string]string) ([]LockedParameter, []error) {
 
-	kv := ParametersAndOutputsKV(parameters, outputs, nil) // `depends` is handled by FindValue()
+	// make outputs of the same component kind invisible
+	outputFilter := func(output CapturedOutput) bool {
+		return !(componentKind != "" && componentKind == output.ComponentKind)
+	}
+	kv := ParametersAndOutputsKV(parameters, outputs, outputFilter)
 	kv["hub.componentName"] = componentName
 	// expand, check for cycles
 	expanded := make([]LockedParameter, 0, len(componentParameters)+3)

@@ -23,8 +23,8 @@ var (
 	outputSupportedEncodings = []string{"base64", "json"}
 )
 
-func captureOutputs(componentName, componentDir string,
-	componentParameters parameters.LockedParameters, requestedOutputs []manifest.Output,
+func captureOutputs(componentName, componentDir string, componentManifest *manifest.Manifest,
+	componentParameters parameters.LockedParameters,
 	textOutput []byte, random []byte) (parameters.RawOutputs, parameters.CapturedOutputs, []string, []error) {
 
 	tfOutputs := parseTextOutput(textOutput)
@@ -44,7 +44,13 @@ func captureOutputs(componentName, componentDir string,
 		}
 	}
 	dynamicProvides := extractDynamicProvides(tfOutputs)
-	outputs, errs := expandRequestedOutputs(componentName, componentDir, componentParameters, requestedOutputs, tfOutputs)
+	outputs, errs := expandRequestedOutputs(componentName, componentDir, componentParameters, componentManifest.Outputs, tfOutputs)
+	for k, o := range outputs {
+		o.Component = componentName
+		o.ComponentOrigin = componentManifest.Meta.Origin
+		o.ComponentKind = componentManifest.Meta.Kind
+		outputs[k] = o
+	}
 	if len(errs) > 0 {
 		if len(tfOutputs) > 0 {
 			log.Print("Raw outputs:")
@@ -65,10 +71,9 @@ func expandRequestedOutputs(componentName, componentDir string,
 	errs := make([]error, 0)
 	for _, requestedOutput := range requestedOutputs {
 		output := parameters.CapturedOutput{
-			Component: componentName,
-			Name:      requestedOutput.Name,
-			Brief:     requestedOutput.Brief,
-			Kind:      requestedOutput.Kind,
+			Name:  requestedOutput.Name,
+			Brief: requestedOutput.Brief,
+			Kind:  requestedOutput.Kind,
 		}
 		if requestedOutput.FromTfVar != "" {
 			variable, encodings := valueEncodings(requestedOutput.FromTfVar)

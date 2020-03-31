@@ -293,7 +293,7 @@ NEXT_COMPONENT:
 			}
 		}
 
-		expandedComponentParameters, expansionErrs := parameters.ExpandParameters(componentName, component.Depends,
+		expandedComponentParameters, expansionErrs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
 			stackParameters, allOutputs,
 			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
 			environment)
@@ -373,7 +373,7 @@ NEXT_COMPONENT:
 			failedComponents = append(failedComponents, componentName)
 		} else if isDeploy {
 			rawOutputsCaptured, componentOutputs, dynamicProvides, errs :=
-				captureOutputs(componentName, componentDir, componentParameters, componentManifest.Outputs,
+				captureOutputs(componentName, componentDir, componentManifest, componentParameters,
 					stdout, random)
 			rawOutputs = rawOutputsCaptured
 			if len(errs) > 0 {

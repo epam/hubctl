@@ -75,7 +75,7 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 			util.MaybeFatalf("Failed to read %v state files to load component `%s` state: %v",
 				stateFilenames, componentName, err)
 		}
-		expandedComponentParameters, errs := parameters.ExpandParameters(componentName, component.Depends,
+		expandedComponentParameters, errs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
 			stackParameters, outputs,
 			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
 			nil)

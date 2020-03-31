@@ -104,7 +104,7 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 		if hasMustache || hasGo {
 			depends = component.Depends
 		}
-		kv = parameters.ParametersAndOutputsKV(params, outputs, depends)
+		kv = parameters.ParametersAndOutputsKVWithDepends(params, outputs, depends)
 	}
 	if config.Trace {
 		log.Printf("Template binding:\n%v", kv)

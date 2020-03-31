@@ -145,7 +145,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 				stackParameters, allOutputs, provides)
 		}
 
-		expandedComponentParameters, errs := parameters.ExpandParameters(componentName, component.Depends,
+		expandedComponentParameters, errs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
 			stackParameters, allOutputs,
 			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
 			nil)

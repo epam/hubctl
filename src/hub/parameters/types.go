@@ -17,11 +17,13 @@ type RawOutput struct {
 }
 
 type CapturedOutput struct {
-	Component string      `yaml:",omitempty" json:"component,omitempty"`
-	Name      string      `json:"name"`
-	Value     interface{} `json:"value"`
-	Brief     string      `yaml:",omitempty" json:"brief,omitempty"`
-	Kind      string      `yaml:",omitempty" json:"kind,omitempty"`
+	Component       string      `yaml:",omitempty" json:"component,omitempty"`
+	ComponentOrigin string      `yaml:"componentOrigin,omitempty" json:"-"`
+	ComponentKind   string      `yaml:"componentKind,omitempty" json:"-"`
+	Name            string      `json:"name"`
+	Value           interface{} `json:"value"`
+	Brief           string      `yaml:",omitempty" json:"brief,omitempty"`
+	Kind            string      `yaml:",omitempty" json:"kind,omitempty"`
 }
 
 type LockedParameters map[string]LockedParameter
