@@ -185,7 +185,7 @@ func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depen
 	if config.Verbose && len(loading) > 0 {
 		log.Printf("Additionally, loading state after component(s) %v due to `depends` declaration", loading)
 	}
-	for _, dependencyName := range loading {
+	for _, dependencyName := range util.Reverse(loading) {
 		if dependency, exist := components[dependencyName]; exist {
 			for _, output := range dependency.CapturedOutputs {
 				qName := output.QName()
