@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"hub/config"
@@ -192,15 +193,20 @@ func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depen
 				current, exists := outputs[qName]
 				overwrite := false
 				if exists {
+					warn := !strings.HasPrefix(output.Name, "hub.")
 					if util.String(current.Value) != util.String(output.Value) {
 						if !util.Empty(current.Value) {
-							util.Warn("Loaded output `%s` current value `%v` does not match new value `%v` loaded from dependency `%s` - using new value",
-								qName, current.Value, output.Value, dependencyName)
 							overwrite = true // TODO review overwrite logic
+							if warn {
+								util.Warn("Loaded output `%s` current value `%v` does not match new value `%v` loaded from dependency `%s` - using new value",
+									qName, current.Value, output.Value, dependencyName)
+							}
 						} else if !util.Empty(output.Value) {
-							util.Warn("Loaded output `%s` empty value replaced by new value `%v` loaded from dependency `%s`",
-								qName, output.Value, dependencyName)
 							overwrite = true
+							if warn {
+								util.Warn("Loaded output `%s` empty value replaced by new value `%v` loaded from dependency `%s`",
+									qName, output.Value, dependencyName)
+							}
 						}
 					}
 				} else {
