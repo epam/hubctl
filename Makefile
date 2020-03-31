@@ -103,5 +103,5 @@ clean:
 	-@rm -rf .cache pkg bin/darwin bin/linux \
 		src/cloud.google.com src/contrib.go.opencensus.io src/github.com src/go.opencensus.io src/golang.org src/google.golang.org src/gopkg.in \
 		src/hub/vendor/cloud.google.com src/hub/vendor/contrib.go.opencensus.io src/hub/vendor/github.com src/hub/vendor/go.opencensus.io src/hub/vendor/golang.org src/hub/vendor/google.golang.org src/hub/vendor/gopkg.in
-	-@find src -not -path "*src/hub*" -not -path "src" -type d -maxdepth 1 | xargs rm -rf
+	-@find src -maxdepth 1 -type d -not -path "*src/hub*" -not -path "src" | xargs rm -rf
 .PHONY: clean
