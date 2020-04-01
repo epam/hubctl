@@ -82,20 +82,19 @@ func arbitraryExtension(args []string) error {
 		if !strings.HasPrefix(arg, "-") {
 			if !stopWhat {
 				what = append(what, arg)
+				stopWhat = true
 			} else if i < len(args)-1 {
-				finalArgs = append(finalArgs, args[i+1:]...)
+				finalArgs = append(finalArgs, args[i:]...)
 				break
 			}
 		} else {
 			finalArgs = append(finalArgs, arg)
-			if len(what) > 0 {
-				stopWhat = true
-			}
 		}
 	}
 	if len(what) == 0 {
 		return errors.New("Extensions command has at least one mandatory argument - the name of extension command to call")
 	}
+	fmt.Printf("finalArgs - %v\n", finalArgs)
 
 	return extension(what, finalArgs)
 }
