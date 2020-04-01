@@ -94,7 +94,6 @@ func arbitraryExtension(args []string) error {
 	if len(what) == 0 {
 		return errors.New("Extensions command has at least one mandatory argument - the name of extension command to call")
 	}
-	fmt.Printf("finalArgs - %v\n", finalArgs)
 
 	return extension(what, finalArgs)
 }
