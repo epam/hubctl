@@ -27,7 +27,7 @@ var extensionCmd = cobra.Command{
 }
 
 var arbitraryExtensionCmd = &cobra.Command{
-	Use:   "ext",
+	Use:   "ext [subcommands...]",
 	Short: "Call arbitrary extension",
 	Long:  "Call arbitrary extension via `hub-<extension name>` calling convention",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -82,8 +82,8 @@ func arbitraryExtension(args []string) error {
 		if !strings.HasPrefix(arg, "-") {
 			if !stopWhat {
 				what = append(what, arg)
-			} else if i < len(args)-1 {
-				finalArgs = append(finalArgs, args[i+1:]...)
+			} else {
+				finalArgs = append(finalArgs, args[i:]...)
 				break
 			}
 		} else {
