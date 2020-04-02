@@ -46,7 +46,6 @@ func captureOutputs(componentName, componentDir string, componentManifest *manif
 	dynamicProvides := extractDynamicProvides(tfOutputs)
 	outputs, errs := expandRequestedOutputs(componentName, componentDir, componentParameters, componentManifest.Outputs, tfOutputs)
 	for k, o := range outputs {
-		o.Component = componentName
 		o.ComponentOrigin = componentManifest.Meta.Origin
 		o.ComponentKind = componentManifest.Meta.Kind
 		outputs[k] = o
@@ -71,9 +70,10 @@ func expandRequestedOutputs(componentName, componentDir string,
 	errs := make([]error, 0)
 	for _, requestedOutput := range requestedOutputs {
 		output := parameters.CapturedOutput{
-			Name:  requestedOutput.Name,
-			Brief: requestedOutput.Brief,
-			Kind:  requestedOutput.Kind,
+			Component: componentName,
+			Name:      requestedOutput.Name,
+			Brief:     requestedOutput.Brief,
+			Kind:      requestedOutput.Kind,
 		}
 		if requestedOutput.FromTfVar != "" {
 			variable, encodings := valueEncodings(requestedOutput.FromTfVar)
