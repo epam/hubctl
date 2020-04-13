@@ -1,6 +1,7 @@
 package lifecycle
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -14,11 +15,11 @@ import (
 	"hub/util"
 )
 
-func waitForReadyConditions(conditions []manifest.ReadyCondition,
+func waitForReadyConditions(ctx context.Context, conditions []manifest.ReadyCondition,
 	parameters parameters.LockedParameters, outputs parameters.CapturedOutputs, componentDepends []string) error {
 
 	for _, condition := range conditions {
-		err := waitForReadyCondition(condition, parameters, outputs, componentDepends)
+		err := waitForReadyCondition(ctx, condition, parameters, outputs, componentDepends)
 		if err != nil {
 			return err
 		}
@@ -34,7 +35,7 @@ func expandReadyConditionParameter(what string, value string, componentDepends [
 
 const defaultReadyConditionWaitSeconds = 1200
 
-func waitForReadyCondition(condition manifest.ReadyCondition,
+func waitForReadyCondition(ctx context.Context, condition manifest.ReadyCondition,
 	params parameters.LockedParameters, outputs parameters.CapturedOutputs, componentDepends []string) error {
 
 	if condition.PauseSeconds > 0 {
@@ -45,7 +46,11 @@ func waitForReadyCondition(condition manifest.ReadyCondition,
 			}
 			log.Printf("Sleeping %d seconds%s", condition.PauseSeconds, why)
 		}
-		time.Sleep(time.Duration(condition.PauseSeconds) * time.Second)
+		select {
+		case <-ctx.Done():
+			return context.Canceled
+		case <-time.After(time.Duration(condition.PauseSeconds) * time.Second):
+		}
 	}
 
 	if condition.DNS == "" && condition.URL == "" {
@@ -59,14 +64,14 @@ func waitForReadyCondition(condition manifest.ReadyCondition,
 	kv := parameters.ParametersAndOutputsKV(params, outputs, nil)
 	if condition.DNS != "" {
 		fqdn := expandReadyConditionParameter("DNS", condition.DNS, componentDepends, kv)
-		err := waitForFqdn(maybeStripPort(fqdn), wait)
+		err := waitForFqdn(ctx, maybeStripPort(fqdn), wait)
 		if err != nil {
 			return err
 		}
 	}
 	if condition.URL != "" {
 		url := expandReadyConditionParameter("URL", condition.URL, componentDepends, kv)
-		err := waitForUrl(url, wait)
+		err := waitForUrl(ctx, url, wait)
 		if err != nil {
 			return err
 		}
@@ -82,14 +87,14 @@ func maybeStripPort(fqdn string) string {
 	return fqdn
 }
 
-func waitForFqdn(fqdn string, waitSeconds int) error {
+func waitForFqdn(ctx context.Context, fqdn string, waitSeconds int) error {
 	if config.Verbose {
 		log.Printf("Waiting for `%s` in DNS to resolve to an accessible address", fqdn)
 	}
 	start := time.Now()
 	lastMsg := ""
 	for time.Since(start) < time.Duration(waitSeconds)*time.Second {
-		addrs, err := net.LookupHost(fqdn)
+		addrs, err := net.DefaultResolver.LookupHost(ctx, fqdn)
 		if config.Verbose {
 			msg := ""
 			if err != nil {
@@ -102,6 +107,9 @@ func waitForFqdn(fqdn string, waitSeconds int) error {
 				lastMsg = msg
 			}
 		}
+		if util.ContextCanceled(err) {
+			return err
+		}
 		if err == nil && len(addrs) > 0 {
 			addr := addrs[0]
 			if len(addr) >= 7 && addr != "127.0.0.1" && addr != "1.0.0.1" {
@@ -113,7 +121,7 @@ func waitForFqdn(fqdn string, waitSeconds int) error {
 	return fmt.Errorf("Timeout waiting for `%s` to resolve", fqdn)
 }
 
-func waitForUrl(url string, waitSeconds int) error {
+func waitForUrl(ctx context.Context, url string, waitSeconds int) error {
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 		return fmt.Errorf("Only HTTP and HTTPS is supported in lifecycle.readyCondition.URL, expanded to `%s`", url)
 	}
@@ -128,7 +136,11 @@ func waitForUrl(url string, waitSeconds int) error {
 	start := time.Now()
 	lastMsg := ""
 	for time.Since(start) < time.Duration(waitSeconds)*time.Second {
-		response, err := client.Get(url)
+		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+		if err != nil {
+			return err
+		}
+		response, err := client.Do(req)
 		if config.Verbose {
 			msg := ""
 			if err != nil {
@@ -144,6 +156,9 @@ func waitForUrl(url string, waitSeconds int) error {
 				log.Print(msg)
 				lastMsg = msg
 			}
+		}
+		if util.ContextCanceled(err) {
+			return err
 		}
 		if err == nil {
 			response.Body.Close()

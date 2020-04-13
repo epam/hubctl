@@ -79,6 +79,7 @@ func Execute(request *Request) {
 	storage.EnsureNoLockFiles(stateFiles)
 
 	defer util.Done()
+	ctx := watchInterrupt()
 
 	var stateManifest *state.StateManifest
 	var operationsHistory []state.LifecycleOperation
@@ -415,6 +416,10 @@ NEXT_COMPONENT:
 			mergeProvides(provides, componentName, append(dynamicProvides, componentManifest.Provides...), componentOutputs)
 		}
 
+		if ctx.Err() != nil {
+			break
+		}
+
 		if stateManifest != nil && isDeploy {
 			final := componentIndex == len(order)-1 || (len(request.Components) > 0 && request.LoadFinalState)
 			stateManifest = state.UpdateState(stateManifest, componentName,
@@ -424,7 +429,7 @@ NEXT_COMPONENT:
 		}
 
 		if err == nil && isDeploy {
-			err = waitForReadyConditions(componentManifest.Lifecycle.ReadyConditions, componentParameters, allOutputs, component.Depends)
+			err = waitForReadyConditions(ctx, componentManifest.Lifecycle.ReadyConditions, componentParameters, allOutputs, component.Depends)
 			if err != nil {
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
 				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName,
@@ -446,11 +451,13 @@ NEXT_COMPONENT:
 				stateUpdater(stateManifest)
 			}
 		}
+
+		// end of component cycle
 	}
 
 	stackReadyConditionFailed := false
 	if isDeploy {
-		err := waitForReadyConditions(stackManifest.Lifecycle.ReadyConditions, stackParameters, allOutputs, nil)
+		err := waitForReadyConditions(ctx, stackManifest.Lifecycle.ReadyConditions, stackParameters, allOutputs, nil)
 		if err != nil {
 			message := fmt.Sprintf("Stack ready condition failed: %v", err)
 			if stateManifest != nil {

@@ -47,6 +47,7 @@ func Done() {
 			chs = append(chs, ch)
 		}
 	}
+	atDone = nil
 	for _, ch := range chs {
 		<-ch
 	}

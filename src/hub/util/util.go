@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -432,10 +433,24 @@ func Trim(str string) string {
 }
 
 func NoSuchFile(err error) bool {
+	if err == nil {
+		return false
+	}
 	str := err.Error()
 	return err == os.ErrNotExist ||
 		str == "file does not exist" ||
 		strings.Contains(str, "no such file or directory")
+}
+
+func ContextCanceled(err error) bool {
+	if err == nil {
+		return false
+	}
+	str := err.Error()
+	return err == context.Canceled ||
+		str == "context canceled" ||
+		strings.Contains(str, ": context canceled") ||
+		strings.Contains(str, ": operation was canceled")
 }
 
 func Plural(size int, noun ...string) string {
