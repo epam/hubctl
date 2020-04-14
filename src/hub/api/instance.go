@@ -22,8 +22,19 @@ var (
 	queryMarkers        = []string{"<", ">", "="}
 )
 
-func StackInstances(selector string, showSecrets, showLogs, showBackups, jsonFormat bool) {
-	instances, err := stackInstancesBy(selector)
+func StackInstances(selector, environmentSelector string, showSecrets, showLogs, showBackups, jsonFormat bool) {
+	environmentId := ""
+	if environmentSelector != "" {
+		environment, err := environmentBy(environmentSelector)
+		if err != nil {
+			log.Fatalf("Unable to query for Environment: %v", err)
+		}
+		if environment == nil {
+			log.Fatalf("No Environment `%s` found", environmentSelector)
+		}
+		environmentId = environment.Id
+	}
+	instances, err := stackInstancesBy(selector, environmentId)
 	if err != nil {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 	}
@@ -231,12 +242,12 @@ func maybeQuery(selector string) bool {
 	return false
 }
 
-func stackInstancesBy(selector string) ([]StackInstance, error) {
+func stackInstancesBy(selector, environmentId string) ([]StackInstance, error) {
 	if !util.IsUint(selector) {
 		if maybeQuery(selector) {
-			return stackInstancesByQuery(selector)
+			return stackInstancesByQuery(selector, environmentId)
 		}
-		return stackInstancesByDomain(selector)
+		return stackInstancesByDomain(selector, environmentId)
 	}
 	instance, err := stackInstanceById(selector)
 	if err != nil {
@@ -265,7 +276,7 @@ func stackInstanceById(id string) (*StackInstance, error) {
 }
 
 func stackInstanceByDomain(domain string) (*StackInstance, error) {
-	instances, err := stackInstancesByDomain(domain)
+	instances, err := stackInstancesByDomain(domain, "")
 	if err != nil {
 		return nil, fmt.Errorf("Unable to query for Stack Instance `%s`: %v", domain, err)
 	}
@@ -279,18 +290,25 @@ func stackInstanceByDomain(domain string) (*StackInstance, error) {
 	return &instance, nil
 }
 
-func stackInstancesByQuery(query string) ([]StackInstance, error) {
-	return stackInstancesByField(query, "query")
+func stackInstancesByQuery(query, environmentId string) ([]StackInstance, error) {
+	return stackInstancesByField(query, environmentId, "query")
 }
 
-func stackInstancesByDomain(domain string) ([]StackInstance, error) {
-	return stackInstancesByField(domain, "domain")
+func stackInstancesByDomain(domain, environmentId string) ([]StackInstance, error) {
+	return stackInstancesByField(domain, environmentId, "domain")
 }
 
-func stackInstancesByField(selector, field string) ([]StackInstance, error) {
-	path := stackInstancesResource
+func stackInstancesByField(selector, environmentId, field string) ([]StackInstance, error) {
+	var args []string
+	if environmentId != "" {
+		args = append(args, fmt.Sprintf("environment=%s", url.QueryEscape(environmentId)))
+	}
 	if selector != "" {
-		path = fmt.Sprintf("%s?%s=%s", path, field, url.QueryEscape(selector))
+		args = append(args, fmt.Sprintf("%s=%s", field, url.QueryEscape(selector)))
+	}
+	path := stackInstancesResource
+	if len(args) > 0 {
+		path = fmt.Sprintf("%s?%s", stackInstancesResource, strings.Join(args, "&"))
 	}
 	var jsResp []StackInstance
 	code, err := get(hubApi(), path, &jsResp)

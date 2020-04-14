@@ -224,7 +224,7 @@ func instance(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.StackInstances(selector, showSecrets, showLogs, showBackups, jsonFormat)
+	api.StackInstances(selector, environmentSelector, showSecrets, showLogs, showBackups, jsonFormat)
 
 	return nil
 }
@@ -359,7 +359,7 @@ func workerpool(args []string) error {
 	if len(args) > 0 {
 		selector = args[0]
 	}
-	api.Workerpools(selector, showSecrets, showLogs, jsonFormat)
+	api.Workerpools(selector, environmentSelector, showSecrets, showLogs, jsonFormat)
 
 	return nil
 }
@@ -450,6 +450,8 @@ func deleteWorkerpool(args []string) error {
 }
 
 func init() {
+	instanceGetCmd.Flags().StringVarP(&environmentSelector, "environment", "e", "",
+		"Environment name or Id")
 	instanceGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
 	instanceGetCmd.Flags().BoolVarP(&showBackups, "backups", "b", false,
@@ -492,6 +494,8 @@ func init() {
 	instanceCmd.AddCommand(instanceDeleteCmd)
 	instanceCmd.AddCommand(instanceKubeconfigCmd)
 
+	instanceWorkerpoolGetCmd.Flags().StringVarP(&environmentSelector, "environment", "e", "",
+		"Environment name or Id")
 	instanceWorkerpoolGetCmd.Flags().BoolVarP(&showSecrets, "secrets", "", false,
 		"Show secrets")
 	instanceWorkerpoolGetCmd.Flags().BoolVarP(&showLogs, "logs", "l", false,

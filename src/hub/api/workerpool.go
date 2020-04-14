@@ -16,8 +16,19 @@ var (
 	workerpoolStacks = []string{"k8s-worker-node-pool:1", "eks-worker-node-pool:1", "gke-worker-node-pool:1"}
 )
 
-func Workerpools(selector string, showSecrets, showLogs, jsonFormat bool) {
-	instances, err := stackInstancesBy(selector)
+func Workerpools(selector, environmentSelector string, showSecrets, showLogs, jsonFormat bool) {
+	environmentId := ""
+	if environmentSelector != "" {
+		environment, err := environmentBy(environmentSelector)
+		if err != nil {
+			log.Fatalf("Unable to query for Environment: %v", err)
+		}
+		if environment == nil {
+			log.Fatalf("No Environment `%s` found", environmentSelector)
+		}
+		environmentId = environment.Id
+	}
+	instances, err := stackInstancesBy(selector, environmentId)
 	if err != nil {
 		log.Fatalf("Unable to query for Stack Instance(s): %v", err)
 	}

@@ -254,7 +254,7 @@ func parseFilters(selectors []string) []Filter {
 				}
 
 			case "stackInstance":
-				instances, err := stackInstancesBy(selector)
+				instances, err := stackInstancesBy(selector, "")
 				if err != nil {
 					log.Fatalf("Unable to get Stack Instance by `%s`: %v", selector, err)
 				} else if instances != nil {
