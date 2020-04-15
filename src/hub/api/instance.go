@@ -434,19 +434,24 @@ func formatComponentStatus(comp ComponentStatus) string {
 		if meta.Kind != "" && meta.Kind != meta.Origin {
 			origin = fmt.Sprintf("%s/%s", origin, meta.Kind)
 		}
-		if origin != "" {
-			origin = origin + " "
-		}
 		if meta.Title != "" {
-			title = fmt.Sprintf(" %s", meta.Title)
+			title = fmt.Sprintf(" - %s", meta.Title)
 		}
 		version = meta.Version
 	}
 	if version == "" && comp.Version != "" {
 		version = comp.Version
 	}
-	if version != "" || origin != "" {
-		version = fmt.Sprintf(" [%s%s]", origin, version)
+	var etc []string
+	if origin != "" {
+		etc = append(etc, origin)
+	}
+	if version != "" {
+		etc = append(etc, version)
+	}
+	printEtc := ""
+	if len(etc) > 0 {
+		printEtc = fmt.Sprintf(" [%s]", strings.Join(etc, " "))
 	}
 	message := ""
 	if comp.Message != "" {
@@ -461,7 +466,7 @@ func formatComponentStatus(comp ComponentStatus) string {
 		timestamps = fmt.Sprintf(" (start: %v; duration %s)",
 			t.Start.Truncate(time.Second), t.End.Sub(t.Start).Truncate(time.Second).String())
 	}
-	str := fmt.Sprintf("%s%s%s%s - %s%s%s\n", ident, comp.Name, version, title, comp.Status, timestamps, message)
+	str := fmt.Sprintf("%s%s%s%s - %s%s%s\n", ident, comp.Name, printEtc, title, comp.Status, timestamps, message)
 	if len(comp.Outputs) > 0 {
 		str = fmt.Sprintf("%s%s\t%s\n", str, ident, formatComponentOutputs(comp.Outputs, ident))
 	}
