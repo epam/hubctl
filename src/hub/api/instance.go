@@ -720,7 +720,7 @@ func kubeconfigStackInstance(selector, filename string) error {
 	}
 
 	if filename == "" {
-		filename = fmt.Sprintf("kubeconfig-%s.yaml", instance.Domain)
+		filename = fmt.Sprintf("kubeconfig.%s.yaml", instance.Domain)
 	}
 	var file io.WriteCloser
 	if filename == "-" {
