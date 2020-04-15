@@ -258,6 +258,7 @@ type InflightOperation struct {
 	Options     map[string]interface{} `json:"options,omitempty"`
 	Description string                 `json:"description,omitempty"`
 	Initiator   string                 `json:"initiator,omitempty"`
+	Location    string                 `json:"location,omitempty"`
 	Logs        string                 `json:"logs,omitempty"`
 	Phases      []LifecyclePhase       `json:"phases,omitempty"`
 	// applications

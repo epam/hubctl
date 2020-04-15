@@ -508,8 +508,12 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	if len(op.Options) > 0 {
 		options = fmt.Sprintf("%s\tOptions: %v\n", ident, op.Options)
 	}
+	location := ""
+	if op.Location != "" {
+		location = fmt.Sprintf("%s\tLocation: %v\n", ident, op.Location)
+	}
 	platform := ""
-	if len(op.PlatformDomain) > 0 {
+	if op.PlatformDomain != "" {
 		platform = fmt.Sprintf("%s\tPlatform: %v\n", ident, op.PlatformDomain)
 	}
 	description := ""
@@ -520,9 +524,9 @@ func formatInflightOperation(op InflightOperation, showLogs bool) string {
 	if len(op.Phases) > 0 {
 		phases = fmt.Sprintf("%s\tPhases:\n%s\t\t%s\n", ident, ident, formatLifecyclePhases(op.Phases, ident+"\t"))
 	}
-	return fmt.Sprintf("%sOperation: %s - %s %v%s%s %s\n%s%s%s%s",
+	return fmt.Sprintf("%sOperation: %s - %s %v%s%s %s\n%s%s%s%s%s",
 		ident, op.Operation, op.Status, op.Timestamp.Truncate(time.Second), initiator, description, op.Id,
-		platform, options, phases, logs)
+		platform, options, location, phases, logs)
 }
 
 func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
