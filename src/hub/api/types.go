@@ -527,3 +527,20 @@ type ComponentPatch struct {
 	Provides         []string               `json:"provides,omitempty"`
 	TeamsPermissions []Team                 `json:"teamsPermissions,omitempty"`
 }
+
+type Task struct {
+	Id         string `json:"id"`
+	JobId      string `json:"jobId"`
+	EntityType string `json:"entityType"`
+	Kind       string `json:"kind"`
+	Entity     struct {
+		Name       string `json:"name"`
+		Domain     string `json:"domain"`
+		Kind       string `json:"kind"`
+		BaseDomain string `json:"baseDomain"`
+	} `json:"entity"`
+}
+
+type TaskLifecycleRequest struct {
+	Terminate bool `json:"terminate"`
+}
