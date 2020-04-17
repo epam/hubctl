@@ -5,31 +5,34 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"hub/config"
 	"hub/util"
 )
 
+var interruptSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
+
 func watchInterrupt() context.Context {
 	ctx, interrupted := context.WithCancel(context.Background())
-	sig := make(chan os.Signal, 1)
+	sigs := make(chan os.Signal, 1)
 	unwatch := make(chan struct{})
-	signal.Notify(sig, os.Interrupt)
+	signal.Notify(sigs, interruptSignals...)
 	go func() {
 		for {
 			select {
-			case <-sig:
+			case sig := <-sigs:
 				if ctx.Err() != nil {
 					os.Exit(3)
 				}
 				interrupted()
 				if config.Verbose {
 					log.Writer().Write([]byte("\n"))
-					log.Printf("Hub CLI exiting... Send ^C again to force exit")
+					log.Printf("%s, Hub CLI exiting... Send ^C again to force exit", sig.String())
 				}
 
 			case <-unwatch:
-				signal.Reset(os.Interrupt)
+				signal.Reset(interruptSignals...)
 				return
 			}
 		}
