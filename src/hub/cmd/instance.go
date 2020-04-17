@@ -16,7 +16,7 @@ import (
 
 var (
 	kubeconfigOutput         string
-	logOutput                string
+	logsOutput               string
 	workerpoolSpotPrice      float32
 	workerpoolPreemptibleVMs bool
 	workerpoolAutoscale      bool
@@ -161,11 +161,11 @@ var instanceKubeconfigCmd = &cobra.Command{
 	},
 }
 
-var instanceLogCmd = &cobra.Command{
-	Use:   "log <id | domain> [operation-id]",
-	Short: "Download Stack Instance lifecycle operation log",
+var instanceLogsCmd = &cobra.Command{
+	Use:   "logs <id | domain> [operation-id]",
+	Short: "Download Stack Instance lifecycle operation logs",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return logInstance(args)
+		return logsInstance(args)
 	},
 }
 
@@ -359,9 +359,9 @@ func kubeconfigInstance(args []string) error {
 	return nil
 }
 
-func logInstance(args []string) error {
+func logsInstance(args []string) error {
 	if len(args) != 1 && len(args) != 2 {
-		return errors.New("Log Instance command has one mandatory argument - id or full domain name of the Instance")
+		return errors.New("Logs Instance command has one mandatory argument - id or full domain name of the Instance")
 	}
 	selector := args[0]
 	operationId := ""
@@ -369,7 +369,7 @@ func logInstance(args []string) error {
 		operationId = args[1]
 	}
 
-	api.LogStackInstance(selector, operationId, logOutput)
+	api.LogsStackInstance(selector, operationId, logsOutput)
 
 	return nil
 }
@@ -507,9 +507,9 @@ func init() {
 	instanceSyncCmd.Flags().StringVarP(&stateManifestExplicit, "state", "s", "",
 		"Path to state files")
 	instanceKubeconfigCmd.Flags().StringVarP(&kubeconfigOutput, "output", "o", "",
-		"Set output filename, \"-\" for stdout (default to kubeconfig-<domain>.yaml)")
-	instanceLogCmd.Flags().StringVarP(&logOutput, "output", "o", "",
-		"Set output filename, \"-\" for stdout (default to <operation-id>.log)")
+		"Set output filename, \"-\" for stdout (default to kubeconfig.<domain>.yaml)")
+	instanceLogsCmd.Flags().StringVarP(&logsOutput, "output", "o", "",
+		"Set oustput filename, \"-\" for stdout (default to logs.<domain>.<operation-id>.txt)")
 	instanceCmd.AddCommand(instanceGetCmd)
 	instanceCmd.AddCommand(instanceCreateCmd)
 	instanceCmd.AddCommand(instancePatchCmd)
@@ -519,7 +519,7 @@ func init() {
 	instanceCmd.AddCommand(instanceSyncCmd)
 	instanceCmd.AddCommand(instanceDeleteCmd)
 	instanceCmd.AddCommand(instanceKubeconfigCmd)
-	instanceCmd.AddCommand(instanceLogCmd)
+	instanceCmd.AddCommand(instanceLogsCmd)
 
 	instanceWorkerpoolGetCmd.Flags().StringVarP(&environmentSelector, "environment", "e", "",
 		"Environment name or Id")

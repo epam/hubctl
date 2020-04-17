@@ -764,14 +764,14 @@ func kubeconfigStackInstance(selector, filename string) error {
 	return nil
 }
 
-func LogStackInstance(selector, operationId, filename string) {
-	err := logStackInstance(selector, operationId, filename)
+func LogsStackInstance(selector, operationId, filename string) {
+	err := logsStackInstance(selector, operationId, filename)
 	if err != nil {
 		log.Fatalf("Unable to download SuperHub Stack Instance log: %v", err)
 	}
 }
 
-func logStackInstance(selector, operationId, filename string) error {
+func logsStackInstance(selector, operationId, filename string) error {
 	instance, err := stackInstanceBy(selector)
 	if err != nil {
 		return err
@@ -812,7 +812,7 @@ func logStackInstance(selector, operationId, filename string) error {
 	}
 
 	if filename == "" {
-		filename = fmt.Sprintf("%s.%s.log", instance.Domain, op.Id)
+		filename = fmt.Sprintf("logs.%s.%s.txt", instance.Domain, op.Id)
 	}
 	var file io.WriteCloser
 	if filename == "-" {
