@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -742,6 +743,88 @@ func kubeconfigStackInstance(selector, filename string) error {
 			} else {
 				if !config.Force {
 					log.Fatalf("Kubeconfig `%s` exists, use --force / -f to overwrite", filename)
+				}
+			}
+		}
+		var err error
+		file, err = os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("Unable to create %s: %v", filename, err)
+		}
+		defer file.Close()
+	}
+	written, err := file.Write(body)
+	if written != len(body) {
+		return fmt.Errorf("Unable to write %s: %v", filename, err)
+	}
+	if config.Verbose && filename != "-" {
+		log.Printf("Wrote %s", filename)
+	}
+
+	return nil
+}
+
+func LogStackInstance(selector, operationId, filename string) {
+	err := logStackInstance(selector, operationId, filename)
+	if err != nil {
+		log.Fatalf("Unable to download SuperHub Stack Instance log: %v", err)
+	}
+}
+
+func logStackInstance(selector, operationId, filename string) error {
+	instance, err := stackInstanceBy(selector)
+	if err != nil {
+		return err
+	}
+	if instance == nil {
+		return error404
+	}
+	ops := instance.InflightOperations
+	if len(ops) == 0 {
+		return errors.New("No inflight operations")
+	}
+	var op InflightOperation
+	if operationId == "" {
+		op = ops[len(ops)-1]
+	} else {
+		for i := range ops {
+			if operationId == ops[i].Id {
+				op = ops[i]
+			}
+		}
+	}
+	if op.Id == "" {
+		return errors.New("No inflight operation found")
+	}
+	if op.Location == "" {
+		return errors.New("Inflight operation has no location")
+	}
+	path := fmt.Sprintf("%s/%s?log=true", tasksResource, op.Location)
+	code, err, body := get2(hubApi(), path) // TODO stream log into file
+	if err != nil {
+		return err
+	}
+	if code != 200 {
+		return fmt.Errorf("Got %d HTTP fetching SuperHub Stack Instance log, expected 200 HTTP", code)
+	}
+	if len(body) == 0 {
+		return fmt.Errorf("Got empty SuperHub Stack Instance log")
+	}
+
+	if filename == "" {
+		filename = fmt.Sprintf("%s.%s.log", instance.Domain, op.Id)
+	}
+	var file io.WriteCloser
+	if filename == "-" {
+		file = os.Stdout
+	} else {
+		info, _ := os.Stat(filename)
+		if info != nil {
+			if info.IsDir() {
+				filename = fmt.Sprintf("%s/%s", filename, op.Id)
+			} else {
+				if !config.Force {
+					log.Fatalf("Log `%s` exists, use --force / -f to overwrite", filename)
 				}
 			}
 		}

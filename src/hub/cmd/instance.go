@@ -16,6 +16,7 @@ import (
 
 var (
 	kubeconfigOutput         string
+	logOutput                string
 	workerpoolSpotPrice      float32
 	workerpoolPreemptibleVMs bool
 	workerpoolAutoscale      bool
@@ -157,6 +158,14 @@ var instanceKubeconfigCmd = &cobra.Command{
 	Short: "Download Stack Instance Kubeconfig",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return kubeconfigInstance(args)
+	},
+}
+
+var instanceLogCmd = &cobra.Command{
+	Use:   "log <id | domain> [operation-id]",
+	Short: "Download Stack Instance lifecycle operation log",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return logInstance(args)
 	},
 }
 
@@ -350,6 +359,21 @@ func kubeconfigInstance(args []string) error {
 	return nil
 }
 
+func logInstance(args []string) error {
+	if len(args) != 1 && len(args) != 2 {
+		return errors.New("Log Instance command has one mandatory argument - id or full domain name of the Instance")
+	}
+	selector := args[0]
+	operationId := ""
+	if len(args) > 1 {
+		operationId = args[1]
+	}
+
+	api.LogStackInstance(selector, operationId, logOutput)
+
+	return nil
+}
+
 func workerpool(args []string) error {
 	if len(args) > 1 {
 		return errors.New("Workerpool command has one optional argument - id or domain of the worker pool")
@@ -484,6 +508,8 @@ func init() {
 		"Path to state files")
 	instanceKubeconfigCmd.Flags().StringVarP(&kubeconfigOutput, "output", "o", "",
 		"Set output filename, \"-\" for stdout (default to kubeconfig-<domain>.yaml)")
+	instanceLogCmd.Flags().StringVarP(&logOutput, "output", "o", "",
+		"Set output filename, \"-\" for stdout (default to <operation-id>.log)")
 	instanceCmd.AddCommand(instanceGetCmd)
 	instanceCmd.AddCommand(instanceCreateCmd)
 	instanceCmd.AddCommand(instancePatchCmd)
@@ -493,6 +519,7 @@ func init() {
 	instanceCmd.AddCommand(instanceSyncCmd)
 	instanceCmd.AddCommand(instanceDeleteCmd)
 	instanceCmd.AddCommand(instanceKubeconfigCmd)
+	instanceCmd.AddCommand(instanceLogCmd)
 
 	instanceWorkerpoolGetCmd.Flags().StringVarP(&environmentSelector, "environment", "e", "",
 		"Environment name or Id")
