@@ -51,14 +51,15 @@ version:
 
 compile: bin/$(OS)/gox govendor version
 	@$(GOBIN)/gox -rebuild -tags git \
-		-osarch="darwin/amd64 linux/amd64" \
+		-osarch="darwin/amd64 linux/amd64 windows/amd64" \
 		-output=$(GOPATH)/bin/{{.OS}}/{{.Dir}} \
 		hub/...
 .PHONY: compile
 
 distribute: compile
-	$(aws) s3 cp bin/darwin/hub $(S3_DISTRIBUTION)/hub.darwin_amd64
-	$(aws) s3 cp bin/linux/hub  $(S3_DISTRIBUTION)/hub.linux_amd64
+	$(aws) s3 cp bin/darwin/hub      $(S3_DISTRIBUTION)/hub.darwin_amd64
+	$(aws) s3 cp bin/linux/hub       $(S3_DISTRIBUTION)/hub.linux_amd64
+	$(aws) s3 cp bin/windows/hub.exe $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: distribute
 
 undistribute:

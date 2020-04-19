@@ -1,6 +1,7 @@
 pkg/
 bin/linux
 bin/darwin
+bin/windows
 .cache
 .envrc
 
