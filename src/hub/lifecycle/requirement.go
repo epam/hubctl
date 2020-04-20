@@ -169,7 +169,7 @@ var binVersion = map[string]BinVersion{
 	"gsutil":  {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
 	"vault":   {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
 	"kubectl": {"1.16.8", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
-	"helm":    {"2.16.1", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
+	"helm":    {"2.16.6", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
 }
 
 func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {
