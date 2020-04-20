@@ -132,7 +132,9 @@ func setupRequirement(requirement string, provider string,
 	case "kubectl", "kubernetes":
 		kube.SetupKubernetes(parameters, provider, outputs, "", false, false)
 
-	case "aws", "azure", "gcp", "gcs", "tiller", "external-dns", "helm", "etcd", "vault", "ingress", "tls-ingress":
+	case "aws", "azure", "gcp", "gcs",
+		"tiller", "external-dns", "cert-manager",
+		"helm", "etcd", "vault", "ingress", "tls-ingress":
 		wellKnown, err := checkRequire(requirement)
 		if wellKnown {
 			if err != nil {
