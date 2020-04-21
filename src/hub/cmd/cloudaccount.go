@@ -16,6 +16,7 @@ var (
 	cloudCredentialsShell        bool
 	cloudCredentialsNativeConfig bool
 	cfTemplateOutput             string
+	awsKeypair                   string
 )
 
 var cloudAccountCmd = &cobra.Command{
@@ -148,7 +149,7 @@ func onboardCloudAccount(args []string) error {
 	if !util.Contains(supportedCloudAccountKinds, cloud) {
 		return fmt.Errorf("Unsupported cloud `%s`; supported clouds are: %s", cloud, strings.Join(supportedCloudAccountKinds, ", "))
 	}
-	api.OnboardCloudAccount(domain, cloud, args[2:], waitAndTailDeployLogs)
+	api.OnboardCloudAccount(domain, cloud, args[2:], awsKeypair, waitAndTailDeployLogs)
 
 	return nil
 }
@@ -189,6 +190,8 @@ func init() {
 		"JSON output")
 	cloudAccounOnboardCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	cloudAccounOnboardCmd.Flags().StringVarP(&awsKeypair, "aws-keypair", "", "",
+		"AWS EC2 SSH key-pair name (default to autogenerate new key-pair)")
 	cloudAccounDeleteCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	cloudAccountCfTemplateCmd.Flags().StringVarP(&cfTemplateOutput, "output", "o", "x-account-role.json",

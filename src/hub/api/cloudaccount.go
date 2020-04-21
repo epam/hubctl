@@ -382,7 +382,7 @@ func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
 	return string(raw), nil
 }
 
-func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLogs bool) {
+func OnboardCloudAccount(domain, kind string, args []string, awsKeypair string, waitAndTailDeployLogs bool) {
 	kind2, credentials, err := cloudSpecificCredentials(kind, args)
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
@@ -398,17 +398,20 @@ func OnboardCloudAccount(domain, kind string, args []string, waitAndTailDeployLo
 		log.Fatalf("Domain `%s` invalid", domain)
 	}
 	region := args[0]
+	parameters := []Parameter{
+		{Name: "dns.baseDomain", Value: domainParts[1]},
+		{Name: "cloud.provider", Value: provider},
+		{Name: "cloud.region", Value: region},
+		{Name: "cloud.availabilityZone", Value: cloudFirstZoneInRegion(provider, region)},
+	}
+	if provider == "aws" && awsKeypair != "" {
+		parameters = append(parameters, Parameter{Name: "cloud.sshKey", Value: awsKeypair})
+	}
 	req := &CloudAccountRequest{
 		Name:        domainParts[0],
 		Kind:        kind2,
 		Credentials: credentials,
-		Parameters: []Parameter{
-			{Name: "dns.baseDomain", Value: domainParts[1]},
-			{Name: "cloud.provider", Value: provider},
-			{Name: "cloud.region", Value: region},
-			{Name: "cloud.availabilityZone", Value: cloudFirstZoneInRegion(provider, region)},
-			// {Name: "cloud.sshKey", Value: "agilestacks"},
-		},
+		Parameters:  parameters,
 	}
 	if provider == "azure" {
 		req.Parameters = append(req.Parameters, Parameter{Name: "cloud.azureResourceGroupName", Value: "superhub-" + region})
