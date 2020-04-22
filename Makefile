@@ -19,6 +19,8 @@ bin/$(OS)/gox:
 	go get -u github.com/mitchellh/gox
 bin/$(OS)/go-bindata:
 	go get -u github.com/tmthrgd/go-bindata/...
+bin/$(OS)/gocloc:
+	go get -u github.com/hhatto/gocloc/cmd/gocloc
 
 govendor-init: bin/$(OS)/govendor
 	@cd src/hub && $(GOBIN)/govendor init
@@ -95,9 +97,8 @@ vet:
 		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
 .PHONY: vet
 
-# go get -u github.com/hhatto/gocloc/cmd/gocloc
-loc:
-	@gocloc src/hub --not-match-d='src/hub/(vendor|bindata)'
+loc: bin/$(OS)/gocloc
+	@$(GOBIN)/gocloc src/hub --not-match-d='src/hub/(vendor|bindata)'
 .PHONY: loc
 
 clean:
