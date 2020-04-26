@@ -475,7 +475,7 @@ func processReplacement(content, filename, componentName string, componentDepend
 			return strings.TrimSpace(util.String(substitution))
 		})
 
-	if !replaced {
+	if !replaced && len(errs) == 0 {
 		util.Warn("No substitutions found in template `%s`", filename)
 	}
 	return outContent, errs
