@@ -129,7 +129,7 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 	components := make([]ComponentStatus, 0, len(stateComponents))
 	var prevOutputs []parameters.CapturedOutput
 	for _, name := range order {
-		if component, exist := stateComponents[name]; exist {
+		if component, exist := stateComponents[name]; exist && component.Status != "" {
 			noSecretOutputs := filterOutSecretOutputs(component.CapturedOutputs)
 			outputs := transformComponentOutputsToApi(state.DiffOutputs(noSecretOutputs, prevOutputs))
 			prevOutputs = noSecretOutputs
