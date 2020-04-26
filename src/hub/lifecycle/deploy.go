@@ -79,7 +79,6 @@ func Execute(request *Request) {
 	storage.EnsureNoLockFiles(stateFiles)
 
 	defer util.Done()
-	ctx := watchInterrupt()
 
 	var stateManifest *state.StateManifest
 	var operationsHistory []state.LifecycleOperation
@@ -232,6 +231,8 @@ func Execute(request *Request) {
 		stateManifest = state.UpdateOperation(stateManifest, operationLogId, request.Verb, "in-progress",
 			map[string]interface{}{"args": os.Args})
 	}
+
+	ctx := watchInterrupt()
 
 NEXT_COMPONENT:
 	for componentIndex, componentName := range order {
