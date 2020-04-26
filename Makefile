@@ -52,7 +52,7 @@ version:
 .PHONY: version
 
 compile: bin/$(OS)/gox govendor version
-	@$(GOBIN)/gox -rebuild -tags git \
+	@nice $(GOBIN)/gox -rebuild -tags git \
 		-osarch="darwin/amd64 linux/amd64 windows/amd64" \
 		-output=$(GOPATH)/bin/{{.OS}}/{{.Dir}} \
 		hub/...
