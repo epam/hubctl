@@ -132,7 +132,9 @@ func transformComponentsToApi(order []string, stateComponents map[string]*state.
 		if component, exist := stateComponents[name]; exist && component.Status != "" {
 			noSecretOutputs := filterOutSecretOutputs(component.CapturedOutputs)
 			outputs := transformComponentOutputsToApi(state.DiffOutputs(noSecretOutputs, prevOutputs))
-			prevOutputs = noSecretOutputs
+			if len(noSecretOutputs) > 0 {
+				prevOutputs = noSecretOutputs
+			}
 			version := component.Meta.Version
 			if version == "" && component.Version != "" {
 				version = component.Version
