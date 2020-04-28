@@ -34,13 +34,13 @@ func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state
 	}
 
 	optionalStatus := "undeployed"
-	if optionalCount >= 0 {
+	if optionalCount > 0 {
 		if _, exist := optional["deployed"]; exist {
 			optionalStatus = "deployed"
 		}
 	}
 
-	if mandatoryCount >= 0 {
+	if mandatoryCount > 0 {
 		for _, candidate := range []string{"deployed", "undeployed"} {
 			if components, exist := mandatory[candidate]; exist && len(components) == mandatoryCount {
 				// if all mandatory components are deployed then the stack status is deployed
