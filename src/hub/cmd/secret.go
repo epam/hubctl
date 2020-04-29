@@ -38,7 +38,7 @@ var createSecretCmd = cobra.Command{
 	usernamePassword: username, password
 	text: text
 	cloudAccount: cloud, roleArn, externalId, duration
-	cloudAccessKeys: accessKey, secretKey
+	cloudAccessKeys: cloud, accessKey, secretKey
 	privateKey: privateKey
 	certificate: certificate
 	sshKey: sshKey

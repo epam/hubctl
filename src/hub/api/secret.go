@@ -107,8 +107,8 @@ func createSecret(resource, id, name, component, kind string, values map[string]
 	var jsResp CreateSecretResponse
 	code, err := post(hubApi(), path, values, &jsResp)
 	if err != nil {
-		return "", fmt.Errorf("Error creating SuperHub `%s` Secret `%s`: %v",
-			id, name, err)
+		return "", fmt.Errorf("Error creating SuperHub `%s/%s` Secret `%s`: %v",
+			resource, id, name, err)
 	}
 	if code != 201 {
 		return "", fmt.Errorf("Got %d HTTP creating SuperHub `%s` Secret `%s`, expected 201 HTTP",
