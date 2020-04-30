@@ -510,11 +510,22 @@ func goTemplateBindings(kv map[string]interface{}) map[string]interface{} {
 		for i, part := range parts {
 			leaf := i == len(parts)-1
 			if leaf {
+				_, exist := innerkv[part]
+				if exist {
+					util.WarnOnce("Template nested values already installed under `%s`, cannot install leaf value `%[1]s`", k)
+					break
+				}
 				innerkv[part] = v
 			} else {
 				ref, exist := innerkv[part]
 				if exist {
-					innerkv = ref.(map[string]interface{})
+					var ok bool
+					innerkv, ok = ref.(map[string]interface{})
+					if !ok {
+						util.WarnOnce("Template leaf value already installed at `%s`, cannot install nested value `%s`",
+							strings.Join(parts[0:i+1], "."), k)
+						break
+					}
 				} else {
 					newkv := make(map[string]interface{})
 					innerkv[part] = newkv
