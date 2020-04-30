@@ -71,7 +71,7 @@ func init() {
 	renderCmd.Flags().StringVarP(&componentName, "component", "c", "",
 		fmt.Sprintf("Component name to load state at (default from %s environment variable)", lifecycle.HubEnvVarNameComponentName))
 	renderCmd.Flags().StringVarP(&templateKind, "kind", "k", "curly",
-		"`curly` or mustache")
+		"`curly`, mustache, go")
 	renderCmd.Flags().StringVarP(&additionalParameters, "additional-parameters", "a", "",
 		"Set additional parameters: -a 'component.password=qwerty,...'")
 	RootCmd.AddCommand(renderCmd)
