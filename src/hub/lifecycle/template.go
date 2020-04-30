@@ -508,6 +508,7 @@ func goTemplateBindings(kv map[string]interface{}) map[string]interface{} {
 		parts := strings.Split(k, ".")
 		innerkv := gkv
 		for i, part := range parts {
+			part = strings.ReplaceAll(part, "-", "_")
 			leaf := i == len(parts)-1
 			if leaf {
 				_, exist := innerkv[part]
