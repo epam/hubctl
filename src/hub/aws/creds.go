@@ -28,11 +28,7 @@ func cachedCredentials(purpose string) *awscredentials.Credentials {
 	return creds
 }
 
-func DefaultCredentials(purpose string) *awscredentials.Credentials {
-	profile := "default"
-	if config.AwsProfile != "" {
-		profile = config.AwsProfile
-	}
+func ProfileCredentials(profile, purpose string) *awscredentials.Credentials {
 	if config.Debug {
 		printEC2Metadata := ""
 		if config.AwsUseIamRoleCredentials {
@@ -57,6 +53,14 @@ func DefaultCredentials(purpose string) *awscredentials.Credentials {
 		providers = append(providers, &awsec2rolecreds.EC2RoleProvider{Client: awsec2metadata.New(awssession.New())})
 	}
 	return awscredentials.NewCredentials(&awscredentials.ChainProvider{Providers: providers, VerboseErrors: config.Verbose})
+}
+
+func DefaultCredentials(purpose string) *awscredentials.Credentials {
+	profile := "default"
+	if config.AwsProfile != "" {
+		profile = config.AwsProfile
+	}
+	return ProfileCredentials(profile, purpose)
 }
 
 func Session(region, purpose string) (*awssession.Session, error) {

@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 
+	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
+
 	"hub/aws"
 	"hub/config"
 	"hub/util"
@@ -18,7 +20,10 @@ import (
 
 const cloudAccountsResource = "hub/api/v1/cloud-accounts"
 
-var cloudAccountsCache = make(map[string]*CloudAccount)
+var (
+	GovCloudRegions    = []string{"us-gov-east-1", "us-gov-west-1"}
+	cloudAccountsCache = make(map[string]*CloudAccount)
+)
 
 func CloudAccounts(selector string, showSecrets, showLogs,
 	getCloudCredentials, shFormat, nativeConfigFormat, jsonFormat bool) {
@@ -382,30 +387,46 @@ func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
 	return string(raw), nil
 }
 
-func OnboardCloudAccount(domain, kind string, args []string, awsKeypair string, waitAndTailDeployLogs bool) {
-	kind2, credentials, err := cloudSpecificCredentials(kind, args)
+func OnboardCloudAccount(domain, kind, region string, args []string, zone, awsVpc, awsKeypair string, waitAndTailDeployLogs bool) {
+	err := onboardCloudAccount(domain, kind, region, args, zone, awsVpc, awsKeypair, waitAndTailDeployLogs)
 	if err != nil {
 		log.Fatalf("Unable to onboard Cloud Account: %v", err)
 	}
+}
+
+func onboardCloudAccount(domain, kind, region string, args []string, zone, awsVpc, awsKeypair string, waitAndTailDeployLogs bool) error {
+	kind2, credentials, err := cloudSpecificCredentials(kind, region, args)
+	if err != nil {
+		return err
+	}
 
 	if config.Debug {
-		log.Printf("Onboarding %s cloud account %s with %v", kind, domain, args)
+		log.Printf("Onboarding %s cloud account %s in %s with %v", kind, domain, region, args)
 	}
 
 	provider := kind
 	domainParts := strings.SplitN(domain, ".", 2)
 	if len(domainParts) != 2 {
-		log.Fatalf("Domain `%s` invalid", domain)
+		return fmt.Errorf("Domain `%s` is invalid", domain)
 	}
-	region := args[0]
+	if zone == "" {
+		zone = cloudFirstZoneInRegion(provider, region)
+	} else if !strings.HasPrefix(zone, region) {
+		return fmt.Errorf("Zone `%s` is not within `%s` region", zone, region)
+	}
 	parameters := []Parameter{
 		{Name: "dns.baseDomain", Value: domainParts[1]},
 		{Name: "cloud.provider", Value: provider},
 		{Name: "cloud.region", Value: region},
-		{Name: "cloud.availabilityZone", Value: cloudFirstZoneInRegion(provider, region)},
+		{Name: "cloud.availabilityZone", Value: zone},
 	}
-	if provider == "aws" && awsKeypair != "" {
-		parameters = append(parameters, Parameter{Name: "cloud.sshKey", Value: awsKeypair})
+	if provider == "aws" {
+		if awsVpc != "" {
+			parameters = append(parameters, Parameter{Name: "cloud.vpc", Value: awsVpc})
+		}
+		if awsKeypair != "" {
+			parameters = append(parameters, Parameter{Name: "cloud.sshKey", Value: awsKeypair})
+		}
 	}
 	req := &CloudAccountRequest{
 		Name:        domainParts[0],
@@ -419,7 +440,7 @@ func OnboardCloudAccount(domain, kind string, args []string, awsKeypair string, 
 
 	account, err := createCloudAccount(req)
 	if err != nil {
-		log.Fatalf("Unable to onboard Cloud Account: %v", err)
+		return err
 	}
 	formatCloudAccount(account)
 	if waitAndTailDeployLogs {
@@ -428,41 +449,60 @@ func OnboardCloudAccount(domain, kind string, args []string, awsKeypair string, 
 		}
 		os.Exit(Logs([]string{"cloudAccount/" + domain}, true))
 	}
+	return nil
 }
 
-func cloudSpecificCredentials(provider string, args []string) (string, map[string]string, error) {
+func cloudSpecificCredentials(provider, region string, args []string) (string, map[string]string, error) {
 	switch provider {
 	case "aws":
-		if len(args) == 3 {
-			return "awscar", map[string]string{"accessKey": args[1], "secretKey": args[2]}, nil
-		}
-		if len(args) == 2 && strings.HasPrefix(args[1], "arn:aws:iam:") {
-			return "awsarn", map[string]string{"roleArn": args[1]}, nil
-		}
-		profile := ""
-		if len(args) == 2 {
-			profile = args[1]
-		}
-		if profile != "" {
-			config.AwsProfile = profile
-			config.AwsPreferProfileCredentials = true
-		}
-		factory := aws.DefaultCredentials("cloud account onboarding")
-		creds, err := factory.Get()
-		if err != nil {
-			maybeProfile := ""
-			if profile != "" {
-				maybeProfile = fmt.Sprintf(" (profile `%s`)", profile)
+		var kind string
+		credentials := make(map[string]string)
+		if util.Contains(GovCloudRegions, region) && len(args) >= 1 {
+			if maybeAwsAccessKey(args[0]) && len(args) >= 2 {
+				credentials["dnsAccessKey"] = args[0]
+				credentials["dnsSecretKey"] = args[1]
+				args = args[2:]
+			} else {
+				profile := args[0]
+				creds, err := awsCredentials(profile)
+				if err != nil {
+					return "", nil, err
+				}
+				if creds.SessionToken != "" {
+					return "", nil, fmt.Errorf("AWS credentials retrieved has session token set (profile `%s`)", profile)
+				}
+				credentials["dnsAccessKey"] = creds.AccessKeyID
+				credentials["dnsSecretKey"] = creds.SecretAccessKey
+				args = args[1:]
 			}
-			return "", nil, fmt.Errorf("Unable to retrieve AWS credentials%s: %v", maybeProfile, err)
 		}
-		return "awscar", map[string]string{"accessKey": creds.AccessKeyID, "secretKey": creds.SecretAccessKey,
-			"sessionToken": creds.SessionToken}, nil
+		if len(args) == 2 {
+			kind = "awscar"
+			credentials["accessKey"] = args[0]
+			credentials["secretKey"] = args[1]
+		} else if len(args) == 1 && strings.HasPrefix(args[0], "arn:aws") {
+			kind = "awsarn"
+			credentials["roleArn"] = args[0]
+		} else {
+			profile := ""
+			if len(args) == 1 {
+				profile = args[0]
+			}
+			creds, err := awsCredentials(profile)
+			if err != nil {
+				return "", nil, err
+			}
+			kind = "awscar"
+			credentials["accessKey"] = creds.AccessKeyID
+			credentials["secretKey"] = creds.SecretAccessKey
+			credentials["sessionToken"] = creds.SessionToken
+		}
+		return kind, credentials, nil
 
 	case "azure", "gcp":
 		credentialsFile := ""
-		if len(args) == 2 {
-			credentialsFile = args[1]
+		if len(args) == 1 {
+			credentialsFile = args[0]
 		}
 		if credentialsFile == "" {
 			if provider == "gcp" {
@@ -497,6 +537,30 @@ func cloudSpecificCredentials(provider string, args []string) (string, map[strin
 		return provider, creds, nil
 	}
 	return "", nil, errors.New("Unknown cloud account provider")
+}
+
+// can backfire?
+// https://docs.aws.amazon.com/IAM/latest/APIReference/API_AccessKey.html
+func maybeAwsAccessKey(key string) bool {
+	return len(key) == 20 && strings.HasPrefix(key, "AK")
+}
+
+func awsCredentials(profile string) (*awscredentials.Value, error) {
+	savePref := config.AwsPreferProfileCredentials // TODO
+	if profile != "" {
+		config.AwsPreferProfileCredentials = true
+	}
+	factory := aws.ProfileCredentials(profile, "cloud account onboarding")
+	creds, err := factory.Get()
+	config.AwsPreferProfileCredentials = savePref
+	if err != nil {
+		maybeProfile := ""
+		if profile != "" {
+			maybeProfile = fmt.Sprintf(" (profile `%s`)", profile)
+		}
+		return nil, fmt.Errorf("Unable to retrieve AWS credentials%s: %v", maybeProfile, err)
+	}
+	return &creds, nil
 }
 
 func cloudFirstZoneInRegion(provider, region string) string {
@@ -575,15 +639,18 @@ func deleteCloudAccount(selector string) (int, error) {
 	return code, nil
 }
 
-func CloudAccountDownloadCfTemplate(filename string) {
-	err := cloudAccountDownloadCfTemplate(filename)
+func CloudAccountDownloadCfTemplate(filename string, govcloud bool) {
+	err := cloudAccountDownloadCfTemplate(filename, govcloud)
 	if err != nil {
 		log.Fatalf("Unable to download SuperHub Cloud Account AWS CloudFormation template: %v", err)
 	}
 }
 
-func cloudAccountDownloadCfTemplate(filename string) error {
+func cloudAccountDownloadCfTemplate(filename string, govcloud bool) error {
 	path := fmt.Sprintf("%s/x-account-role-template-download", cloudAccountsResource)
+	if govcloud {
+		path = fmt.Sprintf("%s?govcloud=true", path)
+	}
 	code, err, body := get2(hubApi(), path)
 	if err != nil {
 		return err

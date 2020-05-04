@@ -151,6 +151,23 @@ func AppendMapList(m map[string][]string, key, value string) {
 	}
 }
 
+func ConcatMaps(m1, m2 map[string]string) map[string]string {
+	if len(m1) == 0 && len(m2) > 0 {
+		return m2
+	}
+	if len(m2) == 0 && len(m1) > 0 {
+		return m1
+	}
+	res := make(map[string]string)
+	for k, v := range m1 {
+		res[k] = v
+	}
+	for k, v := range m2 {
+		res[k] = v
+	}
+	return res
+}
+
 func Reverse(source []string) []string {
 	l := len(source)
 	if l < 2 {

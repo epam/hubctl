@@ -16,7 +16,10 @@ var (
 	cloudCredentialsShell        bool
 	cloudCredentialsNativeConfig bool
 	cfTemplateOutput             string
+	cfTemplateGovCloud           bool
 	awsKeypair                   string
+	awsVpc                       string
+	cloudZone                    string
 )
 
 var cloudAccountCmd = &cobra.Command{
@@ -49,6 +52,23 @@ AWS:
 	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2  # credentials from OS environment, default profile, or EC2 metadata
 
 A cross account role will be created in your AWS account. The keys are not stored in SuperHub.
+
+AWS GovCloud:
+
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds> <GovCloud access key> <GovCloud secret key>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds> <GovCloud profile>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds> <GovCloud Role ARN>
+	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds>  # GovCloud credentials from OS environment, default profile, or EC2 metadata
+
+AWS GovCloud Route53 has private VPC-bound zones only, thus we need a <Public Cloud creds>
+of public cloud AWS account for public DNS management.
+<Public Cloud creds> is either <profile> or <access key> <secret key> pair. The supplied
+credentials should be of the user with limited permissions - only on Route53.
+
+The public cloud account could be the account associated with the GovCloud account or it
+could be an independent account.
+
+SuperHub will store public cloud keys encrypted.
 
 Azure:
 
@@ -127,8 +147,17 @@ func cloudAccount(args []string) error {
 }
 
 func onboardCloudAccount(args []string) error {
-	if len(args) < 2 || !((args[1] == "aws" && len(args) > 2 && len(args) < 6) ||
-		(util.Contains([]string{"gcp", "azure"}, args[1]) && len(args) > 2 && len(args) < 5)) {
+	n := len(args)
+	var cloud string
+	var region string
+	if n >= 3 {
+		cloud = args[1]
+		region = args[2]
+	}
+
+	if n < 3 || !((cloud == "aws" && n > 2 && (n < 6 || (util.Contains(api.GovCloudRegions, region) && n < 8))) ||
+		(util.Contains([]string{"gcp", "azure"}, cloud) && n > 2 && n < 5)) {
+
 		return fmt.Errorf(`Onboard Cloud Account command has at least three mandatory arguments:
 - domain of the cloud account;
 - cloud kind - one of %s;
@@ -145,11 +174,10 @@ func onboardCloudAccount(args []string) error {
 	} else {
 		domain += SuperHubIo
 	}
-	cloud := args[1]
 	if !util.Contains(supportedCloudAccountKinds, cloud) {
 		return fmt.Errorf("Unsupported cloud `%s`; supported clouds are: %s", cloud, strings.Join(supportedCloudAccountKinds, ", "))
 	}
-	api.OnboardCloudAccount(domain, cloud, args[2:], awsKeypair, waitAndTailDeployLogs)
+	api.OnboardCloudAccount(domain, cloud, region, args[3:], cloudZone, awsVpc, awsKeypair, waitAndTailDeployLogs)
 
 	return nil
 }
@@ -170,7 +198,7 @@ func downloadCfTemplate(args []string) error {
 		return errors.New("Download AWS CloudFormation template command has no arguments")
 	}
 
-	api.CloudAccountDownloadCfTemplate(cfTemplateOutput)
+	api.CloudAccountDownloadCfTemplate(cfTemplateOutput, cfTemplateGovCloud)
 
 	return nil
 }
@@ -190,12 +218,18 @@ func init() {
 		"JSON output")
 	cloudAccounOnboardCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
+	cloudAccounOnboardCmd.Flags().StringVarP(&cloudZone, "zone", "z", "",
+		"Default cloud account zone (default to first zone in region)")
+	cloudAccounOnboardCmd.Flags().StringVarP(&awsVpc, "aws-vpc", "", "",
+		"AWS VPC Id to associate created hosted zone to (making the zone private)")
 	cloudAccounOnboardCmd.Flags().StringVarP(&awsKeypair, "aws-keypair", "", "",
 		"AWS EC2 SSH key-pair name (default to autogenerate new key-pair)")
 	cloudAccounDeleteCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,
 		"Wait for deployment and tail logs")
 	cloudAccountCfTemplateCmd.Flags().StringVarP(&cfTemplateOutput, "output", "o", "x-account-role.json",
 		"Set output filename, \"-\" for stdout")
+	cloudAccountCfTemplateCmd.Flags().BoolVarP(&cfTemplateGovCloud, "govcloud", "", false,
+		"GovCloud template")
 	cloudAccountCmd.AddCommand(cloudAccountGetCmd)
 	cloudAccountCmd.AddCommand(cloudAccounOnboardCmd)
 	cloudAccountCmd.AddCommand(cloudAccounDeleteCmd)
