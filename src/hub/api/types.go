@@ -38,6 +38,8 @@ type AwsSecurityCredentials struct {
 	SecretKey    string
 	SessionToken string
 	Ttl          int
+	Region       string
+	Sts          string
 }
 
 type CloudAccountRequest struct {

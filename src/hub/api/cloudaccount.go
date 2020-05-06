@@ -71,7 +71,7 @@ func CloudAccounts(selector string, showSecrets, showLogs,
 			if len(errors) > 0 {
 				fmt.Print("# Errors encountered:\n")
 				for _, err := range errors {
-					fmt.Printf("# \t%v\n", err)
+					fmt.Printf("#\t%s\n", strings.ReplaceAll(err.Error(), "\n", "\n#\t"))
 				}
 			}
 		}
@@ -353,14 +353,35 @@ func formatCloudAccountCredentialsNativeConfig(account *CloudAccount, keys inter
 }
 
 func formatAwsCloudAccountCredentials(keys *AwsSecurityCredentials) (string, error) {
-	return fmt.Sprintf("%s ttl = %d\n\t\t\tAccess = %s\n\t\t\tSecret = %s\n\t\t\tSession = %s",
-		keys.Cloud, keys.Ttl,
+	maybeSts := ""
+	if keys.Sts != "" {
+		maybeSts = "; sts = " + keys.Sts
+	}
+	maybeRegion := ""
+	if keys.Region != "" {
+		maybeRegion = "; region = " + keys.Region
+	}
+	return fmt.Sprintf("%s ttl = %d%s%s\n\t\t\tAccess = %s\n\t\t\tSecret = %s\n\t\t\tSession = %s",
+		keys.Cloud, keys.Ttl, maybeSts, maybeRegion,
 		keys.AccessKey, keys.SecretKey, keys.SessionToken), nil
 }
 
 func formatAwsCloudAccountCredentialsSh(keys *AwsSecurityCredentials) (string, error) {
-	return fmt.Sprintf("# eval this in your shell\nexport AWS_ACCESS_KEY_ID=%s\nexport AWS_SECRET_ACCESS_KEY=%s\nexport AWS_SESSION_TOKEN=%s\n",
-		keys.AccessKey, keys.SecretKey, keys.SessionToken), nil
+	maybeSts := ""
+	if keys.Sts != "" {
+		maybeSts = "\n# sts = " + keys.Sts
+	}
+	maybeRegion := ""
+	if keys.Region != "" {
+		maybeRegion = "\nexport AWS_DEFAULT_REGION=" + keys.Region
+	}
+	return fmt.Sprintf(`# eval this in your shell
+# ttl = %d%s%s
+export AWS_ACCESS_KEY_ID=%s
+export AWS_SECRET_ACCESS_KEY=%s
+export AWS_SESSION_TOKEN=%s
+`,
+		keys.Ttl, maybeSts, maybeRegion, keys.AccessKey, keys.SecretKey, keys.SessionToken), nil
 }
 
 func formatAwsCloudAccountCredentialsCliConfig(account *CloudAccount, keys *AwsSecurityCredentials) (string, error) {
