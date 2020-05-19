@@ -14,6 +14,8 @@ func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state
 	optional := make(map[string][]string)
 	mandatoryCount := 0
 	optionalCount := 0
+	deployed := "deployed"
+	undeployed := "undeployed"
 
 	for _, componentName := range stackManifest.Lifecycle.Order {
 		if optionalComponent(&stackManifest.Lifecycle, componentName) {
@@ -23,30 +25,30 @@ func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state
 			mandatoryCount++
 			statuses = mandatory
 		}
-		componentState, exist := stateManifest.Components[componentName]
-		if exist {
-			componentStatus := componentState.Status
+		componentStatus := undeployed
+		if componentState, exist := stateManifest.Components[componentName]; exist {
+			componentStatus = componentState.Status
 			if componentStatus == "" { // compat
-				componentStatus = "deployed"
+				componentStatus = deployed
 			}
-			util.AppendMapList(statuses, componentStatus, componentName)
 		}
+		util.AppendMapList(statuses, componentStatus, componentName)
 	}
 
-	optionalStatus := "undeployed"
+	optionalStatus := undeployed
 	if optionalCount > 0 {
-		if _, exist := optional["deployed"]; exist {
-			optionalStatus = "deployed"
+		if _, exist := optional[deployed]; exist {
+			optionalStatus = deployed
 		}
 	}
 
 	if mandatoryCount > 0 {
-		for _, candidate := range []string{"deployed", "undeployed"} {
+		for _, candidate := range []string{deployed, undeployed} {
 			if components, exist := mandatory[candidate]; exist && len(components) == mandatoryCount {
 				// if all mandatory components are deployed then the stack status is deployed
 				// if all mandatory components are undeployed then the stack status is undeployed only if
 				// there are no deployed optional components
-				if candidate == "deployed" || optionalStatus == "undeployed" {
+				if candidate == deployed || optionalStatus == undeployed {
 					return candidate, ""
 				}
 			}
