@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -26,11 +27,32 @@ const (
 )
 
 var (
-	error404        = errors.New("404 HTTP")
-	_hubApi         *http.Client
-	_hubApiLongWait *http.Client
-	wsApi           = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
+	MethodsWithJsonBody = []string{"POST", "PUT", "PATCH"}
+	error404            = errors.New("404 HTTP")
+	_hubApi             *http.Client
+	_hubApiLongWait     *http.Client
+	wsApi               = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
 )
+
+func Invoke(method, path string, body io.Reader) {
+	method = strings.ToUpper(method)
+	if strings.HasPrefix(path, "/") {
+		path = path[1:]
+	}
+	code, err, resp := doWithAuthorization(hubApi(), method, path, body, nil)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	if config.Debug {
+		log.Printf("HTTP %d", code)
+	}
+	if config.Verbose {
+		os.Stdout.Write(resp)
+	}
+	if code >= 300 {
+		os.Exit(code)
+	}
+}
 
 func hubApi() *http.Client {
 	if _hubApi == nil {
@@ -62,7 +84,7 @@ func hubRequestWithToken(method, path, token string, body io.Reader) (*http.Requ
 	if token != "" {
 		req.Header.Add("Authorization", "Bearer "+token)
 	}
-	if body != nil && (method == "POST" || method == "PUT") {
+	if body != nil && util.Contains(MethodsWithJsonBody, method) {
 		req.Header.Add("Content-type", "application/json")
 	}
 	return req, nil
@@ -194,14 +216,12 @@ func patch2(client *http.Client, path string, req io.Reader, jsResp interface{})
 	return code, err
 }
 
-var methodsWithJsonBody = []string{"POST", "PUT", "PATCH"}
-
 func doWithAuthorization(client *http.Client, method, path string, reqBody io.Reader, jsResp interface{}) (int, error, []byte) {
 	req, err := hubRequest(method, path, reqBody)
 	if err != nil {
 		return 0, fmt.Errorf("Error creating HTTP request: %v", err), nil
 	}
-	if reqBody != nil && util.Contains(methodsWithJsonBody, method) {
+	if reqBody != nil && util.Contains(MethodsWithJsonBody, method) {
 		req.Header.Add("Content-type", "application/json")
 	}
 	return do(client, req, jsResp)
