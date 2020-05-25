@@ -256,18 +256,12 @@ func SetupKubernetes(params parameters.LockedParameters,
 
 	case "eks":
 		user = "eks-" + eksClusterName
-		addHeptioUser(configFilename, user, eksClusterName)
-		// TODO
-		// Add cli support to "exec" auth plugin
-		// https://github.com/kubernetes/kubernetes/issues/64751
-		// https://github.com/kubernetes/kubernetes/pull/73230
-		/*
-			mustExec(kubectl, "config", "set-credentials", user,
-				"--exec-command=heptio-authenticator-aws",
-				"--exec-arg=token",
-				"--exec-arg=-i",
-				"--exec-arg="+eksClusterName)
-		*/
+		mustExec(kubectl, "config", "set-credentials", user,
+			"--exec-api-version=client.authentication.k8s.io/v1alpha1",
+			"--exec-command=aws-iam-authenticator",
+			"--exec-arg=token",
+			"--exec-arg=-i",
+			"--exec-arg="+eksClusterName)
 
 	case "openshift", "gke", "aks":
 		user = fmt.Sprintf("%s-%s", flavor, domain)
