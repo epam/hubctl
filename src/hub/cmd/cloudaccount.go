@@ -167,11 +167,7 @@ func onboardCloudAccount(args []string) error {
 	}
 
 	domain := strings.ToLower(args[0])
-	if strings.Contains(domain, ".") {
-		if !strings.HasSuffix(domain, SuperHubIo) {
-			return fmt.Errorf("Domain `%s` must ends with `%s` or it must be a plain name", domain, SuperHubIo)
-		}
-	} else {
+	if !strings.Contains(domain, ".") {
 		domain += SuperHubIo
 	}
 	if !util.Contains(supportedCloudAccountKinds, cloud) {
