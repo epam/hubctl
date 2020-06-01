@@ -163,6 +163,7 @@ func createK8s(kind, name, environmentSelector, templateSelector string,
 		templateRequest.Name = templateSelector // let use user-supplied selector as Template name, hope it's not id
 		templateRequest.Tags = []string{platformTag}
 		templateRequest.TeamsPermissions = environment.TeamsPermissions // copy permissions from Environment
+		templateRequest.ComponentsEnabled = clusterComponents(options)
 
 		template, err = createTemplate(templateRequest)
 		if err != nil {
@@ -432,6 +433,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		templateRequest.Name = templateSelector // let use user-supplied selector as Template name, hope it's not id
 		templateRequest.Tags = []string{adapterTag}
 		templateRequest.TeamsPermissions = environment.TeamsPermissions // copy permissions from Environment
+		templateRequest.ComponentsEnabled = clusterComponents(options)
 
 		template, err = createTemplate(templateRequest)
 		if err != nil {
@@ -615,16 +617,25 @@ func readImportSecrets(secretsOrder []Secret, pems io.Reader) ([]Secret, error) 
 	return secrets, err
 }
 
+func clusterComponents(options ClusterOptions) []string {
+	var components []string
+	if options.Acm {
+		components = append(components, "acm")
+	}
+	if options.CertManager {
+		components = append(components, "cert-manager")
+	}
+	if options.Autoscaler {
+		components = append(components, "cluster-autoscaler")
+	}
+	if options.KubeDashboard {
+		components = append(components, "kube-dashboard")
+	}
+	return components
+}
+
 func clusterOptions(p Parameter, options ClusterOptions) Parameter {
 	switch p.Name {
-	case "component.acm.enabled":
-		p.Value = options.Acm
-	case "component.cert-manager.enabled":
-		p.Value = options.CertManager
-	case "component.cluster-autoscaler.enabled":
-		p.Value = options.Autoscaler
-	case "component.kubernetes-dashboard.enabled":
-		p.Value = options.KubeDashboard
 	case "component.kubernetes-dashboard.rbac.kind":
 		p.Value = options.KubeDashboardMode
 	}
