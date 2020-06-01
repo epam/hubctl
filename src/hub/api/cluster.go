@@ -497,7 +497,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 			p.Value = ingressIp
 		case "component.ingress.staticHost":
 			p.Value = ingressHost
-		case "cloud.azureResourceGroupName":
+		case "cloud.azureResourceGroupName", "component.kubernetes.aks.resourceGroupName":
 			if azureResourceGroup != "" {
 				p.Value = azureResourceGroup
 			} else {
