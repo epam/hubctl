@@ -28,7 +28,7 @@ var (
 func CloudAccounts(selector string, showSecrets, showLogs,
 	getCloudCredentials, shFormat, nativeConfigFormat, jsonFormat bool) {
 
-	cloudAccounts, err := cloudAccountsBy(selector)
+	cloudAccounts, err := cloudAccountsBy(selector, showSecrets)
 	if err != nil {
 		log.Fatalf("Unable to query for Cloud Account(s): %v", err)
 	}
@@ -179,14 +179,14 @@ func cloudAccountBy(selector string) (*CloudAccount, error) {
 	if !util.IsUint(selector) {
 		return cloudAccountByDomain(selector)
 	}
-	return cloudAccountById(selector)
+	return cloudAccountById(selector, false)
 }
 
-func cloudAccountsBy(selector string) ([]CloudAccount, error) {
+func cloudAccountsBy(selector string, unmask bool) ([]CloudAccount, error) {
 	if !util.IsUint(selector) {
 		return cloudAccountsByDomain(selector)
 	}
-	cloudAccount, err := cloudAccountById(selector)
+	cloudAccount, err := cloudAccountById(selector, unmask)
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +196,12 @@ func cloudAccountsBy(selector string) ([]CloudAccount, error) {
 	return nil, nil
 }
 
-func cloudAccountById(id string) (*CloudAccount, error) {
-	path := fmt.Sprintf("%s/%s", cloudAccountsResource, url.PathEscape(id))
+func cloudAccountById(id string, unmask bool) (*CloudAccount, error) {
+	maybeUnmask := ""
+	if unmask {
+		maybeUnmask = "?unmask=true"
+	}
+	path := fmt.Sprintf("%s/%s%s", cloudAccountsResource, url.PathEscape(id), maybeUnmask)
 	var jsResp CloudAccount
 	code, err := get(hubApi(), path, &jsResp)
 	if code == 404 {

@@ -74,7 +74,7 @@ func formatEnvironmentEntity(env *Environment, showSecrets, showMyTeams,
 	}
 	var dnsDomains []string
 	if env.CloudAccount != "" {
-		account, err := cloudAccountById(env.CloudAccount)
+		account, err := cloudAccountById(env.CloudAccount, false)
 		if err != nil {
 			errors = append(errors, err)
 		} else {

@@ -112,7 +112,7 @@ func createK8s(kind, name, environmentSelector, templateSelector string,
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve Environment: %v", err)
 	}
-	cloudAccount, err := cloudAccountById(environment.CloudAccount)
+	cloudAccount, err := cloudAccountById(environment.CloudAccount, false)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve Cloud Account: %v", err)
 	}
@@ -303,7 +303,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve Environment: %v", err)
 	}
-	cloudAccount, err := cloudAccountById(environment.CloudAccount)
+	cloudAccount, err := cloudAccountById(environment.CloudAccount, false)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve Cloud Account: %v", err)
 	}

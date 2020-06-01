@@ -224,7 +224,7 @@ func parseFilters(selectors []string) []Filter {
 			ids := []string{}
 			switch entityKind {
 			case "cloudAccount":
-				accounts, err := cloudAccountsBy(selector)
+				accounts, err := cloudAccountsBy(selector, false)
 				if err != nil {
 					log.Fatalf("Unable to get Cloud Account by `%s`: %v", selector, err)
 				} else if accounts != nil {
