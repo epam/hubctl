@@ -10,6 +10,9 @@
         "name": "cloud.region",
         "value": ""
     }, {
+        "name": "cloud.availabilityZone",
+        "value": ""
+    }, {
         "name": "kubernetes.gke.cluster",
         "value": ""
     }, {
