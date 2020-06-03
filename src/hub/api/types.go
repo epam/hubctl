@@ -531,11 +531,15 @@ type ComponentPatch struct {
 }
 
 type Task struct {
-	Id         string `json:"id"`
-	JobId      string `json:"jobId"`
-	EntityType string `json:"entityType"`
-	Kind       string `json:"kind"`
-	Entity     struct {
+	Id             string     `json:"id"`
+	JobId          string     `json:"jobId"`
+	EntityType     string     `json:"entityType"`
+	Kind           string     `json:"kind"`
+	Operation      string     `json:"operation"`
+	Status         string     `json:"status"`
+	StartTime      *time.Time `json:"startTime"`
+	CompletionTime *time.Time `json:"completionTime"`
+	Entity         struct {
 		Name       string `json:"name"`
 		Domain     string `json:"domain"`
 		Kind       string `json:"kind"`

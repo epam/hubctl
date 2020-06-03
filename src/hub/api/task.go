@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 )
 
 const tasksResource = "hub/api/v1/tasks"
@@ -66,6 +67,14 @@ func Tasks(environmentSelector string, jsonFormat bool) {
 
 func formatTaskEntity(task *Task, errors []error) []error {
 	fmt.Printf("\n\t%s - %s\n", task.Id, task.JobId)
+	fmt.Printf("\t\t%s: %s\n", task.Operation, task.Status)
+	if task.StartTime != nil {
+		duration := ""
+		if task.CompletionTime != nil {
+			duration = fmt.Sprintf("; duration %s", task.CompletionTime.Sub(*task.StartTime).Truncate(time.Second).String())
+		}
+		fmt.Printf("\t\tstart: %v%s\n", task.StartTime.Truncate(time.Second), duration)
+	}
 	fmt.Printf("\t\t%s: %s\n", task.EntityType, task.Kind)
 	e := task.Entity
 	if e.Domain != "" {
