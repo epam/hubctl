@@ -1,17 +1,9 @@
-pkg/
+.envrc
+
+/hub
+bin/hub
 bin/linux
 bin/darwin
 bin/windows
-.cache
-.envrc
 
-src/github.com
-src/golang.org
-src/google.golang.org
-src/gopkg.in
-
-src/hub/util/version.go
-
-!/src/hub/vendor/
-/src/hub/vendor/*
-!/src/hub/vendor/vendor.json
+cmd/hub/util/version.go

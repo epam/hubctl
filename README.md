@@ -9,7 +9,11 @@
 
 Use `make` to build Hub CLI:
 
-    $ make govendor get
+    $ make get
+
+Or directly with `go`:
+
+    $ go get github.com/agilestacks/hub/cmd/hub
 
 ## Clean up
 

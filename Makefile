@@ -2,8 +2,7 @@
 
 OS := $(shell uname -s | tr A-Z a-z)
 
-export GOPATH := $(abspath .)
-export GOBIN  := $(GOPATH)/bin/$(OS)
+export GOBIN  := $(abspath .)/bin/$(OS)
 export PATH   := $(GOBIN):$(PATH)
 
 export AWS_PROFILE ?=
@@ -12,9 +11,7 @@ S3_DISTRIBUTION    ?= s3://$(S3_BUCKET)/dist/hub-cli
 
 aws := aws
 
-install: bin/$(OS)/govendor bin/$(OS)/gox bin/$(OS)/go-bindata
-bin/$(OS)/govendor:
-	go get -u github.com/kardianos/govendor
+install: bin/$(OS)/gox bin/$(OS)/go-bindata
 bin/$(OS)/gox:
 	go get -u github.com/mitchellh/gox
 bin/$(OS)/go-bindata:
@@ -22,40 +19,17 @@ bin/$(OS)/go-bindata:
 bin/$(OS)/gocloc:
 	go get -u github.com/hhatto/gocloc/cmd/gocloc
 
-govendor-init: bin/$(OS)/govendor
-	@cd src/hub && $(GOBIN)/govendor init
-.PHONY: govendor-init
-
-govendor-list: bin/$(OS)/govendor
-	@cd src/hub && $(GOBIN)/govendor list
-.PHONY: govendor-list
-
-govendor: govendor-list bin/$(OS)/govendor
-	@cd src/hub && $(GOBIN)/govendor sync
-.PHONY: govendor
-
-govendor-add: govendor-list bin/$(OS)/govendor
-	@cd src/hub && $(GOBIN)/govendor add +e
-.PHONY: govendor-add
-
-govendor-update: bin/$(OS)/govendor
-	@cd src/hub && $(GOBIN)/govendor update +v
-.PHONY: govendor-update
-
-govendor-remove-unused: bin/$(OS)/govendor
-	@cd src/hub && $(GOBIN)/govendor remove +u
-.PHONY: govendor-remove-unused
-
 version:
 	@sed -e s/'\$$version'/"git $(shell git rev-parse HEAD | cut -c-7) built on $(shell date +"%Y.%m.%d %H:%M %Z")"/ < \
-		src/hub/util/version.go.template > src/hub/util/version.go
+		cmd/hub/util/version.go.template > cmd/hub/util/version.go
 .PHONY: version
 
-compile: bin/$(OS)/gox govendor version
-	@nice $(GOBIN)/gox -rebuild -tags git \
+compile: bin/$(OS)/gox version
+	go mod download
+	nice $(GOBIN)/gox -rebuild -tags git \
 		-osarch="darwin/amd64 linux/amd64 windows/amd64" \
-		-output=$(GOPATH)/bin/{{.OS}}/{{.Dir}} \
-		hub/...
+		-output=bin/{{.OS}}/hub \
+		github.com/agilestacks/hub/cmd/hub
 .PHONY: compile
 
 distribute: compile
@@ -67,43 +41,38 @@ distribute: compile
 undistribute:
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.darwin_amd64
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_amd64
+	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: undistribute
 
 cel:
-	@go get cel
+	go get github.com/agilestacks/hub/cmd/cel
 .PHONY: cel
 
 get: version
-	@go get -tags git hub
+	go get -tags git github.com/agilestacks/hub/cmd/hub
 .PHONY: get
 
 bindata: bin/$(OS)/go-bindata
-	$(GOBIN)/go-bindata -o src/hub/bindata/bindata.go -pkg bindata \
+	$(GOBIN)/go-bindata -o cmd/hub/bindata/bindata.go -pkg bindata \
 		meta/hub-well-known-parameters.yaml \
-		src/hub/api/requests/*.template \
-		src/hub/initialize/hub.yaml.template \
-		src/hub/initialize/hub-component.yaml.template
+		cmd/hub/api/requests/*.template \
+		cmd/hub/initialize/hub.yaml.template \
+		cmd/hub/initialize/hub-component.yaml.template
 .PHONY: bindata
 
 fmt:
-	@go fmt \
-		hub hub/api hub/aws hub/azure hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
-		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
+	go fmt github.com/agilestacks/hub/...
 .PHONY: fmt
 
 vet:
-	@cd src && go vet -vettool=$(which shadow) -composites=false \
-		hub/api hub/aws hub/azure hub/cmd hub/compose hub/config hub/gcp hub/git hub/initialize hub/kube \
-		hub/lifecycle hub/manifest hub/parameters hub/state hub/storage hub/util
+	go vet -composites=false github.com/agilestacks/hub/...
 .PHONY: vet
 
 loc: bin/$(OS)/gocloc
-	@$(GOBIN)/gocloc src/hub --not-match-d='src/hub/(vendor|bindata)'
+	@$(GOBIN)/gocloc cmd/hub --not-match-d='cmd/hub/bindata'
 .PHONY: loc
 
 clean:
-	-@rm -rf .cache pkg bin/darwin bin/linux \
-		src/cloud.google.com src/contrib.go.opencensus.io src/github.com src/go.opencensus.io src/golang.org src/google.golang.org src/gopkg.in \
-		src/hub/vendor/cloud.google.com src/hub/vendor/contrib.go.opencensus.io src/hub/vendor/github.com src/hub/vendor/go.opencensus.io src/hub/vendor/golang.org src/hub/vendor/google.golang.org src/hub/vendor/gopkg.in
-	-@find src -maxdepth 1 -type d -not -path "*src/hub*" -not -path "src" | xargs rm -rf
+	@rm -f hub cel bin/hub bin/cel
+	@rm -rf bin/darwin bin/linux bin/windows
 .PHONY: clean
