@@ -7,24 +7,24 @@
 //  restore: true
 // sources:
 //  meta/hub-well-known-parameters.yaml
-//  src/hub/api/requests/aks-adapter-instance.json.template
-//  src/hub/api/requests/aks-adapter-template.json.template
-//  src/hub/api/requests/eks-adapter-instance.json.template
-//  src/hub/api/requests/eks-adapter-template.json.template
-//  src/hub/api/requests/eks-cluster-instance.json.template
-//  src/hub/api/requests/eks-cluster-template.json.template
-//  src/hub/api/requests/gke-adapter-instance.json.template
-//  src/hub/api/requests/gke-adapter-template.json.template
-//  src/hub/api/requests/hybrid-adapter-instance.json.template
-//  src/hub/api/requests/hybrid-adapter-template.json.template
-//  src/hub/api/requests/k8s-aws-adapter-instance.json.template
-//  src/hub/api/requests/k8s-aws-adapter-template.json.template
-//  src/hub/api/requests/metal-adapter-instance.json.template
-//  src/hub/api/requests/metal-adapter-template.json.template
-//  src/hub/api/requests/openshift-adapter-instance.json.template
-//  src/hub/api/requests/openshift-adapter-template.json.template
-//  src/hub/initialize/hub.yaml.template
-//  src/hub/initialize/hub-component.yaml.template
+//  cmd/hub/api/requests/aks-adapter-instance.json.template
+//  cmd/hub/api/requests/aks-adapter-template.json.template
+//  cmd/hub/api/requests/eks-adapter-instance.json.template
+//  cmd/hub/api/requests/eks-adapter-template.json.template
+//  cmd/hub/api/requests/eks-cluster-instance.json.template
+//  cmd/hub/api/requests/eks-cluster-template.json.template
+//  cmd/hub/api/requests/gke-adapter-instance.json.template
+//  cmd/hub/api/requests/gke-adapter-template.json.template
+//  cmd/hub/api/requests/hybrid-adapter-instance.json.template
+//  cmd/hub/api/requests/hybrid-adapter-template.json.template
+//  cmd/hub/api/requests/k8s-aws-adapter-instance.json.template
+//  cmd/hub/api/requests/k8s-aws-adapter-template.json.template
+//  cmd/hub/api/requests/metal-adapter-instance.json.template
+//  cmd/hub/api/requests/metal-adapter-template.json.template
+//  cmd/hub/api/requests/openshift-adapter-instance.json.template
+//  cmd/hub/api/requests/openshift-adapter-template.json.template
+//  cmd/hub/initialize/hub.yaml.template
+//  cmd/hub/initialize/hub-component.yaml.template
 
 package bindata
 
@@ -99,7 +99,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1540400209, 965820203),
 	},
-	"src/hub/api/requests/aks-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/aks-adapter-instance.json.template": &asset{
 		name: "aks-adapter-instance.json.template",
 		data: "" +
 			"\x9c\x8e\xc1\x4a\xf4\x30\x14\x85\xf7\x7d\x8a\x10\xfe\xe5\xfc\x79\x80\x01\xd7\xee\x44\x04\x57\x32" +
@@ -116,7 +116,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1556808588, 764066530),
 	},
-	"src/hub/api/requests/aks-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/aks-adapter-template.json.template": &asset{
 		name: "aks-adapter-template.json.template",
 		data: "" +
 			"\x94\x92\x4d\x4b\x33\x31\x14\x85\xf7\xfd\x15\x21\xbc\xcb\x36\xf0\xee\xa4\xe0\xa2\x0b\x71\x21\x48" +
@@ -136,7 +136,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1556808625, 516396344),
 	},
-	"src/hub/api/requests/eks-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/eks-adapter-instance.json.template": &asset{
 		name: "eks-adapter-instance.json.template",
 		data: "" +
 			"\xa4\xcf\x41\x6a\xf3\x30\x10\x05\xe0\x7d\x4e\x21\xc4\xbf\xcc\xaf\x03\x04\xba\xea\x05\xba\xe9\xaa" +
@@ -153,7 +153,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1582724150, 992728231),
 	},
-	"src/hub/api/requests/eks-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/eks-adapter-template.json.template": &asset{
 		name: "eks-adapter-template.json.template",
 		data: "" +
 			"\x94\x92\x3f\x6b\x23\x31\x10\xc5\x7b\x7f\x0a\x21\xae\xb4\x17\xae\x3b\x0c\x57\x1c\x87\xab\x34\x86" +
@@ -173,7 +173,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1554231681, 129530988),
 	},
-	"src/hub/api/requests/eks-cluster-instance.json.template": &asset{
+	"cmd/hub/api/requests/eks-cluster-instance.json.template": &asset{
 		name: "eks-cluster-instance.json.template",
 		data: "" +
 			"\xac\xd2\x3d\xae\xdb\x30\x0c\x07\xf0\x3d\xa7\x30\x84\x8e\xb1\x0e\x10\xa0\x53\x2f\x90\xa5\x4b\x8b" +
@@ -193,7 +193,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1582734387, 457518969),
 	},
-	"src/hub/api/requests/eks-cluster-template.json.template": &asset{
+	"cmd/hub/api/requests/eks-cluster-template.json.template": &asset{
 		name: "eks-cluster-template.json.template",
 		data: "" +
 			"\x94\x91\x3f\x6b\xb4\x40\x10\xc6\x7b\x3f\xc5\xb2\xbc\xa5\x0a\x6f\x17\x84\x54\xe1\xaa\x34\x07\x21" +
@@ -211,7 +211,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1582724317, 308746546),
 	},
-	"src/hub/api/requests/gke-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/gke-adapter-instance.json.template": &asset{
 		name: "gke-adapter-instance.json.template",
 		data: "" +
 			"\x9c\x8e\xc1\x4a\xc4\x30\x14\x45\xf7\xf3\x15\x21\xb8\x1c\xf3\x01\x03\xfe\x83\x1b\x37\xca\x2c\x5e" +
@@ -225,9 +225,9 @@ var _bindata = map[string]*asset{
 			"\x88\xc9\x43\x1c\x98\xba\x88\x61\x57\xa9\xd2\xb0\x29\xaf\xa7\xf9\xf4\x11\x00\x00\xff\xff",
 		size: 625,
 		mode: 0644,
-		time: time.Unix(1591132220, 877363095),
+		time: time.Unix(1591633666, 277682918),
 	},
-	"src/hub/api/requests/gke-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/gke-adapter-template.json.template": &asset{
 		name: "gke-adapter-template.json.template",
 		data: "" +
 			"\x94\x91\x4d\x4b\x03\x31\x10\x86\xef\xfd\x15\x21\x78\x6c\x03\xde\xa4\xe0\xc1\x43\xf1\xe0\xa5\x17" +
@@ -246,7 +246,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1556807810, 675331929),
 	},
-	"src/hub/api/requests/hybrid-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/hybrid-adapter-instance.json.template": &asset{
 		name: "hybrid-adapter-instance.json.template",
 		data: "" +
 			"\xac\xce\xc1\x4a\xf4\x30\x14\x05\xe0\x7d\x9f\x22\x84\x7f\x39\x7f\x1e\x60\xc0\x95\x1b\xc5\x8d\x1b" +
@@ -263,7 +263,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1567628018, 941528099),
 	},
-	"src/hub/api/requests/hybrid-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/hybrid-adapter-template.json.template": &asset{
 		name: "hybrid-adapter-template.json.template",
 		data: "" +
 			"\x9c\x92\x4f\x8b\xdb\x30\x10\xc5\xef\xf9\x14\x42\xf4\x18\x1b\x7a\x2b\x81\x1e\xda\x50\x48\xe9\x25" +
@@ -284,7 +284,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1571170007, 550590129),
 	},
-	"src/hub/api/requests/k8s-aws-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/k8s-aws-adapter-instance.json.template": &asset{
 		name: "k8s-aws-adapter-instance.json.template",
 		data: "" +
 			"\xac\xcd\x31\x4b\x03\x41\x10\x05\xe0\xfe\x7e\xc5\xb2\x58\x26\x5b\x4b\xc0\xca\xd2\xc6\xc6\x4a\x52" +
@@ -300,7 +300,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1554231572, 476675267),
 	},
-	"src/hub/api/requests/k8s-aws-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/k8s-aws-adapter-template.json.template": &asset{
 		name: "k8s-aws-adapter-template.json.template",
 		data: "" +
 			"\x9c\x92\xc1\x6a\x02\x31\x10\x86\xef\x3e\x45\x08\x85\x5e\x74\xa1\x37\x11\x7a\x90\xd2\x93\x17\x41" +
@@ -320,7 +320,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1554231961, 439226614),
 	},
-	"src/hub/api/requests/metal-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/metal-adapter-instance.json.template": &asset{
 		name: "metal-adapter-instance.json.template",
 		data: "" +
 			"\xac\xce\x41\x4b\xc4\x30\x10\x05\xe0\x7b\x7f\x45\x08\x1e\xd7\xfc\x80\x05\x4f\x5e\x14\x2f\x5e\x3c" +
@@ -337,7 +337,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1566034466, 888047415),
 	},
-	"src/hub/api/requests/metal-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/metal-adapter-template.json.template": &asset{
 		name: "metal-adapter-template.json.template",
 		data: "" +
 			"\x9c\x92\x41\x4b\x03\x31\x10\x85\xef\xfd\x15\x21\x78\x6c\x17\xbc\x49\xc1\x83\x8a\xa0\x78\xe9\xc5" +
@@ -357,7 +357,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1566034452, 131327161),
 	},
-	"src/hub/api/requests/openshift-adapter-instance.json.template": &asset{
+	"cmd/hub/api/requests/openshift-adapter-instance.json.template": &asset{
 		name: "openshift-adapter-instance.json.template",
 		data: "" +
 			"\xa4\xcf\xc1\x6a\xc3\x30\x0c\x06\xe0\x7b\x9e\xc2\x98\x1d\x3b\x3f\x40\x61\xa7\xbd\xc0\x2e\x3b\x8d" +
@@ -373,7 +373,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1554303190, 999879579),
 	},
-	"src/hub/api/requests/openshift-adapter-template.json.template": &asset{
+	"cmd/hub/api/requests/openshift-adapter-template.json.template": &asset{
 		name: "openshift-adapter-template.json.template",
 		data: "" +
 			"\x94\x92\x4f\x6b\xe3\x30\x10\xc5\xef\xf9\x14\x42\xec\x31\x31\xec\x6d\x09\xec\x61\x59\x7a\x6e\xa0" +
@@ -393,7 +393,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1554303130, 902704954),
 	},
-	"src/hub/initialize/hub.yaml.template": &asset{
+	"cmd/hub/initialize/hub.yaml.template": &asset{
 		name: "hub.yaml.template",
 		data: "" +
 			"\x7c\x90\xc1\x6e\x33\x21\x0c\x84\xef\x7e\x0a\x1f\xfe\x63\x60\x95\x2b\xaf\x12\xe5\x40\xc0\x2b\xf1" +
@@ -410,7 +410,7 @@ var _bindata = map[string]*asset{
 		mode: 0644,
 		time: time.Unix(1515794706, 303261491),
 	},
-	"src/hub/initialize/hub-component.yaml.template": &asset{
+	"cmd/hub/initialize/hub-component.yaml.template": &asset{
 		name: "hub-component.yaml.template",
 		data: "" +
 			"\x74\x90\xbf\x6e\x02\x31\x0c\xc6\x77\x3f\x85\x85\x98\x2a\x5d\x50\xd7\x6c\x48\xed\xc0\x00\xed\x1b" +
@@ -548,10 +548,7 @@ func AssetDir(name string) ([]string, error) {
 type bintree map[string]bintree
 
 var _bintree = bintree{
-	"meta": bintree{
-		"hub-well-known-parameters.yaml": bintree{},
-	},
-	"src": bintree{
+	"cmd": bintree{
 		"hub": bintree{
 			"api": bintree{
 				"requests": bintree{
@@ -578,5 +575,8 @@ var _bintree = bintree{
 				"hub.yaml.template":           bintree{},
 			},
 		},
+	},
+	"meta": bintree{
+		"hub-well-known-parameters.yaml": bintree{},
 	},
 }
