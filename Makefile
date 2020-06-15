@@ -2,8 +2,8 @@
 
 OS := $(shell uname -s | tr A-Z a-z)
 
-export GOBIN  := $(abspath .)/bin/$(OS)
-export PATH   := $(GOBIN):$(PATH)
+export GOBIN := $(abspath .)/bin/$(OS)
+export PATH  := $(GOBIN):$(PATH)
 
 export AWS_PROFILE ?=
 S3_BUCKET          ?= controlplane.agilestacks.io
