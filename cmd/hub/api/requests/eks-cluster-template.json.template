@@ -2,7 +2,7 @@
     "name": "${name}",
     "description": "EKS Cluster",
     "stack": "eks:1",
-    "componentsEnabled": ["stack-k8s-eks", "tiller", "traefik", "dex", "cert-manager"],
+    "componentsEnabled": ["stack-k8s-eks", "tiller", "external-dns", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
     "tags": ["platform=eks"],
     "parameters": [{

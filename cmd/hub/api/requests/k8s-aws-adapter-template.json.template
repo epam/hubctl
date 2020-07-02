@@ -2,7 +2,7 @@
     "name": "${name}",
     "description": "AgileStack's K8S on AWS adapter",
     "stack": "k8s-adapter:1",
-    "componentsEnabled": ["k8s-aws", "tiller", "traefik", "dex", "cert-manager"],
+    "componentsEnabled": ["k8s-aws", "tiller", "external-dns", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
     "tags": ["adapter=k8s-aws"],
     "parameters": [{

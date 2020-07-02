@@ -2,7 +2,7 @@
     "name": "${name}",
     "description": "EKS Adapter",
     "stack": "eks-adapter:1",
-    "componentsEnabled": ["k8s-eks", "tiller", "traefik", "dex", "cert-manager"],
+    "componentsEnabled": ["k8s-eks", "tiller", "external-dns", "traefik", "dex", "cert-manager"],
     "verbs": ["deploy", "undeploy"],
     "tags": ["adapter=eks"],
     "parameters": [{
