@@ -21,7 +21,13 @@ var extensionCmd = cobra.Command{
 	Use:   "",
 	Short: "`%s` extension",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return extension([]string{cmd.Use}, args)
+		newArgs := make([]string, 0, 1+len(args))
+		newArgs = append(newArgs, cmd.Use)
+		for _, arg := range args {
+			newArgs = append(newArgs, arg)
+		}
+		return arbitraryExtension(newArgs)
+		// return extension([]string{cmd.Use}, args)
 	},
 	DisableFlagParsing: true,
 }
