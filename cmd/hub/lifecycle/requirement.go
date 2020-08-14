@@ -171,7 +171,7 @@ var binVersion = map[string]BinVersion{
 	"gsutil":  {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
 	"vault":   {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
 	"kubectl": {"1.16.8", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
-	"helm":    {"2.16.6", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
+	"helm":    {"2.16.10", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
 }
 
 func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {
@@ -272,6 +272,7 @@ func checkRequiresBinVersion(minVer string, verRegexp *regexp.Regexp, out []byte
 		return errors.New("no version string found")
 	}
 	ver := string(match[1])
+	// TODO here 1.6 > 1.10 which is not the case
 	if ver < minVer {
 		return fmt.Errorf("`%s` version detected; should have at least version `%s`", ver, minVer)
 	}
