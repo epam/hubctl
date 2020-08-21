@@ -139,7 +139,7 @@ func printStackOutputs(outputs []parameters.ExpandedOutput) {
 		for _, output := range outputs {
 			brief := ""
 			if output.Brief != "" {
-				brief = fmt.Sprintf(" [%s]", output.Brief)
+				brief = fmt.Sprintf(" [%s]", util.HighlightColor(output.Brief))
 			}
 			value := util.String(output.Value)
 			valueMasked := false
