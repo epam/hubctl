@@ -24,8 +24,10 @@ func scriptPath(what, args []string) (string, []string, error) {
 	}
 
 	home := os.Getenv("HOME")
+	homeHubDir := ""
 	if home != "" {
-		searchDirs = append(searchDirs, filepath.Join(home, hubDir))
+		homeHubDir = filepath.Join(home, hubDir)
+		searchDirs = append(searchDirs, homeHubDir)
 	} else {
 		if config.Verbose {
 			util.Warn("Unable to lookup $HOME: no home directory set in OS environment")
@@ -67,7 +69,20 @@ func scriptPath(what, args []string) (string, []string, error) {
 	if customHubDir != "" {
 		printCustomHubDir = fmt.Sprintf(", $HUB_EXTENSIONS=%s", customHubDir)
 	}
-	return "", nil, fmt.Errorf("Extension not found in %v%s, $PATH", searchDirs, printCustomHubDir)
+
+	maybeInstall := ""
+	if customHubDir == "" && homeHubDir != "" {
+		_, err := os.Stat(homeHubDir)
+		verb := "update"
+		if err != nil {
+			if util.NoSuchFile(err) {
+				verb = "install"
+			}
+		}
+		maybeInstall = fmt.Sprintf("\n\t%s Hub CLI extensions with `hub extensions %[1]s`?", verb)
+	}
+
+	return "", nil, fmt.Errorf("Extension not found in %v%s, nor $PATH%s", searchDirs, printCustomHubDir, maybeInstall)
 }
 
 func RunExtension(what, args []string) {
