@@ -141,11 +141,12 @@ func mergeStateParameter(parameters parameters.LockedParameters, add parameters.
 		if curValue != addValue {
 			if util.Empty(current.Value) {
 				util.Warn("Parameter `%s` empty value is replaced by value `%s` from state",
-					qName, util.Trim(addValue))
+					qName, util.Trim(util.MaybeMaskedValue(config.Trace, qName, addValue)))
 				current.Value = add.Value
 			} else {
 				util.Warn("Parameter `%s` current value `%s` does not match value `%s` from state - keeping current value",
-					qName, util.Trim(curValue), util.Trim(addValue))
+					qName, util.Trim(util.MaybeMaskedValue(config.Trace, qName, curValue)),
+					util.Trim(util.MaybeMaskedValue(config.Trace, qName, addValue)))
 			}
 		}
 		if current.Env != add.Env {

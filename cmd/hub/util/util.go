@@ -579,6 +579,13 @@ func LooksLikeSecret(name string) bool {
 	return false
 }
 
+func MaybeMaskedValue(trace bool, name, value string) string {
+	if !trace && LooksLikeSecret(name) {
+		return "(masked)"
+	}
+	return value
+}
+
 func ParseKvList(list string) (map[string]string, error) {
 	parsed := make(map[string]string)
 	if list == "" {
