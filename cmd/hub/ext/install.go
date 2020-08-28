@@ -18,7 +18,7 @@ func defaultExtensionsDir() string {
 }
 
 func defaultRequiredBinaries() []string {
-	return []string {"git", "jq", "npm"}
+	return []string {"git", "jq", "npm", "kubectl", "eksctl", "aws"}
 }
 
 func Install(dir string) {
