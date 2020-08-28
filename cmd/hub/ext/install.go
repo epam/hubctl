@@ -17,7 +17,12 @@ func defaultExtensionsDir() string {
 	return filepath.Join(os.Getenv("HOME"), hubDir)
 }
 
+func defaultRequiredBinaries() []string {
+	return []string {"git", "jq", "npm"}
+}
+
 func Install(dir string) {
+	CheckDepndecies()
 	if dir == "" {
 		dir = defaultExtensionsDir()
 	}
@@ -61,6 +66,7 @@ func Install(dir string) {
 }
 
 func Update(dir string) {
+	CheckDepndecies()
 	if dir == "" {
 		dir = defaultExtensionsDir()
 	}
@@ -85,5 +91,20 @@ func Update(dir string) {
 
 	if config.Verbose {
 		log.Printf("Hub CLI extensions updated in %s", dir)
+	}
+}
+
+
+func CheckDepndecies() {
+	missingBinaries := []string{}
+	for _, binary := range defaultRequiredBinaries() {
+		_, err := exec.LookPath(binary)
+		if err != nil {
+			missingBinaries = append(missingBinaries, binary)
+		}
+	}
+	if len(missingBinaries) > 0 {
+		log.Fatalf("Missing binaries in PATH: %v", missingBinaries)
+		os.Exit(1)
 	}
 }
