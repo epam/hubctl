@@ -37,7 +37,7 @@ var globalEnvVarsAllowed = []string{
 var requirementProvidedByEnvironment = []string{
 	"aws", "gcp", "gcs", "azure", "kubectl", "kubernetes", "helm", "vault",
 }
-
+var defaultLifecycleVerbs = []string{"deploy", "undeploy"}
 var environment map[string]string
 
 func Elaborate(manifestFilename string,
@@ -132,6 +132,8 @@ func Elaborate(manifestFilename string,
 		}
 		componentsManifests = transformApplicationIntoComponent(stackManifest, componentsManifests)
 	}
+
+	setDefaultLifecycleVerbs(componentsManifests)
 
 	guessAndMarkSecrets(stackManifest.Outputs)
 	for i := range componentsManifests {
@@ -571,6 +573,14 @@ func transformApplicationIntoComponent(stack *manifest.Manifest, components []ma
 	stack.Templates = manifest.TemplateSetup{}
 
 	return components
+}
+
+func setDefaultLifecycleVerbs(components []manifest.Manifest) {
+	for i, component := range components {
+		if len(component.Lifecycle.Verbs) == 0 {
+			components[i].Lifecycle.Verbs = defaultLifecycleVerbs
+		}
+	}
 }
 
 func guessAndMarkSecrets(outputs []manifest.Output) {
