@@ -497,7 +497,7 @@ func warnFromEnvValueMismatch(parameters []manifest.Parameter) {
 	for _, parameter := range parameters {
 		if parameter.Kind == "user" && parameter.FromEnv != "" && !util.Empty(parameter.Value) {
 			if value, exist := os.LookupEnv(parameter.FromEnv); exist && value != util.String(parameter.Value) {
-				util.Warn("Parameter `%s` value `%s` differs from value `%s` provided by `fromEnv:` environment variable `%s`",
+				util.Warn("Parameter `%s` value `%v` differs from value `%s` provided by `fromEnv:` environment variable `%s`",
 					parameter.QName(), parameter.Value, value, parameter.FromEnv)
 			}
 		}
