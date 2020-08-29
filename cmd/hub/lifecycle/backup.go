@@ -69,10 +69,13 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	implementsBackup := make([]string, 0, len(order))
 	for _, componentName := range order {
 		component := manifest.ComponentRefByName(components, componentName)
-		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		impl := probeImplementation(dir, verb)
-		if impl {
-			implementsBackup = append(implementsBackup, manifest.ComponentQualifiedNameFromRef(component))
+		componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
+		if util.Contains(componentManifest.Lifecycle.Verbs, request.Verb) {
+			dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
+			impl := probeImplementation(dir, verb)
+			if impl {
+				implementsBackup = append(implementsBackup, manifest.ComponentQualifiedNameFromRef(component))
+			}
 		}
 	}
 	if len(request.Components) == 0 && len(implementsBackup) == 0 {
