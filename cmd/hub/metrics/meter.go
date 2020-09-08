@@ -79,13 +79,14 @@ func PutMetrics(cmd string) error {
 	tags := make([]string, 0, 1)
 	tags = append(tags, "command:"+cmd)
 	series := DDSeries{
-		Metric: "hubcli.commands.usage",
-		Type:   "count",
-		Host:   host,
-		Tags:   tags,
-		Points: [][]int64{{time.Now().Unix(), 1}},
+		[]DDMetric{{
+			Metric: "hubcli.commands.usage",
+			Type:   "count",
+			Host:   host,
+			Tags:   tags,
+			Points: [][]int64{{time.Now().Unix(), 1}},
+		}},
 	}
-
 	reqBody, err := json.Marshal(series)
 	if err != nil {
 		return err
@@ -98,7 +99,7 @@ func PutMetrics(cmd string) error {
 	}
 	if config.Trace {
 		log.Printf(">>> %s %s", req.Method, req.URL.String())
-		log.Printf("%+v", series)
+		log.Printf("%s", string(reqBody))
 	}
 	req.Header.Add("Content-type", "application/json")
 	resp, err := dd.Do(req)

@@ -1,12 +1,12 @@
 package metrics
 
-type DDSeries struct {
-	Metric string
-	Type   string `json:",omitempty"`
-	Host   string `json:",omitempty"`
+type DDMetric struct {
+	Metric string    `json:"metric"`
+	Type   string    `json:"type,omitempty"`
+	Host   string    `json:"host,omitempty"`
+	Tags   []string  `json:"tags,omitempty"`
+	Points [][]int64 `json:"points"`
 	// Interval int
-	Tags   []string `json:",omitempty"`
-	Points [][]int64
 }
 
 /*
@@ -21,6 +21,10 @@ type DDSeries struct {
 		]
 	]
 */
+
+type DDSeries struct {
+	Series []DDMetric `json:"series,omitempty"`
+}
 
 type DDSeriesResponse struct {
 	Status string
