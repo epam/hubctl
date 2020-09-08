@@ -24,9 +24,14 @@ version:
 		cmd/hub/util/version.go.template > cmd/hub/util/version.go
 .PHONY: version
 
-compile: bin/$(OS)/gox version
+dd:
+	@sed -e s/'\$$key'/$$DD_CLIENT_API_KEY/ < \
+		cmd/hub/metrics/dd.go.template > cmd/hub/metrics/dd.go
+.PHONY: dd
+
+compile: bin/$(OS)/gox version dd
 	go mod download
-	nice $(GOBIN)/gox -rebuild -tags git \
+	nice $(GOBIN)/gox -rebuild -tags "git dd"\
 		-osarch="darwin/amd64 linux/amd64 windows/amd64" \
 		-output=bin/{{.OS}}/hub \
 		github.com/agilestacks/hub/cmd/hub
@@ -48,8 +53,8 @@ cel:
 	go get github.com/agilestacks/hub/cmd/cel
 .PHONY: cel
 
-get: version
-	go get -tags git github.com/agilestacks/hub/cmd/hub
+get: version dd
+	go get -tags "git dd" github.com/agilestacks/hub/cmd/hub
 .PHONY: get
 
 bindata: bin/$(OS)/go-bindata

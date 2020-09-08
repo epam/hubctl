@@ -27,14 +27,18 @@ var (
 )
 
 func init() {
+	if IsTerminal() {
+		HighlightColor = func(str string) string { return aurora.BrightCyan(str).String() }
+		WarnColor = func(str string) string { return aurora.BrightMagenta(str).String() }
+	}
+}
+
+func IsTerminal() bool {
 	fd := os.Stderr.Fd()
 	if config.LogDestination == "stdout" {
 		fd = os.Stdout.Fd()
 	}
-	if isatty.IsTerminal(fd) {
-		HighlightColor = func(str string) string { return aurora.BrightCyan(str).String() }
-		WarnColor = func(str string) string { return aurora.BrightMagenta(str).String() }
-	}
+	return isatty.IsTerminal(fd)
 }
 
 func Warn(format string, v ...interface{}) {

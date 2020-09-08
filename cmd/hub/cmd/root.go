@@ -31,6 +31,7 @@ Hub CLI is a lifecycle and stack composition tool:
 		if config.Debug {
 			log.Printf("Hub CLI %s %s\n", util.CliVersion, runtime.Version())
 		}
+		maybeMeterCommand(cmd)
 	},
 
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {

@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/agilestacks/hub/cmd/hub/lifecycle"
+	"github.com/agilestacks/hub/cmd/hub/metrics"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
@@ -42,6 +43,37 @@ https://en.wikipedia.org/wiki/One-time_pad
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return otpEncode(args)
+	},
+}
+
+var utilMetricsCmd = &cobra.Command{
+	Use:   "metrics <command>",
+	Short: "Send usage metrics",
+	Long: `Send usage metrics in background to DataDog.
+
+We value your privacy and only send anonymized usage metrics for following commands:
+- elaborate
+- deploy
+- undeploy
+- backup create
+- api *
+
+Usage metric contain:
+- Hub CLI command invoked without arguments, ie. 'deploy' or 'backup create', or 'api instance get'
+- synthetic machine id - an UUID generated in first interactive session (stdout is a TTY)
+- usage counter - 1 per invocation
+
+Edit $HOME/.hub-cache.yaml to change settings:
+
+	metrics:
+	  disabled: false
+	  host: 68af657e-6a51-4d4b-890c-4b548852724d
+
+Set 'disabled: true' to skip usage metrics reporting.
+Set 'host: ""' to send the counter but not the UUID.
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return putMetrics(args)
 	},
 }
 
@@ -76,7 +108,16 @@ func otpEncode(args []string) error {
 	return nil
 }
 
+func putMetrics(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Metrics command has only one argument - command to send usage metric for")
+	}
+	cmd := args[0]
+	return metrics.PutMetrics(cmd)
+}
+
 func init() {
 	utilCmd.AddCommand(utilOtpCmd)
+	utilCmd.AddCommand(utilMetricsCmd)
 	RootCmd.AddCommand(utilCmd)
 }
