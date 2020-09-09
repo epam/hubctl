@@ -58,10 +58,12 @@ func meterCommand(cmd *cobra.Command) error {
 	}
 	os.Setenv(ddApiKeyEnvVarName, ddKey)
 	hub := exec.Cmd{
-		Path:   bin,
-		Args:   []string{"hub", "util", "metrics", commandStr(cmd)},
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+		Path: bin,
+		Args: []string{"hub", "util", "metrics", commandStr(cmd)},
+	}
+	if config.Trace {
+		hub.Stdout = os.Stdout
+		hub.Stderr = os.Stderr
 	}
 	err = hub.Start()
 	if err != nil {
