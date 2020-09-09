@@ -145,7 +145,8 @@ func mergeStateParameter(parameters parameters.LockedParameters, add parameters.
 				current.Value = add.Value
 			} else {
 				util.Warn("Parameter `%s` current value `%s` does not match value `%s` from state - keeping current value",
-					qName, util.Trim(util.MaybeMaskedValue(config.Trace, qName, curValue)),
+					qName,
+					util.Trim(util.MaybeMaskedValue(config.Trace, qName, curValue)),
 					util.Trim(util.MaybeMaskedValue(config.Trace, qName, addValue)))
 			}
 		}
@@ -193,20 +194,25 @@ func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depen
 				qName := output.QName()
 				current, exists := outputs[qName]
 				overwrite := false
+				outValue := util.String(output.Value)
 				if exists {
 					warn := !strings.HasPrefix(output.Name, "hub.")
-					if util.String(current.Value) != util.String(output.Value) {
+					curValue := util.String(current.Value)
+					if curValue != outValue {
 						if !util.Empty(current.Value) {
 							overwrite = true // TODO review overwrite logic
 							if warn {
-								util.Warn("Loaded output `%s` current value `%v` does not match new value `%v` loaded from dependency `%s` - using new value",
-									qName, current.Value, output.Value, dependencyName)
+								util.Warn("Loaded output `%s` current value `%s` does not match new value `%s` loaded from dependency `%s` - using new value",
+									qName,
+									util.Trim(util.MaybeMaskedValue(config.Trace, qName, curValue)),
+									util.Trim(util.MaybeMaskedValue(config.Trace, qName, outValue)),
+									dependencyName)
 							}
 						} else if !util.Empty(output.Value) {
 							overwrite = true
 							if warn {
-								util.Warn("Loaded output `%s` empty value replaced by new value `%v` loaded from dependency `%s`",
-									qName, output.Value, dependencyName)
+								util.Warn("Loaded output `%s` empty value replaced by new value `%s` loaded from dependency `%s`",
+									qName, util.Trim(util.MaybeMaskedValue(config.Trace, qName, outValue)), dependencyName)
 							}
 						}
 					}
@@ -215,7 +221,7 @@ func mergeStateOutputsFromDependencies(outputs parameters.CapturedOutputs, depen
 				}
 				if overwrite {
 					if config.Debug {
-						log.Printf("\t%s => %s", qName, output.Value)
+						log.Printf("\t%s => %s", qName, util.Trim(util.MaybeMaskedValue(config.Trace, qName, outValue)))
 					}
 					outputs[qName] = output
 				}

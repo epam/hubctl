@@ -323,9 +323,13 @@ func mergeParameter(parameters LockedParameters, add LockedParameter) {
 	qName := add.QName()
 	current, exists := parameters[qName]
 	if exists {
-		if util.String(current.Value) != util.String(add.Value) && !util.Empty(current.Value) {
+		curValue := util.String(current.Value)
+		addValue := util.String(add.Value)
+		if curValue != addValue && !util.Empty(current.Value) {
 			util.Warn("Parameter `%s` current value `%s` does not match new value `%s`",
-				qName, current.Value, add.Value)
+				qName,
+				util.Trim(util.MaybeMaskedValue(config.Trace, qName, curValue)),
+				util.Trim(util.MaybeMaskedValue(config.Trace, qName, addValue)))
 		}
 		if current.Env != "" && add.Env != "" && current.Env != add.Env {
 			util.Warn("Parameter `%s` environment variable setup `%s` does not match new setup `%s`",
