@@ -78,13 +78,15 @@ func PutMetrics(cmd string) error {
 	if config.Debug && !enabled {
 		log.Print("Usage metering is not enabled; continuing as requested")
 	}
-	tags := make([]string, 0, 1)
+	tags := make([]string, 0, 2)
 	tags = append(tags, "command:"+cmd)
+	if host != "" {
+		tags = append(tags, "machine-id:"+host)
+	}
 	series := DDSeries{
 		[]DDMetric{{
 			Metric: "hubcli.commands.usage",
 			Type:   "count",
-			Host:   host,
 			Tags:   tags,
 			Points: [][]int64{{time.Now().Unix(), 1}},
 		}},
