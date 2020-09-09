@@ -94,8 +94,7 @@ func PutMetrics(cmd string) error {
 		return err
 	}
 	method := "POST"
-	addr := fmt.Sprintf("%s?api_key=%s", ddSeriesApi, ddKey)
-	req, err := http.NewRequest(method, addr, bytes.NewReader(reqBody))
+	req, err := http.NewRequest(method, ddSeriesApi, bytes.NewReader(reqBody))
 	if err != nil {
 		return err
 	}
@@ -104,6 +103,8 @@ func PutMetrics(cmd string) error {
 		log.Printf("%s", string(reqBody))
 	}
 	req.Header.Add("Content-type", "application/json")
+	req.Header.Add("DD-API-KEY", ddKey)
+
 	resp, err := dd.Do(req)
 	if err != nil {
 		return fmt.Errorf("Error during HTTP request: %v", err)
