@@ -191,6 +191,9 @@ func meteringConfig() (bool, string, error) {
 		if err != nil {
 			return !conf.Disabled, "", err
 		}
+		if cache == nil {
+			cache = &filecache.FileCache{}
+		}
 		cache.Metrics = *conf
 		writeErr = filecache.WriteCache(file, cache)
 	}
