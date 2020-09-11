@@ -603,7 +603,7 @@ func guessAndMarkSecrets(outputs []manifest.Output) {
 func unwrapComponentsParameters(componentsManifests []manifest.Manifest) [][]manifest.Parameter {
 	parameters := make([][]manifest.Parameter, 0, len(componentsManifests))
 	for _, componentsManifest := range componentsManifests {
-		for i, _ := range componentsManifest.Parameters {
+		for i := range componentsManifest.Parameters {
 			componentsManifest.Parameters[i].Component = componentsManifest.Meta.Name
 		}
 		parameters = append(parameters, manifest.FlattenParameters(componentsManifest.Parameters, componentsManifest.Meta.Name))
@@ -758,7 +758,7 @@ func enrichParameter(parameter manifest.Parameter, wellKnownKV map[string]manife
 
 func sortedParameters(kv map[string]manifest.Parameter) []manifest.Parameter {
 	names := make([]string, 0, len(kv))
-	for name, _ := range kv {
+	for name := range kv {
 		names = append(names, name)
 	}
 	sort.Strings(names)
