@@ -457,8 +457,12 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 					parameter.Value = value
 				} else {
 					if !util.Empty(parameter.Default) {
-						util.Warn("Overwritting empty parameter `%s` `default: %v` with state value `%v` (due to `fromEnv: %s`)",
-							parameter.QName(), parameter.Default, value, parameter.FromEnv)
+						qName := parameter.QName()
+						util.Warn("Overwritting empty parameter `%s` `default: %s` with state value `%s` (due to `fromEnv: %s`)",
+							qName,
+							util.Trim(util.MaybeMaskedValue(config.Trace, qName, util.String(parameter.Default))),
+							util.Trim(util.MaybeMaskedValue(config.Trace, qName, util.String(value))),
+							parameter.FromEnv)
 					}
 					parameter.Default = value
 				}
@@ -498,9 +502,14 @@ func warnNoValue(parameters []manifest.Parameter) {
 func warnFromEnvValueMismatch(parameters []manifest.Parameter) {
 	for _, parameter := range parameters {
 		if parameter.Kind == "user" && parameter.FromEnv != "" && !util.Empty(parameter.Value) {
-			if value, exist := os.LookupEnv(parameter.FromEnv); exist && value != util.String(parameter.Value) {
-				util.Warn("Parameter `%s` value `%v` differs from value `%s` provided by `fromEnv:` environment variable `%s`",
-					parameter.QName(), parameter.Value, value, parameter.FromEnv)
+			paramValue := util.String(parameter.Value)
+			if envValue, exist := os.LookupEnv(parameter.FromEnv); exist && envValue != paramValue {
+				qName := parameter.QName()
+				util.Warn("Parameter `%s` value `%v` does not match value `%s` provided by `fromEnv:` environment variable `%s`",
+					qName,
+					util.Trim(util.MaybeMaskedValue(config.Trace, qName, paramValue)),
+					util.Trim(util.MaybeMaskedValue(config.Trace, qName, envValue)),
+					parameter.FromEnv)
 			}
 		}
 	}
