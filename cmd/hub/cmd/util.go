@@ -113,7 +113,10 @@ func putMetrics(args []string) error {
 		return errors.New("Metrics command has only one argument - command to send usage metric for")
 	}
 	cmd := args[0]
-	return metrics.PutMetrics(cmd)
+
+	metrics.PutMetrics(cmd)
+
+	return nil
 }
 
 func init() {

@@ -7,4 +7,4 @@ bin/darwin
 bin/windows
 
 cmd/hub/util/version.go
-cmd/hub/metrics/dd.go
+cmd/hub/metrics/keys.go

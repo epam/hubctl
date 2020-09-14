@@ -1,5 +1,20 @@
 package metrics
 
+type Metric struct {
+	Metric    string            `json:"metric"`
+	Kind      string            `json:"kind,omitempty"`
+	Unit      string            `json:"unit,omitempty"`
+	Tags      map[string]string `json:"tags,omitempty"`
+	Value     int64             `json:"value"`
+	Timestamp int64             `json:"timestamp,omitempty"`
+}
+
+type Series []Metric
+
+type SeriesResponse struct {
+	Status string
+}
+
 type DDMetric struct {
 	Metric string    `json:"metric"`
 	Type   string    `json:"type,omitempty"`

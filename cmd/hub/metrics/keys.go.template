@@ -1,0 +1,8 @@
+// +build metrics
+
+package metrics
+
+const (
+    MetricsServiceKey = "$metricskey"
+    DDKey             = "$ddkey"
+)

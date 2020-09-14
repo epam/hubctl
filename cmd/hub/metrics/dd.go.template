@@ -1,5 +1,0 @@
-// +build dd
-
-package metrics
-
-const DDKey = "$key"

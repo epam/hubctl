@@ -1,16 +1,12 @@
 package metrics
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -20,19 +16,13 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
-const (
-	ddSeriesApi        = "https://api.datadoghq.com/api/v1/series"
-	ddApiKeyEnvVarName = "DD_CLIENT_API_KEY"
-)
-
 var (
-	dd           = util.RobustHttpClient(0, false)
-	ddKey        string
+	httpClient   = util.RobustHttpClient(0, false)
 	cachedConfig *filecache.Metrics
 )
 
 func MeterCommand(cmd *cobra.Command) {
-	if ddKey == "" {
+	if ddKey == "" && MetricsServiceKey == "" {
 		return
 	}
 	err := meterCommand(cmd)
@@ -56,7 +46,6 @@ func meterCommand(cmd *cobra.Command) error {
 	if err != nil {
 		return fmt.Errorf("Unable to determine path to Hub CLI executable: %v", err)
 	}
-	os.Setenv(ddApiKeyEnvVarName, ddKey)
 	hub := exec.Cmd{
 		Path: bin,
 		Args: []string{"hub", "util", "metrics", commandStr(cmd)},
@@ -73,63 +62,32 @@ func meterCommand(cmd *cobra.Command) error {
 	return nil
 }
 
-func PutMetrics(cmd string) error {
+func PutMetrics(cmd string) {
+	err := putMetrics(cmd)
+	if err != nil {
+		log.Fatalf("Unable to send usage metrics: %v", err)
+	}
+}
+
+func putMetrics(cmd string) error {
 	enabled, host, err := meteringConfig()
-	if config.Debug && !enabled {
+	if err != nil {
+		return fmt.Errorf("Unable to load metrics config: %v", err)
+	}
+	if config.Debug && !enabled && (ddKey != "" || MetricsServiceKey != "") {
 		log.Print("Usage metering is not enabled; continuing as requested")
 	}
-	tags := make([]string, 0, 2)
-	tags = append(tags, "command:"+cmd)
-	if host != "" {
-		tags = append(tags, "machine-id:"+host)
+	var err1, err2 error
+	if MetricsServiceKey != "" {
+		err1 = putMetricsServiceMetric(cmd, host)
 	}
-	series := DDSeries{
-		[]DDMetric{{
-			Metric: "hubcli.commands.usage",
-			Type:   "count",
-			Tags:   tags,
-			Points: [][]int64{{time.Now().Unix(), 1}},
-		}},
+	if ddKey != "" {
+		err2 = putDDMetric(cmd, host)
 	}
-	reqBody, err := json.Marshal(series)
-	if err != nil {
-		return err
+	if err1 != nil || err2 != nil {
+		err = errors.New(util.Errors2(err1, err2))
 	}
-	method := "POST"
-	req, err := http.NewRequest(method, ddSeriesApi, bytes.NewReader(reqBody))
-	if err != nil {
-		return err
-	}
-	if config.Trace {
-		log.Printf(">>> %s %s", req.Method, req.URL.String())
-		log.Printf("%s", string(reqBody))
-	}
-	req.Header.Add("Content-type", "application/json")
-	req.Header.Add("DD-API-KEY", ddKey)
-
-	resp, err := dd.Do(req)
-	if err != nil {
-		return fmt.Errorf("Error during HTTP request: %v", err)
-	}
-	if config.Trace {
-		log.Printf("<<< %s %s: %s", req.Method, req.URL.String(), resp.Status)
-	}
-	var body bytes.Buffer
-	read, err := body.ReadFrom(resp.Body)
-	resp.Body.Close()
-	bResp := body.Bytes()
-	if read == 0 {
-		return errors.New("Empty response")
-	}
-	var jsResp DDSeriesResponse
-	err = json.Unmarshal(bResp, &jsResp)
-	if err != nil {
-		return fmt.Errorf("Error unmarshalling HTTP response: %v", err)
-	}
-	if jsResp.Status != "ok" {
-		return fmt.Errorf("Status `%s`", jsResp.Status)
-	}
-	return nil
+	return err
 }
 
 func commandStr(cmd *cobra.Command) string {
@@ -203,11 +161,4 @@ func meteringConfig() (bool, string, error) {
 		host = *conf.Host
 	}
 	return !conf.Disabled, host, writeErr
-}
-
-func init() {
-	ddKey = DDKey
-	if ddKey == "" {
-		ddKey = os.Getenv(ddApiKeyEnvVarName)
-	}
 }
