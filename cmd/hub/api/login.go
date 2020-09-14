@@ -206,7 +206,7 @@ func bearerToken() string {
 }
 
 func verifyAccessToken(accessToken string) (int, *AuthPingResponse, error) {
-	req, err := hubRequestWithToken("GET", authPingResource, accessToken, nil)
+	req, err := hubRequest("GET", authPingResource, accessToken, nil)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -223,7 +223,7 @@ func refreshAccessToken(tokens *SigninResponse) (*SigninResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error marshalling sign-in request: %v", err)
 	}
-	req, err := hubRequestWithToken("POST", refreshResource, "", bytes.NewReader(reqBody))
+	req, err := hubRequest("POST", refreshResource, "", bytes.NewReader(reqBody))
 	if config.Trace {
 		log.Printf(">>>\n%s", identJson(reqBody))
 	}

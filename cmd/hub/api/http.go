@@ -68,11 +68,11 @@ func hubApiLongWait() *http.Client {
 	return _hubApiLongWait
 }
 
-func hubRequest(method, path string, body io.Reader) (*http.Request, error) {
-	return hubRequestWithToken(method, path, bearerToken(), body)
+func hubRequestWithBearerToken(method, path string, body io.Reader) (*http.Request, error) {
+	return hubRequest(method, path, bearerToken(), body)
 }
 
-func hubRequestWithToken(method, path, token string, body io.Reader) (*http.Request, error) {
+func hubRequest(method, path, token string, body io.Reader) (*http.Request, error) {
 	addr := fmt.Sprintf("%s/%s", config.ApiBaseUrl, path)
 	if config.Trace {
 		log.Printf(">>> %s %s", method, addr)
@@ -217,7 +217,7 @@ func patch2(client *http.Client, path string, req io.Reader, jsResp interface{})
 }
 
 func doWithAuthorization(client *http.Client, method, path string, reqBody io.Reader, jsResp interface{}) (int, error, []byte) {
-	req, err := hubRequest(method, path, reqBody)
+	req, err := hubRequestWithBearerToken(method, path, reqBody)
 	if err != nil {
 		return 0, fmt.Errorf("Error creating HTTP request: %v", err), nil
 	}
