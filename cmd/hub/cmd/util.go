@@ -49,7 +49,7 @@ https://en.wikipedia.org/wiki/One-time_pad
 var utilMetricsCmd = &cobra.Command{
 	Use:   "metrics <command>",
 	Short: "Send usage metrics",
-	Long: `Send usage metrics in background to DataDog.
+	Long: `Send usage metrics in background to SuperHub and Datadog.
 
 We value your privacy and only send anonymized usage metrics for following commands:
 - elaborate
@@ -65,9 +65,9 @@ Usage metric contain:
 
 Edit $HOME/.hub-cache.yaml to change settings:
 
-	metrics:
-	  disabled: false
-	  host: 68af657e-6a51-4d4b-890c-4b548852724d
+  metrics:
+    disabled: false
+    host: 68af657e-6a51-4d4b-890c-4b548852724d
 
 Set 'disabled: true' to skip usage metrics reporting.
 Set 'host: ""' to send the counter but not the UUID.
