@@ -9,6 +9,16 @@ export AWS_PROFILE ?=
 S3_BUCKET          ?= controlplane.agilestacks.io
 S3_DISTRIBUTION    ?= s3://$(S3_BUCKET)/dist/hub-cli
 
+ifeq (,$(METRICS_API_SECRET))
+$(warning METRICS_API_SECRET is not set - usage metrics won't be submitted to SuperHub API; \
+see https://github.com/agilestacks/documentation/wiki/Hub-CLI-Usage-Metrics)
+endif
+
+ifeq (,$(DD_CLIENT_API_KEY))
+$(info DD_CLIENT_API_KEY is not set - usage metrics won't be submitted to Datadog; \
+see https://github.com/agilestacks/documentation/wiki/Hub-CLI-Usage-Metrics)
+endif
+
 aws := aws
 
 install: bin/$(OS)/gox bin/$(OS)/go-bindata
