@@ -17,6 +17,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/alexkappa/mustache"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v2"
 
 	"github.com/agilestacks/hub/cmd/hub/config"
@@ -460,6 +461,14 @@ func processReplacement(content, filename, componentName string, componentDepend
 					}
 				}
 				strSubstitution := util.String(substitution)
+				if util.Contains(encodings, "bcrypt") {
+					bytes, err := bcrypt.GenerateFromPassword([]byte(strSubstitution), bcrypt.DefaultCost)
+					if err != nil {
+						util.Warn("Unable to bcrypt encode `%s` value `%s`: %v", variable, util.Trim(strSubstitution), err)
+					} else {
+						strSubstitution = string(bytes)
+					}
+				}
 				if util.Contains(encodings, "base64") {
 					strSubstitution = base64.StdEncoding.EncodeToString([]byte(strSubstitution))
 				} else if util.Contains(encodings, "unbase64") {
@@ -539,8 +548,20 @@ func goTemplateBindings(kv map[string]interface{}) map[string]interface{} {
 	return gkv
 }
 
+func bcryptStr(str string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(str), bcrypt.DefaultCost)
+	if err != nil {
+		return str, err
+	}
+	return string(bytes), nil
+}
+
+var hubGoTemplateFuncMap = map[string]interface{}{
+	"bcrypt": bcryptStr,
+}
+
 func processGo(content, filename, componentName string, kv map[string]interface{}) (string, error) {
-	tmpl, err := gotemplate.New(filepath.Base(filename)).Funcs(sprig.TxtFuncMap()).Parse(content)
+	tmpl, err := gotemplate.New(filepath.Base(filename)).Funcs(sprig.TxtFuncMap()).Funcs(hubGoTemplateFuncMap).Parse(content)
 	if err != nil {
 		return "", err
 	}
