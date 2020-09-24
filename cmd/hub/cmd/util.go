@@ -47,8 +47,9 @@ https://en.wikipedia.org/wiki/One-time_pad
 }
 
 var utilMetricsCmd = &cobra.Command{
-	Use:   "metrics <command>",
-	Short: "Send usage metrics",
+	Use:    "metrics <command>",
+	Hidden: true,
+	Short:  "Send usage metrics",
 	Long: `Send usage metrics in background to SuperHub and Datadog.
 
 We value your privacy and only send anonymized usage metrics for following commands:
