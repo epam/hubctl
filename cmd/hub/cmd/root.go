@@ -72,7 +72,7 @@ func init() {
 
 	RootCmd.PersistentFlags().BoolVarP(&config.Verbose, "verbose", "v", true, "Verbose mode")
 	RootCmd.PersistentFlags().BoolVarP(&config.Debug, "debug", "d", false, "Print debug info. Or set HUB_DEBUG=1")
-	RootCmd.PersistentFlags().BoolVarP(&config.Trace, "trace", "t", false, "Print detailed trace info. Or set HUB_TRACE=1")
+	RootCmd.PersistentFlags().BoolVar(&config.Trace, "trace", false, "Print detailed trace info. Or set HUB_TRACE=1")
 	RootCmd.PersistentFlags().StringVar(&config.LogDestination, "log-destination", "stderr", "stderr or stdout")
 
 	RootCmd.PersistentFlags().BoolVar(&config.AggWarnings, "all-warnings", true, "Repeat all warnings before [successful] exit")
