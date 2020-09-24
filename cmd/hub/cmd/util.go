@@ -16,6 +16,10 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
+var (
+	metricTags []string
+)
+
 var utilCmd = &cobra.Command{
 	Use:   "util <otp | ...>",
 	Short: "Utility functions",
@@ -52,7 +56,7 @@ var utilMetricsCmd = &cobra.Command{
 	Short:  "Send usage metrics",
 	Long: `Send usage metrics in background to SuperHub and Datadog.
 
-We value your privacy and only send anonymized usage metrics for following commands:
+We value your privacy and only send anonymized usage metrics for the following commands:
 - elaborate
 - deploy
 - undeploy
@@ -74,7 +78,7 @@ Set 'disabled: true' to skip usage metrics reporting.
 Set 'host: ""' to send the counter but not the UUID.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return putMetrics(args)
+		return putMetrics(args, metricTags)
 	},
 }
 
@@ -109,18 +113,19 @@ func otpEncode(args []string) error {
 	return nil
 }
 
-func putMetrics(args []string) error {
+func putMetrics(args, tags []string) error {
 	if len(args) != 1 {
 		return errors.New("Metrics command has only one argument - command to send usage metric for")
 	}
 	cmd := args[0]
 
-	metrics.PutMetrics(cmd)
+	metrics.PutMetrics(cmd, tags)
 
 	return nil
 }
 
 func init() {
+	utilMetricsCmd.PersistentFlags().StringSliceVarP(&metricTags, "tags", "t", nil, "Additional tags key:value,...")
 	utilCmd.AddCommand(utilOtpCmd)
 	utilCmd.AddCommand(utilMetricsCmd)
 	RootCmd.AddCommand(utilCmd)

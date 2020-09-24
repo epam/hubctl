@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/agilestacks/hub/cmd/hub/config"
@@ -14,12 +15,23 @@ import (
 
 const metricsSeriesResource = "metrics/api/v1/series"
 
-func putMetricsServiceMetric(cmd, host string) error {
+func putMetricsServiceMetric(cmd, host string, additionaTags []string) error {
 	tags := map[string]string{
 		"command": cmd,
 	}
 	if host != "" {
 		tags["machine-id"] = host
+	}
+	if len(additionaTags) > 0 {
+		for _, t := range additionaTags {
+			kv := strings.SplitN(t, ":", 2)
+			k := kv[0]
+			v := "true"
+			if len(kv) > 1 {
+				v = kv[1]
+			}
+			tags[k] = v
+		}
 	}
 	series := Series{
 		Metric{

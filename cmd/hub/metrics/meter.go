@@ -62,14 +62,14 @@ func meterCommand(cmd *cobra.Command) error {
 	return nil
 }
 
-func PutMetrics(cmd string) {
-	err := putMetrics(cmd)
+func PutMetrics(cmd string, tags []string) {
+	err := putMetrics(cmd, tags)
 	if err != nil {
 		log.Fatalf("Unable to send usage metrics: %v", err)
 	}
 }
 
-func putMetrics(cmd string) error {
+func putMetrics(cmd string, tags []string) error {
 	enabled, host, err := meteringConfig()
 	if err != nil {
 		return fmt.Errorf("Unable to load metrics config: %v", err)
@@ -79,10 +79,10 @@ func putMetrics(cmd string) error {
 	}
 	var err1, err2 error
 	if MetricsServiceKey != "" {
-		err1 = putMetricsServiceMetric(cmd, host)
+		err1 = putMetricsServiceMetric(cmd, host, tags)
 	}
 	if ddKey != "" {
-		err2 = putDDMetric(cmd, host)
+		err2 = putDDMetric(cmd, host, tags)
 	}
 	if err1 != nil || err2 != nil {
 		err = errors.New(util.Errors2(err1, err2))
