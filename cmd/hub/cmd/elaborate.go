@@ -21,6 +21,9 @@ var elaborateCmd = &cobra.Command{
 	Long: `Assemble a complete Stack or Application deployment manifest by joining stack and components manifests.
 Parameters are injected from parameters manifest(s) and optionally are read from state file.
 The resulted hub.yaml.elaborate can be used with deploy command.`,
+	Annotations: map[string]string{
+		"usage-metering": "tags",
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return elaborate(args)
 	},

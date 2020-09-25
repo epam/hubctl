@@ -35,6 +35,9 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy hub.yaml.elaborate",
 	Short: "Deploy stack",
 	Long:  `Deploy stack instance by supplying a fully populated Hub Manifest.`,
+	Annotations: map[string]string{
+		"usage-metering": "tags",
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return deploy(args)
 	},

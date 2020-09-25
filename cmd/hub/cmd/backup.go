@@ -32,6 +32,9 @@ var backupCreateCmd = &cobra.Command{
 	Long: `Create backup of stack component(s).
 Each stack component that supports 'backup' verb is invoked.
 Bundle can be saved into multiple files and also sent to S3.`,
+	Annotations: map[string]string{
+		"usage-metering": "tags",
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return backupCreate(args)
 	},

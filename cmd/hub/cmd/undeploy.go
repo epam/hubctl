@@ -10,6 +10,9 @@ var undeployCmd = &cobra.Command{
 	Use:   "undeploy hub.yaml.elaborate",
 	Short: "Undeploy stack",
 	Long:  `Undeploy stack instance.`,
+	Annotations: map[string]string{
+		"usage-metering": "tags",
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return undeploy(args)
 	},

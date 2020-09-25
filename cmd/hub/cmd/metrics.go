@@ -6,19 +6,14 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/metrics"
 )
 
-var commandsToMeter = []*cobra.Command{
-	apiCmd,
-	elaborateCmd,
-	deployCmd,
-	undeployCmd,
-	backupCreateCmd,
-}
-
 func maybeMeterCommand(cmd *cobra.Command) {
-	for _, toMeter := range commandsToMeter {
-		for cmd2 := cmd; cmd2 != nil; cmd2 = cmd2.Parent() {
-			if cmd2 == toMeter {
-				metrics.MeterCommand(cmd)
+	for cmd2 := cmd; cmd2 != nil; cmd2 = cmd2.Parent() {
+		if ann := cmd.Annotations; ann != nil {
+			if metering, exist := ann["usage-metering"]; exist {
+				pipe := metrics.MeterCommand(cmd, metering == "tags")
+				if cmdCtx := cmdContext(cmd); cmdCtx != nil {
+					cmdCtx.Pipe = pipe
+				}
 				break
 			}
 		}
