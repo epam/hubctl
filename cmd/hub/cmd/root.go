@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -40,7 +41,8 @@ Hub CLI is a lifecycle and stack composition tool:
 }
 
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
+	ctx := context.WithValue(context.Background(), contextKey, &CmdContext{})
+	if err := RootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
