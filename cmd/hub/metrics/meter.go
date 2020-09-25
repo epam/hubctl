@@ -3,6 +3,7 @@ package metrics
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -21,45 +22,61 @@ var (
 	cachedConfig *filecache.Metrics
 )
 
-func MeterCommand(cmd *cobra.Command) {
+func MeterCommand(cmd *cobra.Command, connectStdin bool) io.WriteCloser {
 	if ddKey == "" && MetricsServiceKey == "" {
-		return
+		return nil
 	}
-	err := meterCommand(cmd)
+	stdin, err := meterCommand(cmd, connectStdin)
 	if err != nil {
 		util.Warn("Unable to send usage metrics: %v", err)
 	}
+	return stdin
 }
 
-func meterCommand(cmd *cobra.Command) error {
+func meterCommand(cmd *cobra.Command, connectStdin bool) (io.WriteCloser, error) {
 	enabled, _, err := meteringConfig()
 	if err != nil {
-		return fmt.Errorf("Unable to load metrics config: %v", err)
+		return nil, fmt.Errorf("Unable to load metrics config: %v", err)
 	}
 	if !enabled {
 		if config.Trace {
 			log.Print("Usage metering is not enabled")
 		}
-		return nil
+		return nil, nil
 	}
 	bin, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("Unable to determine path to Hub CLI executable: %v", err)
+		return nil, fmt.Errorf("Unable to determine path to Hub CLI executable: %v", err)
 	}
+	args := []string{"hub", "util", "metrics"}
+	if connectStdin {
+		args = append(args, "--tags-stdin")
+	}
+	args = append(args, commandStr(cmd))
 	hub := exec.Cmd{
 		Path: bin,
-		Args: []string{"hub", "util", "metrics", commandStr(cmd)},
+		Args: args,
 	}
 	if config.Trace {
 		hub.Stdout = os.Stdout
 		hub.Stderr = os.Stderr
 	}
+	var stdin io.WriteCloser
+	if connectStdin {
+		stdin, err = hub.StdinPipe()
+		if err != nil {
+			return nil, err
+		}
+	}
 	err = hub.Start()
 	if err != nil {
-		return err
+		if stdin != nil {
+			stdin.Close()
+		}
+		return nil, err
 	}
 	go hub.Wait()
-	return nil
+	return stdin, nil
 }
 
 func PutMetrics(cmd string, tags []string) {

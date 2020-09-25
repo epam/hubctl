@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"io"
+
 	"github.com/spf13/cobra"
 
 	"github.com/agilestacks/hub/cmd/hub/lifecycle"
@@ -14,16 +16,20 @@ var undeployCmd = &cobra.Command{
 		"usage-metering": "tags",
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return undeploy(args)
+		pipe := cmdContextPipe(cmd)
+		if pipe != nil {
+			defer pipe.Close()
+		}
+		return undeploy(args, pipe)
 	},
 }
 
-func undeploy(args []string) error {
+func undeploy(args []string, pipe io.WriteCloser) error {
 	request, err := lifecycleRequest(args, "undeploy")
 	if err != nil {
 		return err
 	}
-	lifecycle.Execute(request)
+	lifecycle.Execute(request, pipe)
 	return nil
 }
 

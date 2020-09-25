@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"io"
 
 	"github.com/spf13/cobra"
 
@@ -25,11 +26,15 @@ The resulted hub.yaml.elaborate can be used with deploy command.`,
 		"usage-metering": "tags",
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return elaborate(args)
+		pipe := cmdContextPipe(cmd)
+		if pipe != nil {
+			defer pipe.Close()
+		}
+		return elaborate(args, pipe)
 	},
 }
 
-func elaborate(args []string) error {
+func elaborate(args []string, pipe io.WriteCloser) error {
 	if len(args) < 1 {
 		return errors.New("Elaborate command has one or more arguments - path to Stack Manifest file and optionally to parameters file(s)")
 	}
@@ -42,7 +47,8 @@ func elaborate(args []string) error {
 	elaborateManifests := util.SplitPaths(elaborateOutput)
 	stateManifests := util.SplitPaths(stateManifestExplicit)
 	compose.Elaborate(manifest, parameters, environmentOverrides, elaboratePlatformProvides,
-		stateManifests, elaborateUseStateStackParameters, elaborateManifests, componentsBaseDir)
+		stateManifests, elaborateUseStateStackParameters, elaborateManifests, componentsBaseDir,
+		pipe)
 
 	return nil
 }

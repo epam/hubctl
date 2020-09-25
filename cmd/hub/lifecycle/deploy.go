@@ -2,6 +2,7 @@ package lifecycle
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -23,7 +24,7 @@ const (
 	SkaffoldKubeContextEnvVarName = "SKAFFOLD_KUBE_CONTEXT"
 )
 
-func Execute(request *Request) {
+func Execute(request *Request, pipe io.WriteCloser) {
 	isDeploy := strings.HasPrefix(request.Verb, "deploy")
 	isUndeploy := strings.HasPrefix(request.Verb, "undeploy")
 	isSomeComponents := len(request.Components) > 0 || request.OffsetComponent != ""
@@ -31,6 +32,12 @@ func Execute(request *Request) {
 	stackManifest, componentsManifests, chosenManifestFilename, err := manifest.ParseManifest(request.ManifestFilenames)
 	if err != nil {
 		log.Fatalf("Unable to %s: %s", request.Verb, err)
+	}
+
+	if pipe != nil {
+		metricTags := fmt.Sprintf("stack:%s", stackManifest.Meta.Name)
+		pipe.Write([]byte(metricTags))
+		pipe.Close()
 	}
 
 	environment, err := util.ParseKvList(request.EnvironmentOverrides)

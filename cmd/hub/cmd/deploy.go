@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -39,7 +40,11 @@ var deployCmd = &cobra.Command{
 		"usage-metering": "tags",
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return deploy(args)
+		pipe := cmdContextPipe(cmd)
+		if pipe != nil {
+			defer pipe.Close()
+		}
+		return deploy(args, pipe)
 	},
 }
 
@@ -142,12 +147,12 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 	return request, nil
 }
 
-func deploy(args []string) error {
+func deploy(args []string, pipe io.WriteCloser) error {
 	request, err := lifecycleRequest(args, "deploy")
 	if err != nil {
 		return err
 	}
-	lifecycle.Execute(request)
+	lifecycle.Execute(request, pipe)
 	return nil
 }
 

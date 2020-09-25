@@ -3,6 +3,7 @@ package compose
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -42,7 +43,8 @@ var environment map[string]string
 
 func Elaborate(manifestFilename string,
 	parametersFilenames []string, environmentOverrides, explicitProvides string,
-	stateManifests []string, useStateStackParameters bool, elaborateManifests []string, componentsBaseDir string) {
+	stateManifests []string, useStateStackParameters bool, elaborateManifests []string, componentsBaseDir string,
+	pipe io.WriteCloser) {
 
 	if config.Verbose {
 		parametersFrom := ""
@@ -99,6 +101,12 @@ func Elaborate(manifestFilename string,
 
 	stackManifest, componentsManifests := elaborate(manifestFilename, parametersFilenames, environment,
 		wellKnownKV, componentsBaseDir, []string{}, 0, extraKubernetesParams)
+
+	if pipe != nil {
+		metricTags := fmt.Sprintf("stack:%s", stackManifest.Meta.Name)
+		pipe.Write([]byte(metricTags))
+		pipe.Close()
+	}
 
 	isApplication := stackManifest.Kind == "application"
 

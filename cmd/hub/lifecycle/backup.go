@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -19,7 +20,7 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
-func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial bool) {
+func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial bool, pipe io.WriteCloser) {
 	if len(request.StateFilenames) == 0 {
 		log.Fatal("Backup without state file(s) is not implemented; try --state")
 	}
@@ -36,6 +37,12 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	stackManifest, componentsManifests, _, err := manifest.ParseManifest(request.ManifestFilenames)
 	if err != nil {
 		log.Fatalf("Unable to create backup: %v", err)
+	}
+
+	if pipe != nil {
+		metricTags := fmt.Sprintf("stack:%s", stackManifest.Meta.Name)
+		pipe.Write([]byte(metricTags))
+		pipe.Close()
 	}
 
 	osEnv, err := initOsEnv(request.OsEnvironmentMode)

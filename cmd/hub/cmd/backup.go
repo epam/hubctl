@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"io"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -36,7 +37,11 @@ Bundle can be saved into multiple files and also sent to S3.`,
 		"usage-metering": "tags",
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return backupCreate(args)
+		pipe := cmdContextPipe(cmd)
+		if pipe != nil {
+			defer pipe.Close()
+		}
+		return backupCreate(args, pipe)
 	},
 }
 
@@ -53,7 +58,7 @@ Parameters can be saved into multiple files and also sent to S3.`,
 	},
 }
 
-func backupCreate(args []string) error {
+func backupCreate(args []string, pipe io.WriteCloser) error {
 	if len(args) != 1 {
 		return errors.New("Backup Create command has only one argument - path to Stack Elaborate file")
 	}
@@ -79,7 +84,7 @@ func backupCreate(args []string) error {
 		Application:          hubApplication,
 	}
 
-	lifecycle.BackupCreate(request, bundleFiles, backupBundleInJson, backupAllowPartial)
+	lifecycle.BackupCreate(request, bundleFiles, backupBundleInJson, backupAllowPartial, pipe)
 
 	return nil
 }
