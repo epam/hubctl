@@ -44,7 +44,7 @@ var createSecretCmd = cobra.Command{
 	sshKey: sshKey
 	license: licenseKey
 	*token: *token
-- of secret "value" is "-" then it is read from stdin`,
+- if secret "value" is "-" then it is read from stdin`,
 }
 
 func getSecret(entityKind string, args []string) error {
