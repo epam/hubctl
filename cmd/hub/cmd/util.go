@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"errors"
@@ -17,7 +18,8 @@ import (
 )
 
 var (
-	metricTags []string
+	metricTags  []string
+	metricStdin bool
 )
 
 var utilCmd = &cobra.Command{
@@ -119,13 +121,23 @@ func putMetrics(args, tags []string) error {
 	}
 	cmd := args[0]
 
+	if metricStdin {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if len(line) >= 3 {
+				tags = append(tags, line)
+			}
+		}
+	}
 	metrics.PutMetrics(cmd, tags)
 
 	return nil
 }
 
 func init() {
-	utilMetricsCmd.PersistentFlags().StringSliceVarP(&metricTags, "tags", "t", nil, "Additional tags key:value,...")
+	utilMetricsCmd.Flags().StringSliceVarP(&metricTags, "tags", "t", nil, "Additional tags key:value,...")
+	utilMetricsCmd.Flags().BoolVar(&metricStdin, "tags-stdin", false, "Read additional tags from stdin, key:value per line")
 	utilCmd.AddCommand(utilOtpCmd)
 	utilCmd.AddCommand(utilMetricsCmd)
 	RootCmd.AddCommand(utilCmd)
