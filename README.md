@@ -1,5 +1,7 @@
 ## Hub CLI
 
+Hub CLI is stack composition and lifecycle tool.
+
     $ hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
     $ hub deploy hub.yaml.elaborate -e NAME=test2
     $ hub version
