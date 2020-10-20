@@ -19,13 +19,11 @@ import (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "hub",
-	Short: "Hub CLI is a lifecycle and stack composition tool",
-	Long: `Hub CLI is an interface to SuperHub.
-
-Hub CLI is a lifecycle and stack composition tool:
-- template and stack creation, stack lifecycle;
-- stack instance parameters, output variables and status;
-- enumeration of templates, stack instances, components via SuperHub inventory.`,
+	Short: "Hub CLI is a stack composition and lifecycle tool",
+	Long: `Hub CLI is a stack composition and lifecycle tool:
+- template and stack creation, stack deploy / undeploy / backup lifecycle;
+- stack and component parameters, output variables, and status;
+- management of templates, stacks, components on SuperHub.io`,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.Update()
