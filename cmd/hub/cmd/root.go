@@ -49,8 +49,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&config.ConfigFile, "config", "", "Config file (default is $HOME/.automation-hub.{yaml,json})")
-	RootCmd.PersistentFlags().StringVar(&config.CacheFile, "cache", "", "API cache file (default is $HOME/.automation-hub-cache.yaml)")
+	RootCmd.PersistentFlags().StringVar(&config.ConfigFile, "config", "", "Config file (default is $HOME/.hub-config.{yaml,json})")
+	RootCmd.PersistentFlags().StringVar(&config.CacheFile, "cache", "", "API cache file (default is $HOME/.hub-cache.yaml)")
 
 	apiDefault := os.Getenv(envVarNameHubApi)
 	if apiDefault == "" {
