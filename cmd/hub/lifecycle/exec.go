@@ -7,6 +7,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+
+	"github.com/mattn/go-isatty"
+
+	"github.com/agilestacks/hub/cmd/hub/config"
 )
 
 func goWait(routine func()) chan string {
@@ -20,13 +24,13 @@ func goWait(routine func()) chan string {
 }
 
 func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []byte, error) {
-	stderr, err := impl.StderrPipe()
+	stderrImpl, err := impl.StderrPipe()
 	if err != nil {
-		log.Fatalf("Unable to obtain stderr pipe: %v", err)
+		return nil, nil, fmt.Errorf("Unable to obtain sub-process stderr pipe: %v", err)
 	}
-	stdout, err := impl.StdoutPipe()
+	stdoutImpl, err := impl.StdoutPipe()
 	if err != nil {
-		log.Fatalf("Unable to obtain stdout pipe: %v", err)
+		return nil, nil, fmt.Errorf("Unable to obtain sub-process stdout pipe: %v", err)
 	}
 
 	args := ""
@@ -35,21 +39,43 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []by
 	}
 	implBlurb := fmt.Sprintf("%s%s (%s)", impl.Path, args, impl.Dir)
 
-	os.Stdout.Sync()
-	os.Stderr.Sync()
-
 	var stdoutBuffer bytes.Buffer
 	var stderrBuffer bytes.Buffer
 	var stdoutWritter io.Writer = &stdoutBuffer
 	var stderrWritter io.Writer = &stderrBuffer
+	logOutput := log.Writer()
 	if pipeOutputInRealtime {
-		stdoutWritter = io.MultiWriter(&stdoutBuffer, os.Stdout)
-		stderrWritter = io.MultiWriter(&stderrBuffer, os.Stderr)
+		var stdout io.Writer = os.Stdout
+		var stderr io.Writer = os.Stderr
+
+		if config.Tty && !config.Debug {
+			stdoutTerminal := isatty.IsTerminal(os.Stdout.Fd())
+			stderrTerminal := isatty.IsTerminal(os.Stderr.Fd())
+			to := os.Stdout
+			if !stdoutTerminal && stderrTerminal {
+				to = os.Stderr
+			}
+			tail := newTail(to)
+			if stdoutTerminal || config.TtyForced {
+				stdout = tail
+			}
+			if stderrTerminal || config.TtyForced {
+				stderr = tail
+			}
+			// send CLI messages to common stream so that output is formatted correctly
+			log.SetOutput(tail)
+		}
+
+		stdoutWritter = io.MultiWriter(&stdoutBuffer, stdout)
+		stderrWritter = io.MultiWriter(&stderrBuffer, stderr)
 		fmt.Printf("--- %s\n", implBlurb)
 	}
 
-	stdoutComplete := goWait(func() { io.Copy(stdoutWritter, stdout) })
-	stderrComplete := goWait(func() { io.Copy(stderrWritter, stderr) })
+	os.Stdout.Sync()
+	os.Stderr.Sync()
+
+	stdoutComplete := goWait(func() { io.Copy(stdoutWritter, stdoutImpl) })
+	stderrComplete := goWait(func() { io.Copy(stderrWritter, stderrImpl) })
 	// Wait will close the pipe after seeing the command exit, so most callers
 	// need not close the pipe themselves; however, an implication is that it is
 	// incorrect to call Wait before all reads from the pipe have completed.
@@ -64,6 +90,8 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []by
 
 	os.Stdout.Sync()
 	os.Stderr.Sync()
+
+	log.SetOutput(logOutput)
 
 	if err == nil {
 		err = impl.Wait()

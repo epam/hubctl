@@ -22,23 +22,31 @@ import (
 var (
 	warnings        = make([]string, 0)
 	warningsEmitted = make(map[string]struct{})
-	HighlightColor  = func(str string) string { return str }
-	WarnColor       = func(str string) string { return str }
+	HighlightColor  = maybeHighlight(aurora.BrightCyan)
+	WarnColor       = maybeHighlight(aurora.BrightMagenta)
+	logTerminal     *bool
 )
 
-func init() {
-	if IsTerminal() {
-		HighlightColor = func(str string) string { return aurora.BrightCyan(str).String() }
-		WarnColor = func(str string) string { return aurora.BrightMagenta(str).String() }
+func maybeHighlight(color func(interface{}) aurora.Value) func(string) string {
+	return func(str string) string {
+		if config.Tty && (IsLogTerminal() || config.TtyForced) {
+			str = color(str).String()
+		}
+		return str
 	}
 }
 
-func IsTerminal() bool {
+func IsLogTerminal() bool {
+	if logTerminal != nil {
+		return *logTerminal
+	}
 	fd := os.Stderr.Fd()
 	if config.LogDestination == "stdout" {
 		fd = os.Stdout.Fd()
 	}
-	return isatty.IsTerminal(fd)
+	tty := isatty.IsTerminal(fd)
+	logTerminal = &tty
+	return tty
 }
 
 func Warn(format string, v ...interface{}) {

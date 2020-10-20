@@ -146,7 +146,7 @@ func meteringConfig() (bool, string, error) {
 	}
 	// generate and save host uuid if interactive session
 	var writeErr error
-	if conf.Host == nil && util.IsTerminal() {
+	if conf.Host == nil && (config.Tty && !config.TtyForced) {
 		u, err := uuid.NewRandom()
 		if err != nil {
 			util.Warn("Unable to generate host random v4 UUID: %v", err)
