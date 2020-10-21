@@ -22,6 +22,11 @@ func Install(dir string) {
 		dir = defaultExtensionsDir()
 	}
 
+	_, err := os.Stat(filepath.Join(dir, ".git"))
+	if err == nil {
+		util.Warn("`%s` already exist; try `hub extensions update`?", dir)
+	}
+
 	cmd := exec.Cmd{
 		Path:   git.GitBinPath(),
 		Args:   []string{"git", "clone", extensionsGitRemote, dir},
@@ -32,9 +37,9 @@ func Install(dir string) {
 	if config.Debug {
 		log.Printf("Cloning extensions repository: %v", cmd.Args)
 	}
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
-		log.Fatalf("Unable to clone %s into %s: %v", extensionsGitRemote, dir, err)
+		log.Fatalf("Unable to git clone %s into %s: %v", extensionsGitRemote, dir, err)
 	}
 
 	hook := filepath.Join(dir, "post-install")
