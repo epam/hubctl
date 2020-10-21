@@ -88,7 +88,7 @@ func Update(dir string) {
 		log.Fatalf("No update hook %s: %v", hook, err)
 	}
 
-	if config.Verbose {
+	if config.Verbose && err == nil {
 		log.Printf("Hub CLI extensions updated in %s", dir)
 	}
 }
