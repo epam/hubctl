@@ -465,12 +465,16 @@ func setValuesFromState(parameters []manifest.Parameter, st *state.StateManifest
 					parameter.Value = value
 				} else {
 					if !util.Empty(parameter.Default) {
-						qName := parameter.QName()
-						util.Warn("Overwritting empty parameter `%s` `default: %s` with state value `%s` (due to `fromEnv: %s`)",
-							qName,
-							util.Trim(util.MaybeMaskedValue(config.Trace, qName, util.String(parameter.Default))),
-							util.Trim(util.MaybeMaskedValue(config.Trace, qName, util.String(value))),
-							parameter.FromEnv)
+						pDefault := util.String(parameter.Default)
+						pValue := util.String(value)
+						if pDefault != pValue {
+							qName := parameter.QName()
+							util.Warn("Overwriting empty parameter `%s` `default: %s` with state value `default: %s` (due to `fromEnv: %s`)",
+								qName,
+								util.Trim(util.MaybeMaskedValue(config.Trace, qName, pDefault)),
+								util.Trim(util.MaybeMaskedValue(config.Trace, qName, pValue)),
+								parameter.FromEnv)
+						}
 					}
 					parameter.Default = value
 				}
