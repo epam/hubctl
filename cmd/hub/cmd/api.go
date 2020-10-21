@@ -15,7 +15,7 @@ import (
 
 var apiCmd = &cobra.Command{
 	Use:   "api ...",
-	Short: "Use remote Automation Hub API to access SuperHub",
+	Short: "API to access SuperHub.io",
 	Annotations: map[string]string{
 		"usage-metering": "",
 	},
