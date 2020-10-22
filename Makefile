@@ -42,21 +42,23 @@ metrics-keys:
 
 compile: bin/$(OS)/gox version metrics-keys
 	go mod download
-	nice $(GOBIN)/gox -rebuild -tags "git metrics"\
-		-osarch="darwin/amd64 linux/amd64 windows/amd64" \
-		-output=bin/{{.OS}}/hub \
+	nice $(GOBIN)/gox -parallel=4 -rebuild -tags "git metrics"\
+		-osarch="linux/amd64 linux/arm64 darwin/amd64 windows/amd64" \
+		-output=bin/{{.OS}}_{{.Arch}}/hub \
 		github.com/agilestacks/hub/cmd/hub
 .PHONY: compile
 
 distribute: compile
-	$(aws) s3 cp bin/darwin/hub      $(S3_DISTRIBUTION)/hub.darwin_amd64
-	$(aws) s3 cp bin/linux/hub       $(S3_DISTRIBUTION)/hub.linux_amd64
-	$(aws) s3 cp bin/windows/hub.exe $(S3_DISTRIBUTION)/hub.windows_amd64.exe
+	$(aws) s3 cp bin/linux_amd64/hub       $(S3_DISTRIBUTION)/hub.linux_amd64
+	$(aws) s3 cp bin/linux_arm64/hub       $(S3_DISTRIBUTION)/hub.linux_arm64
+	$(aws) s3 cp bin/darwin_amd64/hub      $(S3_DISTRIBUTION)/hub.darwin_amd64
+	$(aws) s3 cp bin/windows_amd64/hub.exe $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: distribute
 
 undistribute:
-	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.darwin_amd64
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_amd64
+	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_arm64
+	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.darwin_amd64
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: undistribute
 
@@ -90,5 +92,5 @@ loc: bin/$(OS)/gocloc
 
 clean:
 	@rm -f hub cel bin/hub bin/cel
-	@rm -rf bin/darwin bin/linux bin/windows
+	@rm -rf bin/darwin* bin/linux* bin/windows*
 .PHONY: clean

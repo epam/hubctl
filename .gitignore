@@ -2,9 +2,10 @@
 
 /hub
 bin/hub
-bin/linux
-bin/darwin
-bin/windows
+bin/cel
+bin/linux*
+bin/darwin*
+bin/windows*
 
 cmd/hub/util/version.go
 cmd/hub/metrics/keys.go
