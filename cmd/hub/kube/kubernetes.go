@@ -156,6 +156,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 	switch flavor {
 	case "eks":
 		eksClusterName = mustOutput(params, outputs, provider, kubernetesEksClusterOutput)
+		bearerToken, _ = mayOutput(params, outputs, provider, kubernetesApiTokenOutput)
 	case "openshift", "gke", "aks":
 		bearerToken = mustOutput(params, outputs, provider, kubernetesApiTokenOutput)
 	}
@@ -256,12 +257,19 @@ func SetupKubernetes(params parameters.LockedParameters,
 
 	case "eks":
 		user = "eks-" + eksClusterName
-		mustExec(kubectl, "config", "set-credentials", user,
-			"--exec-api-version=client.authentication.k8s.io/v1alpha1",
-			"--exec-command=aws-iam-authenticator",
-			"--exec-arg=token",
-			"--exec-arg=-i",
-			"--exec-arg="+eksClusterName)
+		if bearerToken != "" {
+			mustExec(kubectl, "config", "set-credentials", user,
+				"--token="+bearerToken)
+			mustExec(kubectl, "config", "unset", fmt.Sprintf("users.%s.exec", user))
+		} else {
+			mustExec(kubectl, "config", "set-credentials", user,
+				"--exec-api-version=client.authentication.k8s.io/v1alpha1",
+				"--exec-command=aws-iam-authenticator",
+				"--exec-arg=token",
+				"--exec-arg=-i",
+				"--exec-arg="+eksClusterName)
+			mustExec(kubectl, "config", "unset", fmt.Sprintf("users.%s.token", user))
+		}
 
 	case "openshift", "gke", "aks":
 		user = fmt.Sprintf("%s-%s", flavor, domain)
