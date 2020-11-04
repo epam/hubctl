@@ -60,8 +60,8 @@ func prepareComponentRequires(provided map[string][]string, componentManifest *m
 			log.Printf("Requirement `%s` provided by `%s`", req, by[0])
 		}
 		provider := by[len(by)-1]
-		if len(by) > 1 {
-			util.Warn("Requirement `%s` provided by multiple components `%s`, only `%s` will be used",
+		if config.Verbose && len(by) > 1 {
+			log.Printf("Requirement `%s` provided by multiple components `%s`, only `%s` will be used",
 				req, strings.Join(by, ", "), provider)
 		}
 
