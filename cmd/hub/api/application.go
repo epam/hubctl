@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -339,13 +340,23 @@ func RawPatchApplication(selector string, body io.Reader, waitAndTailDeployLogs 
 
 func rawPatchApplication(selector string, body io.Reader) (*Application, error) {
 	instance, err := applicationBy(selector)
-	if err != nil {
+	if err != nil && !config.Force {
 		return nil, err
 	}
-	if instance == nil {
+	if instance == nil && !config.Force {
 		return nil, error404
 	}
-	path := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(instance.Id))
+	instanceId := ""
+	if instance == nil {
+		if util.IsUint(selector) {
+			instanceId = selector
+		} else {
+			return nil, errors.New("Specify application by Id")
+		}
+	} else {
+		instanceId = instance.Id
+	}
+	path := fmt.Sprintf("%s/%s", applicationsResource, url.PathEscape(instanceId))
 	var jsResp Application
 	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {

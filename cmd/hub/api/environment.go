@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -456,13 +457,23 @@ func RawPatchEnvironment(selector string, body io.Reader) {
 
 func rawPatchEnvironment(selector string, body io.Reader) (*Environment, error) {
 	environment, err := environmentBy(selector)
-	if err != nil {
+	if err != nil && !config.Force {
 		return nil, err
 	}
-	if environment == nil {
+	if environment == nil && !config.Force {
 		return nil, error404
 	}
-	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environment.Id))
+	environmentId := ""
+	if environment == nil {
+		if util.IsUint(selector) {
+			environmentId = selector
+		} else {
+			return nil, errors.New("Specify environment by Id")
+		}
+	} else {
+		environmentId = environment.Id
+	}
+	path := fmt.Sprintf("%s/%s", environmentsResource, url.PathEscape(environmentId))
 	var jsResp Environment
 	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {

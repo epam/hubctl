@@ -893,17 +893,27 @@ func RawPatchStackInstance(selector string, body io.Reader, replace bool) {
 
 func rawPatchStackInstance(selector string, body io.Reader, replace bool) (*StackInstance, error) {
 	instance, err := stackInstanceBy(selector)
-	if err != nil {
+	if err != nil && !config.Force {
 		return nil, err
 	}
-	if instance == nil {
+	if instance == nil && !config.Force {
 		return nil, error404
+	}
+	instanceId := ""
+	if instance == nil {
+		if util.IsUint(selector) {
+			instanceId = selector
+		} else {
+			return nil, errors.New("Specify instance by Id")
+		}
+	} else {
+		instanceId = instance.Id
 	}
 	maybeReplace := ""
 	if replace {
 		maybeReplace = "?replace=1"
 	}
-	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(instance.Id), maybeReplace)
+	path := fmt.Sprintf("%s/%s%s", stackInstancesResource, url.PathEscape(instanceId), maybeReplace)
 	var jsResp StackInstance
 	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -418,13 +419,23 @@ func RawPatchTemplate(selector string, body io.Reader) {
 
 func rawPatchTemplate(selector string, body io.Reader) (*StackTemplate, error) {
 	template, err := templateBy(selector)
-	if err != nil {
+	if err != nil && !config.Force {
 		return nil, err
 	}
-	if template == nil {
+	if template == nil && !config.Force {
 		return nil, error404
 	}
-	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(template.Id))
+	templateId := ""
+	if template == nil {
+		if util.IsUint(selector) {
+			templateId = selector
+		} else {
+			return nil, errors.New("Specify template by Id")
+		}
+	} else {
+		templateId = template.Id
+	}
+	path := fmt.Sprintf("%s/%s", templatesResource, url.PathEscape(templateId))
 	var jsResp StackTemplate
 	code, err := patch2(hubApi(), path, body, &jsResp)
 	if err != nil {
