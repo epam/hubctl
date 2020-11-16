@@ -88,7 +88,8 @@ func probeMakefile(dir string, verb string) (bool, error) {
 }
 
 func probeScript(dir string, verb string) (string, error) {
-	scripts := []string{verb + ".sh", "bin/" + verb + ".sh", "_" + verb + ".sh"}
+	scripts := []string{verb, "bin/" + verb, "_" + verb,
+		verb + ".sh", "bin/" + verb + ".sh", "_" + verb + ".sh"}
 	var lastErr error = nil
 	for _, script := range scripts {
 		filename := fmt.Sprintf("%s/%s", dir, script)
@@ -100,7 +101,7 @@ func probeScript(dir string, verb string) (string, error) {
 			continue
 		}
 		mode := info.Mode()
-		if mode.IsRegular() { // TODO check exec bits
+		if mode.IsRegular() { // TODO check exec bits?
 			return script, nil
 		}
 	}
