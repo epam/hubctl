@@ -29,7 +29,7 @@ func Install(dir string) {
 
 	cmd := exec.Cmd{
 		Path:   git.GitBinPath(),
-		Args:   []string{"git", "clone", extensionsGitRemote, dir},
+		Args:   []string{"git", "clone", "-b", "stable", extensionsGitRemote, dir},
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
