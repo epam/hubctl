@@ -1,6 +1,7 @@
 package lifecycle
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/agilestacks/hub/cmd/hub/ext"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
@@ -31,7 +33,11 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 	if script != "" {
 		return &exec.Cmd{Path: script, Dir: dir}, nil
 	}
-	skaffold, err3 := probeSkaffold(dir, verb)
+	helm, err3 := probeHelm(dir, verb)
+	if helm != "" {
+		return &exec.Cmd{Path: helm, Dir: dir}, nil
+	}
+	skaffold, err4 := probeSkaffold(dir, verb)
 	if skaffold {
 		binSkaffold, err := exec.LookPath("skaffold")
 		if err != nil {
@@ -44,28 +50,36 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 		return &exec.Cmd{Path: binSkaffold, Args: []string{"skaffold", verb}, Dir: dir}, nil
 	}
 	return nil, fmt.Errorf("No `%s` implementation found in `%s`: %s",
-		verb, dir, util.Errors("; ", err, err2, err3))
+		verb, dir, util.Errors("; ", err, err2, err3, err4))
 }
 
-func probeImplementation(dir string, verb string) bool {
+func probeImplementation(dir string, verb string) (bool, error) {
 	makefile, err := probeMakefile(dir, verb)
 	if makefile {
-		return true
+		return true, nil
 	}
 	script, err2 := probeScript(dir, verb)
 	if script != "" {
-		return true
+		return true, nil
 	}
-	skaffold, err3 := probeSkaffold(dir, verb)
+	helm, err3 := probeHelm(dir, verb)
+	if helm != "" {
+		return true, nil
+	}
+	skaffold, err4 := probeSkaffold(dir, verb)
 	if skaffold {
-		return true
+		return true, nil
 	}
+	allErrs := util.Errors("; ", err, err2, err3, err4)
 	if config.Debug {
 		log.Printf("Found no `%s` implementations in `%s`: %s",
-			verb, dir, util.Errors("; ", err, err2, err3))
+			verb, dir, allErrs)
 	}
-	return false
+	return false, errors.New(allErrs)
 }
+
+// TODO folowing probes relies on impl file presence
+// that may not be the case if the impl is templated
 
 func probeMakefile(dir string, verb string) (bool, error) {
 	filename := fmt.Sprintf("%s/Makefile", dir)
@@ -108,8 +122,34 @@ func probeScript(dir string, verb string) (string, error) {
 	return "", lastErr
 }
 
+func probeHelm(dir string, verb string) (string, error) {
+	yamls := []string{"values.yaml", "values.yaml.template", "values.yaml.gotemplate"}
+	var lastErr error = nil
+	found := false
+	for _, yaml := range yamls {
+		filename := fmt.Sprintf("%s/%s", dir, yaml)
+		info, err := os.Stat(filename)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				lastErr = err
+			}
+			continue
+		}
+		mode := info.Mode()
+		if mode.IsRegular() {
+			found = true
+			break
+		}
+	}
+	if found {
+		path, _, err := ext.ExtensionPath([]string{"helm", verb}, nil) // TODO return additional args?
+		return path, err
+	}
+	return "", lastErr
+}
+
 func probeSkaffold(dir string, verb string) (bool, error) {
-	yamls := []string{"skaffold.yaml", "skaffold.yaml.template"}
+	yamls := []string{"skaffold.yaml", "skaffold.yaml.template", "skaffold.yaml.gotemplate"}
 	var lastErr error = nil
 	for _, yaml := range yamls {
 		filename := fmt.Sprintf("%s/%s", dir, yaml)

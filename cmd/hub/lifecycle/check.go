@@ -53,17 +53,17 @@ func checkLifecycleVerbs(components []manifest.ComponentRef, componentsManifests
 			if util.Contains(optionalVerbs, verb) {
 				continue
 			}
-			impl := probeImplementation(dir, verb)
+			impl, err := probeImplementation(dir, verb)
 			if !impl {
-				msg := fmt.Sprintf("`%s` component in `%s` has no `%s` implementation",
-					manifest.ComponentQualifiedNameFromRef(&component), dir, verb)
+				msg := fmt.Sprintf("`%s` component in `%s` has no `%s` implementation: %v",
+					manifest.ComponentQualifiedNameFromRef(&component), dir, verb, err)
 				manifest := manifest.ComponentManifestByRef(componentsManifests, &component)
 				if manifest.Lifecycle.Bare == "allow" {
 					if config.Verbose {
 						log.Print(msg)
 					}
 				} else {
-					log.Fatalf("%s;\n\tTry setting `lifecycle.bare: allow` in component manifest if it's your intention", msg)
+					log.Fatalf("%s;\n\tTry setting `lifecycle.bare: allow` in component's manifest if it's your intention", msg)
 				}
 			}
 		}

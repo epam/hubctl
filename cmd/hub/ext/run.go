@@ -14,7 +14,7 @@ import (
 
 const hubDir = ".hub"
 
-func scriptPath(what, args []string) (string, []string, error) {
+func ExtensionPath(what, args []string) (string, []string, error) {
 
 	searchDirs := []string{filepath.Join(".", hubDir)}
 
@@ -97,7 +97,7 @@ func runExtension(what, args []string) (int, error) {
 	if config.Debug {
 		log.Printf("Searching extension %v with args %v", what, args)
 	}
-	executable, args, err := scriptPath(what, args)
+	executable, args, err := ExtensionPath(what, args)
 	if err != nil {
 		return 0, err
 	}

@@ -79,7 +79,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
 		if util.Contains(componentManifest.Lifecycle.Verbs, request.Verb) {
 			dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-			impl := probeImplementation(dir, verb)
+			impl, _ := probeImplementation(dir, verb)
 			if impl {
 				implementsBackup = append(implementsBackup, manifest.ComponentQualifiedNameFromRef(component))
 			}
