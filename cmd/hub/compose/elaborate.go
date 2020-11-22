@@ -692,19 +692,20 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 			// below are either hub.yaml / params.yaml top-level parameters or
 			// kind == user parameters from hub-component.yaml
 
-			if parameter.Env != "" && !util.Contains(globalEnvVarsAllowed, parameter.Env) {
+			// TODO global env var support is suspended, decide to resume or remove
+			if parameter.Env != "" { //  && !util.Contains(globalEnvVarsAllowed, parameter.Env) {
 				if !isComponentManifest {
-					if !!isApplication {
+					if !isApplication {
 						util.WarnOnce("Parameter `%s` specify `env: %s` on hub.yaml / params.yaml level",
 							parameter.QName(), parameter.Env)
 					}
 				} else {
-					if config.Debug {
+					if config.Trace {
 						log.Printf("User-level parameter `%s` specify `env: %s` on hub-component.yaml level - not propagated to global env",
 							parameter.QName(), parameter.Env)
 					}
-					parameter.Env = ""
 				}
+				parameter.Env = ""
 			}
 
 			if parameter.Component == "" {
