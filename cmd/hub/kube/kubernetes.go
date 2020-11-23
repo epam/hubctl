@@ -170,20 +170,17 @@ func SetupKubernetes(params parameters.LockedParameters,
 	var configCmd string
 	if config.SwitchKubeconfigContext {
 		if config.Verbose {
-			log.Printf("Changing Kubeconfig context to %s", context)
+			log.Printf("Changing Kubeconfig context to `%s`", context)
 		}
 		configCmd = "use-context"
 	} else {
 		if config.Verbose {
-			log.Printf("Checking Kubeconfig context %s", context)
+			log.Printf("Checking Kubeconfig context `%s`", context)
 		}
 		configCmd = "get-contexts"
 	}
-	cmd := exec.Command(kubectl, "config", configCmd, context)
-	outBytes, err := cmd.CombinedOutput()
-	if err != nil || config.Debug {
-		log.Printf("kubectl output:\n%s", outBytes)
-	}
+
+	outBytes, err := execOutput(kubectl, "config", configCmd, context)
 	if err == nil {
 		if !overwrite {
 			// check CA cert match to
@@ -348,7 +345,7 @@ func writeFile(filename string, content string) {
 	}
 }
 
-func mustExec(name string, args ...string) {
+func execOutput(name string, args ...string) ([]byte, error) {
 	if config.Trace {
 		log.Printf("Executing %s %v", name, args)
 	}
@@ -357,6 +354,11 @@ func mustExec(name string, args ...string) {
 	if err != nil || config.Debug {
 		log.Printf("%s output:\n%s", name, outBytes)
 	}
+	return outBytes, err
+}
+
+func mustExec(name string, args ...string) {
+	_, err := execOutput(name, args...)
 	if err != nil {
 		log.Fatalf("%s failed: %v", name, err)
 	}
