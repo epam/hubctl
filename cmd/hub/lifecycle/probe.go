@@ -142,7 +142,7 @@ func probeHelm(dir string, verb string) (string, error) {
 		}
 	}
 	if found {
-		path, _, err := ext.ExtensionPath([]string{"helm", verb}, nil) // TODO return additional args?
+		path, _, err := ext.ExtensionPath([]string{"component", "helm", verb}, nil) // TODO return additional args?
 		return path, err
 	}
 	return "", lastErr
