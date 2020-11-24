@@ -11,7 +11,7 @@ Hub CLI is stack composition and lifecycle tool.
 
 Use `make` to build Hub CLI:
 
-    $ make get
+    $ make
 
 Or directly with `go`:
 
@@ -20,3 +20,9 @@ Or directly with `go`:
 ## Clean up
 
     $ make clean
+
+## What's next?
+
+Deploy [App Stack](https://github.com/agilestacks/stack-app-eks) or [ML Stack](https://github.com/agilestacks/stack-ml-eks) on EKS.
+
+More information in the [docs](https://docs.agilestacks.com).
