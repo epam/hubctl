@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/agilestacks/hub/cmd/hub/config"
@@ -49,8 +50,12 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 		}
 		return &exec.Cmd{Path: binSkaffold, Args: []string{"skaffold", verb}, Dir: dir}, nil
 	}
+	terraform, tfArgs, err5 := probeTerraform(dir, verb)
+	if terraform != "" {
+		return &exec.Cmd{Path: terraform, Args: append([]string{terraform}, tfArgs...), Dir: dir}, nil
+	}
 	return nil, fmt.Errorf("No `%s` implementation found in `%s`: %s",
-		verb, dir, util.Errors("; ", err, err2, err3, err4))
+		verb, dir, util.Errors("; ", err, err2, err3, err4, err5))
 }
 
 func probeImplementation(dir string, verb string) (bool, error) {
@@ -70,7 +75,11 @@ func probeImplementation(dir string, verb string) (bool, error) {
 	if skaffold {
 		return true, nil
 	}
-	allErrs := util.Errors("; ", err, err2, err3, err4)
+	terraform, _, err5 := probeTerraform(dir, verb)
+	if terraform != "" {
+		return true, nil
+	}
+	allErrs := util.Errors("; ", err, err2, err3, err4, err5)
 	if config.Debug {
 		log.Printf("Found no `%s` implementations in `%s`: %s",
 			verb, dir, allErrs)
@@ -166,4 +175,27 @@ func probeSkaffold(dir string, verb string) (bool, error) {
 		}
 	}
 	return false, lastErr
+}
+
+func probeTerraform(dir string, verb string) (string, []string, error) {
+	globs := []string{"*.tf", "*.tf.*"}
+	var lastErr error = nil
+	found := false
+	for _, glob := range globs {
+		pattern := fmt.Sprintf("%s/%s", dir, glob)
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		if len(matches) > 0 {
+			found = true
+			break
+		}
+	}
+	if found {
+		path, args, err := ext.ExtensionPath([]string{"component", "terraform", verb}, nil)
+		return path, args, err
+	}
+	return "", nil, lastErr
 }
