@@ -134,7 +134,7 @@ func setupRequirement(requirement string, provider string,
 
 	case "aws", "azure", "gcp", "gcs",
 		"tiller", "external-dns", "cert-manager",
-		"helm", "etcd", "vault", "ingress", "tls-ingress":
+		"helm", "terraform", "etcd", "vault", "ingress", "tls-ingress":
 		wellKnown, err := checkRequire(requirement)
 		if wellKnown {
 			if err != nil {
@@ -167,11 +167,12 @@ type BinVersion struct {
 }
 
 var binVersion = map[string]BinVersion{
-	"gcloud":  {"246.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
-	"gsutil":  {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
-	"vault":   {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
-	"kubectl": {"1.17.11", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
-	"helm":    {"2.16.10", regexp.MustCompile("SemVer:\"v([\\d.]+)")},
+	"gcloud":    {"246.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
+	"gsutil":    {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
+	"vault":     {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
+	"kubectl":   {"1.17.11", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
+	"helm":      {"2.16.10", regexp.MustCompile("(?:SemVer|Version):\"v([\\d.]+)")},
+	"terraform": {"0.13.0", regexp.MustCompile("Terraform v([\\d.]+)")},
 }
 
 func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {
@@ -216,7 +217,7 @@ func checkRequire(require string) (bool, error) {
 		}
 		setupTerraformAzureOsEnv()
 
-	case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "vault": // "etcd"
+	case "aws", "gcp", "gcs", "kubectl", "kubernetes", "helm", "terraform", "vault": // "etcd"
 		bin, exist := bins[require]
 		if !exist {
 			bin = []string{require, "version"}
