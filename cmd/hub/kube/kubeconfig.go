@@ -21,6 +21,8 @@ func Kubeconfig(filenames []string, providers []string, context string, keepPems
 
 	providerState, provider := findState(state, providers)
 	if providerState == nil && config.Verbose {
+		// TODO (1) find a provider with kubernetes.api.* outputs
+		// (2) write `provides` into state and search by that
 		log.Printf("There is no state for %v found in state file(s) %v; trying stack parameters", providers, filenames)
 	}
 
