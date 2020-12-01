@@ -69,9 +69,10 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 		var err error
 		stackManifest, _, _, err = manifest.ParseManifest(elaborateManifests)
 		if err != nil {
-			log.Fatalf("Unable to parse: %v", err)
+			util.Warn("Unable to parse: %v", err)
+		} else if stackManifest != nil {
+			components = stackManifest.Lifecycle.Order
 		}
-		components = stackManifest.Lifecycle.Order
 	}
 
 	var prevOutputs []parameters.CapturedOutput
