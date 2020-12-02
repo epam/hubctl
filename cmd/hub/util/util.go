@@ -561,7 +561,7 @@ func SplitQName(qName string) (string, string) {
 }
 
 func initSecretSuffixes() []string {
-	seed := []string{"password", "secret", "key", "cert", "token"}
+	seed := []string{"password", "secret", "key", "cert", "token", "cookie"}
 	suffixes := make([]string, 0, len(seed)*4)
 	for _, suf := range seed {
 		suffixes = append(suffixes, "."+suf)
