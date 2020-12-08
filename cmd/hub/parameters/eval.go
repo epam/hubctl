@@ -281,6 +281,7 @@ func ExpandParameters(componentName, componentKind string, componentDepends []st
 					if config.Debug {
 						log.Printf("Empty parameter `%s` value allowed", fqName)
 					}
+					parameter.Value = ""
 				} else {
 					errs = append(errs, fmt.Errorf("Parameter `%s` value cannot be derived from stack parameters nor outputs", fqName))
 					parameter.Value = "(unknown)"
