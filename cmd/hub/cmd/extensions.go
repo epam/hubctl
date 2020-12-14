@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	knownExtensions = []string{"toolbox", "pull", "ls", "show", "configure", "stack", "kf"}
+	knownExtensions = []string{"toolbox", "pull", "ls", "show", "configure", "stack"}
 )
 
 var extensionCmd = cobra.Command{
