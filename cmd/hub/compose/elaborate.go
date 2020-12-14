@@ -721,6 +721,14 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 							kv[qName] = parameter
 						}
 					} else {
+						if i != 0 {
+							currValue := util.String(p.Value)
+							newValue := util.String(parameter.Value)
+							if newValue != "" && currValue != "" && newValue != currValue {
+								util.Warn("Parameter `%s` value `%s` overwritten be a less specific parameter `%s` value `%s`",
+									qName, currValue, parameter.QName(), newValue)
+							}
+						}
 						kv[qName] = mergeParameter(p, parameter, overrides, false)
 					}
 				}
