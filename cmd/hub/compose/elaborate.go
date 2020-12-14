@@ -786,7 +786,7 @@ func mergeParameter(base, over manifest.Parameter, overrides map[string]string,
 	enrichment bool) manifest.Parameter {
 
 	if base.Name != over.Name {
-		log.Fatalf("Unable to merge parameters: `name` didn't match\n%+v\n%+v", base, over)
+		log.Fatalf("Unable to merge parameters: `name` doesn't match\n%+v\n%+v", base, over)
 	}
 	// if !(base.Kind == over.Kind || (base.Kind == "tech" && over.Kind == "") || (base.Kind == "" && over.Kind == "tech")) {
 	//	log.Fatalf("Unable to merge parameters: `kind` didn't match:\n\tfrom: %+v\n\tinto: %+v", base, over)
