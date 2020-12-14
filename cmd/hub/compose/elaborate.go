@@ -725,7 +725,7 @@ func mergeParameters(parametersAssorti [][]manifest.Parameter,
 							currValue := util.String(p.Value)
 							newValue := util.String(parameter.Value)
 							if newValue != "" && currValue != "" && newValue != currValue {
-								util.Warn("Parameter `%s` value `%s` overwritten be a less specific parameter `%s` value `%s`",
+								util.Warn("Parameter `%s` value `%s` overwritten by a less specific parameter `%s` value `%s`",
 									qName, currValue, parameter.QName(), newValue)
 							}
 						}
