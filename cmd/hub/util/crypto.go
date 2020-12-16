@@ -114,7 +114,8 @@ func Random(randomBytesLen int) (string, []byte, error) {
 	buf := make([]byte, randomBytesLen)
 	read, err := rand.Read(buf)
 	if err != nil {
-		return "", nil, fmt.Errorf("Unable to generate random chunk: random read error (read %d bytes): %v", read, err)
+		return "", nil, fmt.Errorf("Unable to generate random chunk: random read error (read %d of %d random bytes): %v",
+			read, randomBytesLen, err)
 	}
 	return base64.RawStdEncoding.EncodeToString(buf), buf, nil
 }
