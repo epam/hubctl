@@ -12,6 +12,7 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/aws"
 	"github.com/agilestacks/hub/cmd/hub/azure"
 	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/agilestacks/hub/cmd/hub/crypto"
 	"github.com/agilestacks/hub/cmd/hub/gcp"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
@@ -231,7 +232,8 @@ func chooseFile(files *Files) (*File, error) {
 	}
 	for _, file := range candidates {
 		if file.Kind == "fs" &&
-			(file.Size == largest.Size || (file.Size+util.EncryptionOverhead == largest.Size)) {
+			(file.Size == largest.Size ||
+				file.Size+crypto.EncryptionV1Overhead == largest.Size || file.Size+crypto.EncryptionV2Overhead == largest.Size) {
 			return &file, nil
 		}
 	}
@@ -277,8 +279,8 @@ func Read(files *Files) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	if util.IsEncryptedData(data) {
-		data, err = util.Decrypt(data)
+	if crypto.IsEncryptedData(data) {
+		data, err = crypto.Decrypt(data)
 		if err != nil {
 			return nil, "", fmt.Errorf("Unable to decrypt `%s`: %v", path, err)
 		}

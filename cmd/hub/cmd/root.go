@@ -80,8 +80,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&config.Force, "force", "f", false, "Force operation despite of errors. Or set HUB_FORCE=1")
 
 	RootCmd.PersistentFlags().BoolVar(&config.Compressed, "compressed", true, "Write gzip compressed files")
-	RootCmd.PersistentFlags().StringVar(&config.EncryptionMode, "encrypted", "if-password-set",
-		"Write encrypted files if HUB_CRYPTO_PASSWORD is set. true / false")
+	RootCmd.PersistentFlags().StringVar(&config.EncryptionMode, "encrypted", "if-key-set",
+		"Write encrypted files if HUB_CRYPTO_PASSWORD or HUB_CRYPTO_AWS_KMS_KEY_ARN is set. true / false")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -131,5 +131,8 @@ func initConfig() {
 	}
 	if pass := viper.GetString("crypto-password"); pass != "" {
 		config.CryptoPassword = pass
+	}
+	if key := viper.GetString("crypto-aws-kms-key-arn"); key != "" {
+		config.CryptoAwsKmsKeyArn = key
 	}
 }

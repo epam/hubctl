@@ -9,6 +9,7 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/aws"
 	"github.com/agilestacks/hub/cmd/hub/azure"
 	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/agilestacks/hub/cmd/hub/crypto"
 	"github.com/agilestacks/hub/cmd/hub/gcp"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
@@ -40,7 +41,7 @@ func Write(data []byte, files *Files) (bool, []error) {
 	encryptedData := data
 	if encrypt {
 		var err error
-		encryptedData, err = util.Encrypt(compressedData)
+		encryptedData, err = crypto.Encrypt(compressedData)
 		if err != nil {
 			return false, []error{fmt.Errorf("Unable to encrypt: %v", err)}
 		}

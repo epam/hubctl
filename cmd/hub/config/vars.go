@@ -39,6 +39,7 @@ var (
 	Encrypted               bool
 	EncryptionMode          string
 	CryptoPassword          string
+	CryptoAwsKmsKeyArn      string
 
 	GitBinDefault = "/usr/bin/git"
 )
@@ -62,14 +63,14 @@ func Update() {
 
 	switch EncryptionMode {
 	case "true":
-		if CryptoPassword == "" {
-			log.Fatal("Set HUB_CRYPTO_PASSWORD='random password' for --encrypted=true")
+		if CryptoPassword == "" && CryptoAwsKmsKeyArn == "" {
+			log.Fatal("For --encrypted=true, set HUB_CRYPTO_PASSWORD='random password' or HUB_CRYPTO_AWS_KMS_KEY_ARN='arn:aws:kms:...'")
 		}
 		Encrypted = true
 	case "false":
 		Encrypted = false
-	case "if-password-set":
-		Encrypted = CryptoPassword != ""
+	case "if-key-set":
+		Encrypted = CryptoPassword != "" || CryptoAwsKmsKeyArn != ""
 	default:
 		log.Fatalf("Unknown --encrypted `%s`", EncryptionMode)
 	}
