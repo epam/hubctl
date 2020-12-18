@@ -3,12 +3,10 @@ package aws
 import (
 	awsaws "github.com/aws/aws-sdk-go/aws"
 	awskms "github.com/aws/aws-sdk-go/service/kms"
-
-	"github.com/agilestacks/hub/cmd/hub/config"
 )
 
 func KmsKey(arn string, blob []byte) ([]byte, []byte, error) {
-	kms, err := awsKms(config.AwsRegion)
+	kms, err := awsKms(arnRegion(arn))
 	if err != nil {
 		return nil, nil, err
 	}
