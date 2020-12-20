@@ -12,6 +12,7 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/bindata"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/storage"
+	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
 func ParseManifest(manifestFilenames []string) (*Manifest, []Manifest, string, error) {
@@ -63,7 +64,11 @@ func ParseParametersManifest(manifestFilenames []string) (*ParametersManifest, s
 			return nil, manifestFilename, fmt.Errorf("Unable to parse %s: %v", manifestFilename, err)
 		}
 		if len(yamlDocuments) > i+1 {
-			log.Printf("Parameters manifest `%s` contains more than one YAML document, only first is used",
+			util.Warn("Parameters manifest `%s` contains more than one YAML document, only first is used",
+				manifestFilename)
+		}
+		if len(manifest.Parameters) == 0 && config.Verbose {
+			log.Printf("Parameters manifest `%s` contains no parameters",
 				manifestFilename)
 		}
 		return &manifest, manifestFilename, nil
@@ -88,7 +93,7 @@ func GetWellKnownParametersManifest() (*WellKnownParametersManifest, error) {
 			return nil, fmt.Errorf("Unable to parse well-known parameters: %v", err)
 		}
 		if len(yamlDocuments) > i+1 {
-			log.Print("Embedded well-known parameters manifest contains more than one YAML document, only first is used")
+			util.Warn("Embedded well-known parameters manifest contains more than one YAML document, only first is used")
 		}
 		return &manifest, nil
 	}
@@ -107,7 +112,7 @@ func ParseComponentsManifests(components []ComponentRef, stackBaseDir string, co
 				ComponentQualifiedNameFromRef(&component), err)
 		}
 		if len(rest) > 0 {
-			log.Printf("Component `%s` manifest `%s` contains more than one YAML document, only first is used",
+			util.Warn("Component `%s` manifest `%s` contains more than one YAML document, only first is used",
 				ComponentQualifiedNameFromRef(&component), filename)
 		}
 		if manifest.Meta.Origin == "" {
