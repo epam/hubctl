@@ -28,6 +28,7 @@ func ParseManifest(manifestFilenames []string) (*Manifest, []Manifest, string, e
 		if len(yamlDocument) == 0 {
 			continue
 		}
+		validateManifest(manifestFilename, yamlDocument)
 		var manifest Manifest
 		err = yaml.Unmarshal(yamlDocument, &manifest)
 		if err != nil {
@@ -58,6 +59,7 @@ func ParseParametersManifest(manifestFilenames []string) (*ParametersManifest, s
 		if len(yamlDocument) == 0 {
 			continue
 		}
+		validateManifest(manifestFilename, yamlDocument)
 		var manifest ParametersManifest
 		err = yaml.Unmarshal(yamlDocument, &manifest)
 		if err != nil {
@@ -114,6 +116,10 @@ func ParseComponentsManifests(components []ComponentRef, stackBaseDir string, co
 		if len(rest) > 0 {
 			util.Warn("Component `%s` manifest `%s` contains more than one YAML document, only first is used",
 				ComponentQualifiedNameFromRef(&component), filename)
+		}
+		if len(manifest.Parameters) == 0 && config.Verbose {
+			log.Printf("Component manifest `%s` contains no parameters",
+				filename)
 		}
 		if manifest.Meta.Origin == "" {
 			manifest.Meta.Origin = manifest.Meta.Name

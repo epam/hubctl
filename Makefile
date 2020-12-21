@@ -73,6 +73,7 @@ get: version metrics-keys
 bindata: bin/$(OS)/go-bindata
 	$(GOBIN)/go-bindata -o cmd/hub/bindata/bindata.go -pkg bindata \
 		meta/hub-well-known-parameters.yaml \
+		meta/manifest.schema.json \
 		cmd/hub/api/requests/*.template \
 		cmd/hub/initialize/hub.yaml.template \
 		cmd/hub/initialize/hub-component.yaml.template

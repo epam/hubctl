@@ -1,0 +1,118 @@
+{
+    "$id": "superhub.io/manifest.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Manifest",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "version": {
+            "enum": [
+                1
+            ]
+        },
+        "kind": {
+            "enum": [
+                "stack",
+                "application",
+                "component",
+                "parameters"
+            ]
+        },
+        "meta": {
+            "type": "object",
+            "properties": {}
+        },
+        "components": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        "requires": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "provides": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "lifecycle": {
+            "type": "object",
+            "properties": {}
+        },
+        "extensions": {
+            "type": "object",
+            "properties": {}
+        },
+        "parameters": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "value": {},
+                    "default": {},
+                    "empty": {
+                        "enum": [
+                            "allow"
+                        ]
+                    },
+                    "kind": {
+                        "enum": [
+                            "user",
+                            "tech",
+                            "link"
+                        ]
+                    },
+                    "brief": {
+                        "type": "string"
+                    },
+                    "fromEnv": {
+                        "type": "string"
+                    },
+                    "env": {
+                        "type": "string"
+                    },
+                    "parameters": {
+                        "type": "array"
+                    }
+                }
+            }
+        },
+        "templates": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array"
+                },
+                "extra": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "outputs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
