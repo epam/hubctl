@@ -49,10 +49,10 @@ compile: bin/$(OS)/gox version metrics-keys
 .PHONY: compile
 
 distribute: compile
-	$(aws) s3 cp bin/linux_amd64/hub       $(S3_DISTRIBUTION)/hub.linux_amd64
-	$(aws) s3 cp bin/linux_arm64/hub       $(S3_DISTRIBUTION)/hub.linux_arm64
-	$(aws) s3 cp bin/darwin_amd64/hub      $(S3_DISTRIBUTION)/hub.darwin_amd64
-	$(aws) s3 cp bin/windows_amd64/hub.exe $(S3_DISTRIBUTION)/hub.windows_amd64.exe
+	$(aws) s3 cp --no-progress bin/linux_amd64/hub       $(S3_DISTRIBUTION)/hub.linux_amd64
+	$(aws) s3 cp --no-progress bin/linux_arm64/hub       $(S3_DISTRIBUTION)/hub.linux_arm64
+	$(aws) s3 cp --no-progress bin/darwin_amd64/hub      $(S3_DISTRIBUTION)/hub.darwin_amd64
+	$(aws) s3 cp --no-progress bin/windows_amd64/hub.exe $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: distribute
 
 undistribute:
