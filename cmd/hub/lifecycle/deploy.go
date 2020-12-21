@@ -275,6 +275,8 @@ NEXT_COMPONENT:
 			updateStateComponentFailed = func(msg string, final bool) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, &componentManifest.Meta, "error", msg)
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "error")
+				eraseProvides(provides, componentName)
+				stateManifest.Provides = noEnvironmentProvides(provides)
 				if !config.Force && !optionalComponent(&stackManifest.Lifecycle, componentName) {
 					stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", msg)
 				}
@@ -422,6 +424,11 @@ NEXT_COMPONENT:
 			parameters.MergeOutputs(allOutputs, componentComplexOutputs)
 
 			mergeProvides(provides, componentName, append(dynamicProvides, componentManifest.Provides...), componentOutputs)
+		} else if isUndeploy {
+			eraseProvides(provides, componentName)
+			if stateManifest != nil {
+				stateManifest.Provides = noEnvironmentProvides(provides)
+			}
 		}
 
 		if ctx.Err() != nil {

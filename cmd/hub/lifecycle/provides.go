@@ -77,3 +77,12 @@ func mergeProvides(provides map[string][]string, componentName string, component
 		provides[prov] = who
 	}
 }
+
+func eraseProvides(provides map[string][]string, componentName string) {
+	for k, v := range provides {
+		provides[k] = util.Omit(v, componentName)
+		if len(provides[k]) == 0 {
+			delete(provides, k)
+		}
+	}
+}
