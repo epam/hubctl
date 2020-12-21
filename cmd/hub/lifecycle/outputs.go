@@ -213,7 +213,7 @@ func parseTextKV(text []byte, outputs map[string][]string) {
 			continue
 		}
 		key := util.TrimColor(util.Trim(kv[0]))
-		value := util.TrimColor(util.Trim(kv[1]))
+		value := maybeUnquote(util.TrimColor(util.Trim(kv[1])))
 		// accumulate repeating keys
 		list, exist := outputs[key]
 		if exist {
@@ -224,6 +224,14 @@ func parseTextKV(text []byte, outputs map[string][]string) {
 			outputs[key] = []string{value}
 		}
 	}
+}
+
+func maybeUnquote(v string) string {
+	if len(v) > 1 && strings.HasPrefix(v, "\"") && strings.HasSuffix(v, "\"") {
+		v = v[1 : len(v)-1]
+		v = strings.Replace(v, "\\\"", "\"", -1)
+	}
+	return v
 }
 
 func toRawOutputs(outputs map[string][]string) parameters.RawOutputs {
