@@ -413,9 +413,7 @@ func checkRequiresGcp() error {
 func noEnvironmentProvides(provides map[string][]string) map[string][]string {
 	filtered := make(map[string][]string)
 	for p, by := range provides {
-		if util.Contains(by, providedByEnv) {
-			by = util.Omit(by, providedByEnv)
-		}
+		by = util.Omit(by, providedByEnv)
 		if len(by) > 0 {
 			filtered[p] = by
 		}

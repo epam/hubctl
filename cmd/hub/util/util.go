@@ -289,6 +289,9 @@ func Equal(list []string, list2 []string) bool {
 }
 
 func Omit(list []string, value string) []string {
+	if !Contains(list, value) {
+		return list
+	}
 	filtered := make([]string, 0, len(list))
 	for _, v := range list {
 		if v != value {
