@@ -47,7 +47,7 @@ func mergeProvides(provides map[string][]string, componentName string, component
 	for _, prov := range componentProvides {
 		switch prov {
 		case "kubernetes":
-			for _, reqOutput := range []string{"dns.domain"} {
+			for _, reqOutput := range []string{"dns.domain", "kubernetes.api.endpoint"} {
 				qName := parameters.OutputQualifiedName(reqOutput, componentName)
 				_, exist := componentOutputs[qName]
 				if !exist {
