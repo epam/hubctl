@@ -56,6 +56,7 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []by
 				to = os.Stderr
 			}
 			tail := newTail(to)
+			defer tail.Close()
 			if stdoutTerminal || config.TtyForced {
 				stdout = tail
 			}

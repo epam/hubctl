@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"syscall"
 	"unsafe"
 
@@ -18,9 +19,30 @@ const tailLines = 20
 
 type tail struct {
 	out   io.Writer
+	ch    chan os.Signal
 	cols  int
 	lines int
 	bytes int
+}
+
+func newTail(out *os.File) io.WriteCloser {
+	_, cols := tiocgwinsz(out.Fd())
+	ch := make(chan os.Signal)
+	t := &tail{out: out, ch: ch, cols: cols}
+	signal.Notify(ch, syscall.SIGWINCH)
+	go func() {
+		for range ch {
+			_, c := tiocgwinsz(out.Fd())
+			t.cols = c
+		}
+	}()
+	return t
+}
+
+func (t *tail) Close() error {
+	signal.Stop(t.ch)
+	close(t.ch)
+	return nil
 }
 
 type windowSize struct {
@@ -28,16 +50,16 @@ type windowSize struct {
 	cols uint16
 }
 
-func newTail(out *os.File) io.Writer {
+func tiocgwinsz(fd uintptr) (int, int) {
 	var sz windowSize
 	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL,
-		out.Fd(), uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&sz)))
+		fd, uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&sz)))
 	rows := int(sz.rows)
 	cols := int(sz.cols)
 	if config.Trace {
 		log.Printf("Terminal rows: %d; cols: %d", rows, cols)
 	}
-	return &tail{out: out, cols: cols}
+	return rows, cols
 }
 
 func (t *tail) Write(p []byte) (int, error) {
