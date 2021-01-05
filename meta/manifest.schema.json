@@ -30,13 +30,13 @@
             }
         },
         "requires": {
-            "type": "array",
+            "type":  ["array", "null"],
             "items": {
                 "type": "string"
             }
         },
         "provides": {
-            "type": "array",
+            "type":  ["array", "null"],
             "items": {
                 "type": "string"
             }
@@ -50,7 +50,7 @@
             "properties": {}
         },
         "parameters": {
-            "type": "array",
+            "type":  ["array", "null"],
             "items": {
                 "type": "object",
                 "required": [
@@ -90,10 +90,10 @@
             "type": "object",
             "properties": {
                 "files": {
-                    "type": "array"
+                    "type":  ["array", "null"]
                 },
                 "extra": {
-                    "type": "array",
+                    "type":  ["array", "null"],
                     "items": {
                         "type": "object"
                     }
@@ -101,7 +101,7 @@
             }
         },
         "outputs": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
                 "type": "object",
                 "required": [

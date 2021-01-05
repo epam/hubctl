@@ -54,6 +54,9 @@ func validate(name string, yamlDocument []byte) error {
 			errs = append(errs, jserr.String())
 		}
 		util.Warn("`%s` schema is not valid:%s%s", name, sep, strings.Join(errs, sep))
+		if config.Trace {
+			log.Printf("Document validated:\n%+v", converted)
+		}
 	}
 	return nil
 }
