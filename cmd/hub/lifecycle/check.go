@@ -59,7 +59,7 @@ func checkLifecycleVerbs(components []manifest.ComponentRef, componentsManifests
 					manifest.ComponentQualifiedNameFromRef(&component), dir, verb, err)
 				manifest := manifest.ComponentManifestByRef(componentsManifests, &component)
 				if manifest.Lifecycle.Bare == "allow" {
-					if config.Verbose {
+					if config.Debug {
 						log.Print(msg)
 					}
 				} else {
