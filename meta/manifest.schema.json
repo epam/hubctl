@@ -20,43 +20,262 @@
         },
         "meta": {
             "type": "object",
-            "properties": {}
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "fromStack": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "brief": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": [
+                        "string",
+                        "number"
+                    ]
+                },
+                "maturity": {
+                    "enum": [
+                        "ga",
+                        "beta",
+                        "alpha"
+                    ]
+                },
+                "license": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "object"
+                }
+            }
         },
         "components": {
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {}
+                "required": [
+                    "name",
+                    "source"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "depends": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "source": {
+                        "type": "object",
+                        "properties": {
+                            "dir": {
+                                "type": "string"
+                            },
+                            "git": {
+                                "type": "object",
+                                "required": [
+                                    "remote"
+                                ],
+                                "properties": {
+                                    "remote": {
+                                        "type": "string"
+                                    },
+                                    "ref": {
+                                        "type": "string"
+                                    },
+                                    "subDir": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "requires": {
-            "type":  ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "items": {
                 "type": "string"
             }
         },
         "provides": {
-            "type":  ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "items": {
                 "type": "string"
             }
         },
         "lifecycle": {
             "type": "object",
-            "properties": {}
+            "additionalProperties": false,
+            "properties": {
+                "bare": {
+                    "enum": [
+                        "allow"
+                    ]
+                },
+                "verbs": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "order": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "optional": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mandatory": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "requires": {
+                    "type": "object"
+                },
+                "readyConditions": {
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "options": {
+                    "type": "object"
+                }
+            }
         },
         "extensions": {
             "type": "object",
-            "properties": {}
+            "properties": {
+                "include": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "configure": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "deploy": {
+                    "type": "object",
+                    "properties": {
+                        "before": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "after": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "undeploy": {
+                    "type": "object",
+                    "properties": {
+                        "before": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "after": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         },
         "parameters": {
-            "type":  ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": [
                     "name"
                 ],
                 "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "component": {
+                        "type": "string"
+                    },
                     "value": {},
                     "default": {},
                     "empty": {
@@ -77,11 +296,28 @@
                     "fromEnv": {
                         "type": "string"
                     },
+                    "fromFile": {
+                        "type": "string"
+                    },
                     "env": {
                         "type": "string"
                     },
                     "parameters": {
-                        "type": "array"
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "name"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -89,26 +325,97 @@
         "templates": {
             "type": "object",
             "properties": {
+                "kind": {
+                    "enum": [
+                        "curly",
+                        "mustache",
+                        "go"
+                    ]
+                },
                 "files": {
-                    "type":  ["array", "null"]
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "directories": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "extra": {
-                    "type":  ["array", "null"],
+                    "type": [
+                        "array",
+                        "null"
+                    ],
                     "items": {
-                        "type": "object"
+                        "type": "object",
+                        "properties": {
+                            "kind": {
+                                "enum": [
+                                    "curly",
+                                    "mustache",
+                                    "go"
+                                ]
+                            },
+                            "files": {
+                                "type": [
+                                    "array",
+                                    "null"
+                                ],
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "directories": {
+                                "type": [
+                                    "array",
+                                    "null"
+                                ],
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         "outputs": {
-            "type": ["array", "null"],
+            "type": [
+                "array",
+                "null"
+            ],
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": [
                     "name"
                 ],
                 "properties": {
                     "name": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "fromTfVar": {
+                        "type": "string"
+                    },
+                    "brief": {
+                        "type": "string"
+                    },
+                    "description": {
                         "type": "string"
                     }
                 }
