@@ -57,10 +57,7 @@ func Execute(request *Request, pipe io.WriteCloser) {
 
 	components := stackManifest.Components
 	checkComponentsManifests(components, componentsManifests)
-	// TODO check only -c / -o components sources
-	checkComponentsSourcesExist(components, stackBaseDir, componentsBaseDir)
 	checkLifecycleOrder(components, stackManifest.Lifecycle)
-	checkLifecycleVerbs(components, componentsManifests, stackManifest.Lifecycle.Verbs, stackBaseDir, componentsBaseDir)
 	checkLifecycleRequires(components, stackManifest.Lifecycle.Requires)
 	checkComponentsDepends(components, stackManifest.Lifecycle.Order)
 	manifest.CheckComponentsExist(components, append(request.Components, request.OffsetComponent, request.LimitComponent)...)
@@ -229,6 +226,13 @@ func Execute(request *Request, pipe io.WriteCloser) {
 		log.Fatalf("Specified --limit %s (%d) is before specified --offset %s (%d) in component order",
 			request.LimitComponent, limitComponentIndex, request.OffsetComponent, offsetComponentIndex)
 	}
+	skipComponent := func(i int, name string) bool {
+		return (len(request.Components) > 0 && !util.Contains(request.Components, name)) ||
+			(offsetComponentIndex >= 0 && i < offsetComponentIndex) ||
+			(limitComponentIndex >= 0 && i > limitComponentIndex)
+	}
+	checkComponentsSourcesExist(order, components, stackBaseDir, componentsBaseDir, skipComponent)
+	checkLifecycleVerbs(order, components, componentsManifests, stackManifest.Lifecycle.Verbs, stackBaseDir, componentsBaseDir, skipComponent)
 
 	failedComponents := make([]string, 0)
 
@@ -243,9 +247,7 @@ func Execute(request *Request, pipe io.WriteCloser) {
 
 NEXT_COMPONENT:
 	for componentIndex, componentName := range order {
-		if (len(request.Components) > 0 && !util.Contains(request.Components, componentName)) ||
-			(offsetComponentIndex >= 0 && componentIndex < offsetComponentIndex) ||
-			(limitComponentIndex >= 0 && componentIndex > limitComponentIndex) {
+		if skipComponent(componentIndex, componentName) {
 			if config.Debug {
 				log.Printf("Skip %s", componentName)
 			}

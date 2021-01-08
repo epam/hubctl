@@ -68,7 +68,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		}
 		order = request.Components
 	}
-	checkComponentsSourcesExist(components, stackBaseDir, componentsBaseDir)
+	checkComponentsSourcesExist(order, components, stackBaseDir, componentsBaseDir, nil)
 	if len(request.Components) == 0 {
 		checkLifecycleOrder(components, stackManifest.Lifecycle)
 	}

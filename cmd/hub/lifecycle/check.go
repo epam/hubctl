@@ -28,10 +28,15 @@ func checkComponentsManifests(components []manifest.ComponentRef, componentsMani
 }
 
 // check sources is an accessible local directory
-func checkComponentsSourcesExist(components []manifest.ComponentRef, stackBaseDir, componentsBaseDir string) {
-	for _, component := range components {
-		compName := manifest.ComponentQualifiedNameFromRef(&component)
-		dir := manifest.ComponentSourceDirFromRef(&component, stackBaseDir, componentsBaseDir)
+func checkComponentsSourcesExist(order []string, components []manifest.ComponentRef, stackBaseDir, componentsBaseDir string,
+	skip func(int, string) bool) {
+	for i, name := range order {
+		if skip != nil && skip(i, name) {
+			continue
+		}
+		component := manifest.ComponentRefByName(components, name)
+		compName := manifest.ComponentQualifiedNameFromRef(component)
+		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		info, err := os.Stat(dir)
 		if err != nil {
 			log.Fatalf("`%s` source directory for component `%s` not found: %v", dir, compName, err)
@@ -43,12 +48,17 @@ func checkComponentsSourcesExist(components []manifest.ComponentRef, stackBaseDi
 }
 
 // check manifest.Lifecycle verbs
-func checkLifecycleVerbs(components []manifest.ComponentRef, componentsManifests []manifest.Manifest,
-	verbs []string, stackBaseDir, componentsBaseDir string) {
+func checkLifecycleVerbs(order []string, components []manifest.ComponentRef, componentsManifests []manifest.Manifest,
+	verbs []string, stackBaseDir, componentsBaseDir string,
+	skip func(int, string) bool) {
 
 	optionalVerbs := []string{"backup"}
-	for _, component := range components {
-		dir := manifest.ComponentSourceDirFromRef(&component, stackBaseDir, componentsBaseDir)
+	for i, name := range order {
+		if skip != nil && skip(i, name) {
+			continue
+		}
+		component := manifest.ComponentRefByName(components, name)
+		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		for _, verb := range verbs {
 			if util.Contains(optionalVerbs, verb) {
 				continue
@@ -56,8 +66,8 @@ func checkLifecycleVerbs(components []manifest.ComponentRef, componentsManifests
 			impl, err := probeImplementation(dir, verb)
 			if !impl {
 				msg := fmt.Sprintf("`%s` component in `%s` has no `%s` implementation: %v",
-					manifest.ComponentQualifiedNameFromRef(&component), dir, verb, err)
-				manifest := manifest.ComponentManifestByRef(componentsManifests, &component)
+					manifest.ComponentQualifiedNameFromRef(component), dir, verb, err)
+				manifest := manifest.ComponentManifestByRef(componentsManifests, component)
 				if manifest.Lifecycle.Bare == "allow" {
 					if config.Debug {
 						log.Print(msg)
