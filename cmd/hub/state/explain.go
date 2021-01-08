@@ -42,7 +42,7 @@ type ExplainedState struct {
 func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, componentName string, rawOutputs bool,
 	format string /*text, kv, sh, json, yaml*/, color bool) {
 
-	if color && format == "text" {
+	if (color || config.Tty) && format == "text" {
 		headColor = func(str string) string {
 			return aurora.Green(str).String()
 		}
