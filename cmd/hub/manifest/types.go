@@ -24,6 +24,7 @@ type Metadata struct {
 	Description string            `yaml:",omitempty"`
 	Version     string            `yaml:",omitempty"`
 	Maturity    string            `yaml:",omitempty"`
+	License     string            `yaml:",omitempty"`
 	Icon        string            `yaml:",omitempty"`
 	Source      SourceLocation    `yaml:",omitempty"`
 	FromStack   string            `yaml:"fromStack,omitempty"`
