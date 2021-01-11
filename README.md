@@ -25,4 +25,4 @@ Or directly with `go`:
 
 Deploy [App Stack](https://github.com/agilestacks/stack-app-eks) or [ML Stack](https://github.com/agilestacks/stack-ml-eks) on EKS.
 
-More information in the [docs](https://docs.agilestacks.com).
+More information in the [wiki](https://github.com/agilestacks/hub/wiki) and [docs](https://docs.agilestacks.com).
