@@ -28,7 +28,7 @@ func ParseManifest(manifestFilenames []string) (*Manifest, []Manifest, string, e
 		if len(yamlDocument) == 0 {
 			continue
 		}
-		validateManifest(manifestFilename, yamlDocument)
+		validateManifest(fmt.Sprintf("%s[%d]", manifestFilename, i), yamlDocument)
 		var manifest Manifest
 		err = yaml.Unmarshal(yamlDocument, &manifest)
 		if err != nil {
