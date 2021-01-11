@@ -67,6 +67,7 @@
             "type": "array",
             "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "required": [
                     "name",
                     "source"
@@ -86,12 +87,14 @@
                     },
                     "source": {
                         "type": "object",
+                        "additionalProperties": false,
                         "properties": {
                             "dir": {
                                 "type": "string"
                             },
                             "git": {
                                 "type": "object",
+                                "additionalProperties": false,
                                 "required": [
                                     "remote"
                                 ],
@@ -103,6 +106,9 @@
                                         "type": "string"
                                     },
                                     "subDir": {
+                                        "type": "string"
+                                    },
+                                    "localDir": {
                                         "type": "string"
                                     }
                                 }
@@ -176,16 +182,58 @@
                     }
                 },
                 "requires": {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "optional": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 },
                 "readyConditions": {
                     "type": [
                         "array",
                         "null"
-                    ]
+                    ],
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "dns": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string"
+                            },
+                            "waitSeconds": {
+                                "type": "integer"
+                            },
+                            "pauseSeconds": {
+                                "type": "integer"
+                            }
+                        }
+                    }
                 },
                 "options": {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "random": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "bytes": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -324,6 +372,7 @@
         },
         "templates": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "kind": {
                     "enum": [
@@ -357,6 +406,7 @@
                     ],
                     "items": {
                         "type": "object",
+                        "additionalProperties": false,
                         "properties": {
                             "kind": {
                                 "enum": [
@@ -408,6 +458,12 @@
                     },
                     "kind": {
                         "type": "string"
+                    },
+                    "lifecycle": {
+                        "enum": [
+                            "optional",
+                            "reuse"
+                        ]
                     },
                     "fromTfVar": {
                         "type": "string"
