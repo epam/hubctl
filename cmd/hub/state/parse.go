@@ -42,6 +42,9 @@ func ParseState(files *storage.Files) (*StateManifest, error) {
 	if state.Kind != "state" {
 		return nil, fmt.Errorf("State file kind = `%s` but it must be `state`", state.Kind)
 	}
+	if state.Version != 1 {
+		return nil, fmt.Errorf("State file version = `%d` but it must be `1`; update Hub CLI", state.Version)
+	}
 
 	return &state, nil
 }
