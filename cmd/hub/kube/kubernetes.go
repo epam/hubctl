@@ -277,7 +277,21 @@ func SetupKubernetes(params parameters.LockedParameters,
 		"--cluster="+domain,
 		"--user="+user,
 		"--namespace=kube-system")
-	if config.SwitchKubeconfigContext {
+	switchContext := config.SwitchKubeconfigContext
+	if !switchContext && os.Getenv("KUBECONFIG") != "" {
+		// Hub CLI extensions expects a private Kubeconfig with current-context set
+		outBytes, err := execOutput(kubectl, "config", "current-context")
+		out := string(outBytes)
+		if strings.Contains(out, "current-context is not set") {
+			switchContext = true
+		}
+		if !switchContext && err != nil {
+			if processErr, ok := err.(*exec.ExitError); ok && processErr.ExitCode() == 1 {
+				switchContext = true
+			}
+		}
+	}
+	if switchContext {
 		mustExec(kubectl, "config", "use-context", context)
 	}
 	if !keepPems {
