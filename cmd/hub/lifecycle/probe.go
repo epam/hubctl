@@ -34,13 +34,13 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 	if script != "" {
 		return &exec.Cmd{Path: script, Dir: dir}, nil
 	}
-	helm, err3 := probeHelm(dir, verb)
+	helm, args, err3 := probeHelm(dir, verb)
 	if helm != "" {
-		return &exec.Cmd{Path: helm, Dir: dir}, nil
+		return &exec.Cmd{Path: helm, Args: append([]string{helm}, args...), Dir: dir}, nil
 	}
-	kustomize, err4 := probeKustomize(dir, verb)
+	kustomize, args, err4 := probeKustomize(dir, verb)
 	if kustomize != "" {
-		return &exec.Cmd{Path: kustomize, Dir: dir}, nil
+		return &exec.Cmd{Path: kustomize, Args: append([]string{kustomize}, args...), Dir: dir}, nil
 	}
 	skaffold, err5 := probeSkaffold(dir, verb)
 	if skaffold {
@@ -54,9 +54,9 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 		}
 		return &exec.Cmd{Path: binSkaffold, Args: []string{"skaffold", verb}, Dir: dir}, nil
 	}
-	terraform, tfArgs, err6 := probeTerraform(dir, verb)
+	terraform, args, err6 := probeTerraform(dir, verb)
 	if terraform != "" {
-		return &exec.Cmd{Path: terraform, Args: append([]string{terraform}, tfArgs...), Dir: dir}, nil
+		return &exec.Cmd{Path: terraform, Args: append([]string{terraform}, args...), Dir: dir}, nil
 	}
 	return nil, fmt.Errorf("No `%s` implementation found in `%s`: %s",
 		verb, dir, util.Errors("; ", err, err2, err3, err4, err5, err6))
@@ -71,11 +71,11 @@ func probeImplementation(dir string, verb string) (bool, error) {
 	if script != "" {
 		return true, nil
 	}
-	helm, err3 := probeHelm(dir, verb)
+	helm, _, err3 := probeHelm(dir, verb)
 	if helm != "" {
 		return true, nil
 	}
-	helm, err4 := probeKustomize(dir, verb)
+	helm, _, err4 := probeKustomize(dir, verb)
 	if helm != "" {
 		return true, nil
 	}
@@ -139,17 +139,17 @@ func probeScript(dir string, verb string) (string, error) {
 	return "", lastErr
 }
 
-func probeHelm(dir string, verb string) (string, error) {
+func probeHelm(dir string, verb string) (string, []string, error) {
 	return probeExtension(dir, verb, "helm",
 		[]string{"values.yaml", "values.yaml.template", "values.yaml.gotemplate"})
 }
 
-func probeKustomize(dir string, verb string) (string, error) {
+func probeKustomize(dir string, verb string) (string, []string, error) {
 	return probeExtension(dir, verb, "kustomize",
 		[]string{"kustomization.yaml", "kustomization.yaml.template", "kustomization.yaml.gotemplate"})
 }
 
-func probeExtension(dir, verb, extension string, files []string) (string, error) {
+func probeExtension(dir, verb, extension string, files []string) (string, []string, error) {
 	var lastErr error = nil
 	found := false
 	for _, yaml := range files {
@@ -168,10 +168,9 @@ func probeExtension(dir, verb, extension string, files []string) (string, error)
 		}
 	}
 	if found {
-		path, _, err := ext.ExtensionPath([]string{"component", extension, verb}, nil) // TODO return additional args?
-		return path, err
+		return ext.ExtensionPath([]string{"component", extension, verb}, nil)
 	}
-	return "", lastErr
+	return "", nil, lastErr
 }
 
 func probeSkaffold(dir string, verb string) (bool, error) {
