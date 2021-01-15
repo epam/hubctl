@@ -38,7 +38,7 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 	if helm != "" {
 		return &exec.Cmd{Path: helm, Dir: dir}, nil
 	}
-	kustomize, err4 := probeHelm(dir, verb)
+	kustomize, err4 := probeKustomize(dir, verb)
 	if kustomize != "" {
 		return &exec.Cmd{Path: kustomize, Dir: dir}, nil
 	}
