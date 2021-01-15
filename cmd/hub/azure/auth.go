@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	storageManagement "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-11-01/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -64,28 +65,39 @@ func settings() (map[string]string, *azure.Environment, error) {
 	return values, env, nil
 }
 
-func authorizer() (autorest.Authorizer, error) {
+func keyvaultResource(env *azure.Environment) string {
+	return env.KeyVaultEndpoint
+}
+
+func serviceManagementResource(env *azure.Environment) string {
+	return env.ServiceManagementEndpoint
+}
+
+func authorizer(resourcePick func(env *azure.Environment) string) (autorest.Authorizer, error) {
 	var err error
 	var errs []error
 	var authz autorest.Authorizer
+
+	resource := resourcePick(&azure.PublicCloud)
+	_, env, err := settings()
+	if err != nil && env != nil {
+		resource = resourcePick(env)
+	}
+	resource = strings.TrimSuffix(resource, "/")
+
 	if authLocation := os.Getenv("AZURE_AUTH_LOCATION"); config.AzureCredentialsFile != "" || authLocation != "" {
 		if config.AzureCredentialsFile != "" {
 			os.Setenv("AZURE_AUTH_LOCATION", config.AzureCredentialsFile)
 		}
-		endpoint := azure.PublicCloud.ServiceManagementEndpoint
-		_, env, err := settings()
-		if err != nil && env != nil {
-			endpoint = env.ServiceManagementEndpoint
-		}
-		authz, err = auth.NewAuthorizerFromFile(endpoint)
+		authz, err = auth.NewAuthorizerFromFile(resource)
 		if err != nil {
 			errs = append(errs, err)
 		}
 	} else {
-		authz, err = auth.NewAuthorizerFromEnvironment()
+		authz, err = auth.NewAuthorizerFromEnvironmentWithResource(resource)
 		if err != nil {
 			errs = append(errs, err)
-			authz, err = auth.NewAuthorizerFromCLI()
+			authz, err = auth.NewAuthorizerFromCLIWithResource(resource)
 			if err != nil {
 				errs = append(errs, err)
 			}
@@ -96,19 +108,16 @@ func authorizer() (autorest.Authorizer, error) {
 	} else {
 		err = nil
 	}
+	if err != nil && authz != nil && config.Debug {
+		log.Printf("Errors encountered while creating Azure authorizer: %v", err)
+	}
 	return authz, err
 }
 
-func managementClient() (*storageManagement.AccountsClient, error) {
-	authz, err := authorizer()
-	if err != nil {
-		if authz != nil {
-			if config.Debug {
-				log.Printf("Errors encountered to create Azure authorizer: %v", err)
-			}
-		} else {
-			return nil, err
-		}
+func storageManagementClient() (*storageManagement.AccountsClient, error) {
+	authz, err := authorizer(serviceManagementResource)
+	if err != nil && authz == nil {
+		return nil, err
 	}
 	sets, _, err := settings()
 	subscriptionId := sets[auth.SubscriptionID]
@@ -117,7 +126,7 @@ func managementClient() (*storageManagement.AccountsClient, error) {
 	return &client, nil
 }
 
-func resourceGroup(account string) (string, error) {
+func resourceGroup() (string, error) {
 	osEnvVar := "AZURE_RESOURCE_GROUP_NAME"
 	name := os.Getenv(osEnvVar)
 	if name != "" {
@@ -125,18 +134,18 @@ func resourceGroup(account string) (string, error) {
 	}
 	hardcoded := "superhub"
 	if config.Verbose {
-		util.WarnOnce("Using hardcoded `%s` resource group to obtain `%s` storage account access key; set %s to override",
-			hardcoded, account, osEnvVar)
+		util.WarnOnce("Using hardcoded `%s` Azure resource group; set %s to override",
+			hardcoded, osEnvVar)
 	}
 	return hardcoded, nil
 }
 
 func storageKeyFromApi(account string) (string, error) {
-	mgmt, err := managementClient()
+	mgmt, err := storageManagementClient()
 	if err != nil {
 		return "", err
 	}
-	resourceGroupName, err := resourceGroup(account)
+	resourceGroupName, err := resourceGroup()
 	if err != nil {
 		return "", err
 	}

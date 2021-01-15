@@ -233,7 +233,9 @@ func chooseFile(files *Files) (*File, error) {
 	for _, file := range candidates {
 		if file.Kind == "fs" &&
 			(file.Size == largest.Size ||
-				file.Size+crypto.EncryptionV1Overhead == largest.Size || file.Size+crypto.EncryptionV2Overhead == largest.Size) {
+				file.Size+crypto.EncryptionV1Overhead == largest.Size ||
+				file.Size+crypto.EncryptionV2Overhead == largest.Size ||
+				file.Size+crypto.EncryptionV3Overhead == largest.Size) {
 			return &file, nil
 		}
 	}
