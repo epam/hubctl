@@ -134,7 +134,7 @@ func setupRequirement(requirement string, provider string,
 
 	case "aws", "azure", "gcp", "gcs",
 		"tiller", "external-dns", "cert-manager",
-		"helm", "terraform", "etcd", "vault", "ingress", "tls-ingress":
+		"helm", "terraform", "etcd", "vault", "ingress", "tls-ingress", "istio":
 		wellKnown, err := checkRequire(requirement)
 		if wellKnown {
 			if err != nil {
@@ -147,7 +147,9 @@ func setupRequirement(requirement string, provider string,
 		}
 
 	default:
-		util.WarnOnce("Don't know how to setup requirement `%s`", requirement)
+		if config.Verbose {
+			log.Printf("Don't know how to setup requirement `%s`", requirement)
+		}
 	}
 }
 
