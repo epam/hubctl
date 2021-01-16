@@ -136,6 +136,21 @@
                 "type": "string"
             }
         },
+        "platform": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "provides": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    }
+                }
+           }
+        },
         "lifecycle": {
             "type": "object",
             "additionalProperties": false,
