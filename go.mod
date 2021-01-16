@@ -16,6 +16,7 @@ require (
 	github.com/arkadijs/golang-socketio v0.0.0-20180405140456-dc2d2a43165c
 	github.com/aws/aws-sdk-go v1.31.15
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
+	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f // indirect
 	github.com/google/cel-go v0.5.1
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.2
