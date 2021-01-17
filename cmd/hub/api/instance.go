@@ -456,7 +456,7 @@ func formatComponentStatus(comp ComponentStatus) string {
 	}
 	message := ""
 	if comp.Message != "" {
-		sep := ""
+		sep := " "
 		if strings.Contains(comp.Message, "\n") {
 			sep = "\n"
 		}
