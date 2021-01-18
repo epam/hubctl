@@ -74,7 +74,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&config.Debug, "debug", "d", false, "Print debug info. Or set HUB_DEBUG=1")
 	RootCmd.PersistentFlags().BoolVar(&config.Trace, "trace", false, "Print detailed trace info. Or set HUB_TRACE=1")
 	RootCmd.PersistentFlags().StringVar(&config.LogDestination, "log-destination", "stderr", "stderr or stdout")
-	RootCmd.PersistentFlags().StringVar(&config.TtyMode, "tty", "autodetect", "Terminal mode for colors, etc. true / false")
+	RootCmd.PersistentFlags().StringVar(&config.TtyMode, "tty", "autodetect", "Terminal mode for colors, etc. true / false. Or set HUB_TTY")
 
 	RootCmd.PersistentFlags().BoolVar(&config.AggWarnings, "all-warnings", true, "Repeat all warnings before [successful] exit")
 	RootCmd.PersistentFlags().BoolVarP(&config.Force, "force", "f", false, "Force operation despite of errors. Or set HUB_FORCE=1")
@@ -128,6 +128,9 @@ func initConfig() {
 	}
 	if viper.GetBool("trace") {
 		config.Trace = true
+	}
+	if tty := viper.GetString("tty"); tty != "" {
+		config.TtyMode = tty
 	}
 	if pass := viper.GetString("crypto-password"); pass != "" {
 		config.CryptoPassword = pass
