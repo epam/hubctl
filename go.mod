@@ -1,6 +1,6 @@
 module github.com/agilestacks/hub
 
-go 1.14
+go 1.15
 
 require (
 	cloud.google.com/go/storage v1.9.0
