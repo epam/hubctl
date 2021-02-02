@@ -172,8 +172,8 @@ var binVersion = map[string]BinVersion{
 	"gcloud":    {"246.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
 	"gsutil":    {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
 	"vault":     {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
-	"kubectl":   {"1.17.11", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
-	"helm":      {"2.16.10", regexp.MustCompile("(?:SemVer|Version):\"v([\\d.]+)")},
+	"kubectl":   {"1.18.15", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
+	"helm":      {"3.5.1", regexp.MustCompile("(?:SemVer|Version):\"v([\\d.]+)")},
 	"terraform": {"0.14.0", regexp.MustCompile("Terraform v([\\d.]+)")},
 }
 
