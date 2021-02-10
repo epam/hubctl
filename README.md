@@ -3,7 +3,7 @@
 Hub CLI is stack composition and lifecycle tool.
 
     $ hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
-    $ hub deploy hub.yaml.elaborate -e NAME=test2
+    $ hub deploy hub.yaml.elaborate -e NAME=stage
     $ hub version
     $ hub help
 
@@ -23,6 +23,6 @@ Or directly with `go`:
 
 ## What's next?
 
-Deploy [App Stack](https://github.com/agilestacks/stack-app-eks) or [ML Stack](https://github.com/agilestacks/stack-ml-eks) on EKS.
+Deploy [App Stack](https://github.com/agilestacks/stack-app-eks) or [Machine Learning Stack](https://github.com/agilestacks/stack-ml-eks) on AWS EKS.
 
 More information in the [wiki](https://github.com/agilestacks/hub/wiki) and [docs](https://docs.agilestacks.com).
