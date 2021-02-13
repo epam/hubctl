@@ -56,6 +56,9 @@ func Invoke(method, path string, body io.Reader) {
 
 func hubApi() *http.Client {
 	if _hubApi == nil {
+		if config.Trace {
+			log.Printf("API timeout: %ds", config.ApiTimeout)
+		}
 		_hubApi = util.RobustHttpClient(time.Duration(config.ApiTimeout)*time.Second, false)
 	}
 	return _hubApi
@@ -63,6 +66,9 @@ func hubApi() *http.Client {
 
 func hubApiLongWait() *http.Client {
 	if _hubApiLongWait == nil {
+		if config.Trace {
+			log.Printf("API long timeout: %ds", config.ApiTimeout)
+		}
 		_hubApiLongWait = util.RobustHttpClient(time.Duration(config.ApiTimeout)*time.Second, false)
 	}
 	return _hubApiLongWait

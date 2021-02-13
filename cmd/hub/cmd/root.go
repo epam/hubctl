@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -128,6 +129,11 @@ func initConfig() {
 	}
 	if viper.GetBool("trace") {
 		config.Trace = true
+	}
+	if t := viper.GetString("api-timeout"); t != "" {
+		if timeout, err := strconv.Atoi(t); err == nil && timeout > 0 {
+			config.ApiTimeout = timeout
+		}
 	}
 	if tty := viper.GetString("tty"); tty != "" {
 		config.TtyMode = tty
