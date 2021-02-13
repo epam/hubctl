@@ -132,10 +132,9 @@ func createKubernetes(args []string) error {
 		if eksClusterName == "" {
 			if strings.Contains(name, ".") {
 				return errors.New("EKS cluster name (--eks-cluster) must be provided")
-			} else {
-				log.Printf("Setting --eks-cluster=%s", name)
-				eksClusterName = name
 			}
+			log.Printf("Setting --eks-cluster=%s", name)
+			eksClusterName = name
 		}
 		nativeClusterName = eksClusterName
 		if eksAdmin == "" {
@@ -146,10 +145,9 @@ func createKubernetes(args []string) error {
 		if gkeClusterName == "" {
 			if strings.Contains(name, ".") {
 				return errors.New("GKE cluster name (--gke-cluster) must be provided")
-			} else {
-				log.Printf("Setting --gke-cluster=%s", name)
-				gkeClusterName = name
 			}
+			log.Printf("Setting --gke-cluster=%s", name)
+			gkeClusterName = name
 		}
 		nativeClusterName = gkeClusterName
 
@@ -157,10 +155,9 @@ func createKubernetes(args []string) error {
 		if aksClusterName == "" {
 			if strings.Contains(name, ".") {
 				return errors.New("AKS cluster name (--aks-cluster) must be provided")
-			} else {
-				log.Printf("Setting --aks-cluster=%s", name)
-				aksClusterName = name
 			}
+			log.Printf("Setting --aks-cluster=%s", name)
+			aksClusterName = name
 		}
 		nativeClusterName = aksClusterName
 		if azureResourceGroup == "" {
@@ -235,10 +232,9 @@ func importKubernetes(args []string) error {
 		if eksClusterName == "" {
 			if strings.Contains(name, ".") {
 				return errors.New("EKS cluster name (--eks-cluster) must be provided")
-			} else {
-				log.Printf("Setting --eks-cluster=%s", name)
-				eksClusterName = name
 			}
+			log.Printf("Setting --eks-cluster=%s", name)
+			eksClusterName = name
 		}
 		nativeEndpoint = eksEndpoint
 		nativeClusterName = eksClusterName
@@ -247,10 +243,9 @@ func importKubernetes(args []string) error {
 		if gkeClusterName == "" {
 			if strings.Contains(name, ".") {
 				return errors.New("GKE cluster name (--gke-cluster) must be provided")
-			} else {
-				log.Printf("Setting --gke-cluster=%s", name)
-				gkeClusterName = name
 			}
+			log.Printf("Setting --gke-cluster=%s", name)
+			gkeClusterName = name
 		}
 		nativeClusterName = gkeClusterName
 
@@ -258,10 +253,9 @@ func importKubernetes(args []string) error {
 		if aksClusterName == "" {
 			if strings.Contains(name, ".") {
 				return errors.New("AKS cluster name (--aks-cluster) must be provided")
-			} else {
-				log.Printf("Setting --aks-cluster=%s", name)
-				aksClusterName = name
 			}
+			log.Printf("Setting --aks-cluster=%s", name)
+			aksClusterName = name
 		}
 		nativeClusterName = aksClusterName
 		if azureResourceGroup == "" {
