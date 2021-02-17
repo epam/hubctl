@@ -19,7 +19,14 @@ $(info DD_CLIENT_API_KEY is not set - usage metrics won't be submitted to Datado
 see https://github.com/agilestacks/documentation/wiki/Hub-CLI-Usage-Metrics)
 endif
 
-aws := aws
+IMAGE         ?= agilestacks/hub
+IMAGE_VERSION ?= $(shell git rev-parse HEAD | cut -c-7)
+IMAGE_TAG     ?= latest
+USER_FULLNAME ?= $(shell id -un)
+REGISTRY_PASS ?= ~/.docker/agilestacks.txt
+
+aws    := aws
+docker := docker
 
 install: bin/$(OS)/gox bin/$(OS)/go-bindata
 bin/$(OS)/gox:
@@ -62,12 +69,35 @@ undistribute:
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: undistribute
 
+static: GO_FLAGS=-ldflags "-linkmode external -extldflags -static"
+static: get
+
+docker: static
+	$(docker) build \
+		--build-arg="FULLNAME=$(USER_FULLNAME)" \
+		--tag $(IMAGE):$(IMAGE_VERSION) \
+		--tag $(IMAGE):$(IMAGE_TAG) .
+.PHONY: docker
+
+push: login push-version push-tag
+push-version:
+	$(docker) push $(IMAGE):$(IMAGE_VERSION)
+.PHONY: push-version
+push-tag:
+	$(docker) push $(IMAGE):$(IMAGE_TAG)
+.PHONY: push-tag
+login:
+	@touch $(REGISTRY_PASS)
+	@echo "Please put Docker Hub password into $(REGISTRY_PASS)"
+	cat $(REGISTRY_PASS) | docker login --username agilestacks --password-stdin
+.PHONY: login
+
 cel:
 	go get github.com/agilestacks/hub/cmd/cel
 .PHONY: cel
 
 get: version metrics-keys
-	go get -tags "git metrics" github.com/agilestacks/hub/cmd/hub
+	go get -tags "git metrics" $(GO_FLAGS) github.com/agilestacks/hub/cmd/hub
 .PHONY: get
 
 bindata: bin/$(OS)/go-bindata
