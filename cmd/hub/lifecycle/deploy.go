@@ -76,12 +76,6 @@ func Execute(request *Request, pipe io.WriteCloser) {
 		log.Fatalf("Unable to parse OS environment setup: %v", err)
 	}
 
-	stateFiles, errs := storage.Check(request.StateFilenames, "state")
-	if len(errs) > 0 {
-		util.MaybeFatalf("Unable to check state files: %s", util.Errors2(errs...))
-	}
-	storage.EnsureNoLockFiles(stateFiles)
-
 	defer util.Done()
 
 	var stateManifest *state.StateManifest
@@ -89,6 +83,11 @@ func Execute(request *Request, pipe io.WriteCloser) {
 	stateUpdater := func(interface{}) {}
 	var operationLogId string
 	if len(request.StateFilenames) > 0 {
+		stateFiles, errs := storage.Check(request.StateFilenames, "state")
+		if len(errs) > 0 {
+			util.MaybeFatalf("Unable to check state files: %s", util.Errors2(errs...))
+		}
+		storage.EnsureNoLockFiles(stateFiles)
 		parsed, err := state.ParseState(stateFiles)
 		if isUndeploy || isSomeComponents {
 			if err != nil {
