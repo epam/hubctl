@@ -51,10 +51,6 @@ func checkPath(path, kind string) (*File, error) {
 }
 
 func Check(paths []string, kind string) (*Files, []error) {
-	if len(paths) == 0 {
-		return nil, nil
-	}
-
 	errs := make([]error, 0)
 
 	files := make([]File, 0, len(paths))
