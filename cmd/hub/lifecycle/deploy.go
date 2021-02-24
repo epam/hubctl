@@ -307,8 +307,7 @@ NEXT_COMPONENT:
 
 		expandedComponentParameters, expansionErrs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
 			stackParameters, allOutputs,
-			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
-			environment)
+			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name))
 		expandedComponentParameters = addHubProvides(expandedComponentParameters, provides)
 		allParameters := parameters.MergeParameters(stackParametersNoLinks, expandedComponentParameters)
 		optionalParametersFalse := calculateOptionalFalseParameters(componentName, allParameters, optionalRequires)

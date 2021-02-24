@@ -248,7 +248,7 @@ func FindValue(parameterName string, componentName string, componentDepends []st
 
 func ExpandParameters(componentName, componentKind string, componentDepends []string,
 	parameters LockedParameters, outputs CapturedOutputs,
-	componentParameters []manifest.Parameter, environment map[string]string) ([]LockedParameter, []error) {
+	componentParameters []manifest.Parameter) ([]LockedParameter, []error) {
 
 	// make outputs of the same component kind invisible
 	outputFilter := func(output CapturedOutput) bool {

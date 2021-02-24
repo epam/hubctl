@@ -77,8 +77,7 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 		}
 		expandedComponentParameters, errs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
 			stackParameters, outputs,
-			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
-			nil)
+			manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name))
 		if len(errs) > 0 {
 			util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 				componentName, util.Errors("\n\t", errs...))

@@ -62,9 +62,7 @@ func Invoke(request *Request) {
 	// we should probably ask mergeState() to load true component parameters
 	// from state instead of re-evaluating them here
 	expandedComponentParameters, errs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
-		stackParameters, outputs,
-		manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name),
-		additionalEnvironment)
+		stackParameters, outputs, manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name))
 	if len(errs) > 0 {
 		util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 			componentName, util.Errors("\n\t", errs...))
