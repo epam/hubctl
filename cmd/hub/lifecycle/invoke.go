@@ -33,11 +33,6 @@ func Invoke(request *Request) {
 		util.MaybeFatalf("Unable to check state file: %v", util.Errors2(errs...))
 	}
 
-	if config.Verbose {
-		log.Printf("Invoke `%s` on `%s` with %v manifest and %v state",
-			request.Verb, request.Component, request.ManifestFilenames, request.StateFilenames)
-	}
-
 	stackBaseDir := util.Basedir(request.ManifestFilenames)
 	componentsBaseDir := request.ComponentsBaseDir
 	if componentsBaseDir == "" {
@@ -59,6 +54,12 @@ func Invoke(request *Request) {
 		util.MaybeFatalf("Unable to load component `%s` state: %v",
 			request.Component, err)
 	}
+
+	if config.Verbose {
+		log.Printf("Invoke `%s` on `%s` with %v manifest and %v state",
+			request.Verb, request.Component, request.ManifestFilenames, request.StateFilenames)
+	}
+
 	// should we ask mergeState() to load true component parameters
 	// from state instead of re-evaluating them here?
 	expandedComponentParameters, errs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
