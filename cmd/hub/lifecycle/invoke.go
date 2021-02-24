@@ -59,15 +59,14 @@ func Invoke(request *Request) {
 		util.MaybeFatalf("Unable to load component `%s` state: %v",
 			request.Component, err)
 	}
-	// we should probably ask mergeState() to load true component parameters
-	// from state instead of re-evaluating them here
+	// should we ask mergeState() to load true component parameters
+	// from state instead of re-evaluating them here?
 	expandedComponentParameters, errs := parameters.ExpandParameters(componentName, componentManifest.Meta.Kind, component.Depends,
 		stackParameters, outputs, manifest.FlattenParameters(componentManifest.Parameters, componentManifest.Meta.Name))
 	if len(errs) > 0 {
 		util.MaybeFatalf("Component `%s` parameters expansion failed:\n\t%s",
 			componentName, util.Errors("\n\t", errs...))
 	}
-	// always --strict-parameters
 	componentParameters := parameters.MergeParameters(make(parameters.LockedParameters), expandedComponentParameters)
 
 	if config.Debug {
@@ -95,17 +94,10 @@ func Invoke(request *Request) {
 			printEnvironment(impl.Env)
 		}
 	}
-	stdout, stderr, err := execImplementation(impl, request.PipeOutputInRealtime)
 
-	if !request.PipeOutputInRealtime && (config.Trace || err != nil) {
-		msg := formatStdoutStderr(stdout, stderr)
-		if err != nil {
-			util.MaybeFatalf("%sFailed to %s %s: %v", msg, request.Verb, request.Component, err)
-		} else {
-			log.Print(msg)
-		}
-	}
-	if request.PipeOutputInRealtime && err != nil {
+	_, _, err = execImplementation(impl, true, false)
+
+	if err != nil {
 		util.MaybeFatalf("Failed to %s %s: %v", request.Verb, request.Component, err)
 	}
 }

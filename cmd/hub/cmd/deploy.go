@@ -134,7 +134,6 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 		OsEnvironmentMode:          osEnvironmentMode,
 		EnvironmentOverrides:       environmentOverrides,
 		ComponentsBaseDir:          componentsBaseDir,
-		PipeOutputInRealtime:       pipeOutputInRealtime,
 		GitOutputs:                 gitOutputs,
 		GitOutputsStatus:           gitOutputsStatus,
 		Environment:                hubEnvironment,
@@ -182,8 +181,6 @@ func initDeployUndeployFlags(cmd *cobra.Command, verb string) {
 func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 	cmd.Flags().StringVarP(&componentsBaseDir, "base-dir", "b", "",
 		"Path to component sources base directory (default to manifest dir)")
-	cmd.Flags().BoolVarP(&pipeOutputInRealtime, "pipe", "", true,
-		"Pipe sub-commands output to console in real-time")
 	cmd.Flags().BoolVarP(&dryRun, "dry", "y", false,
 		fmt.Sprintf("Invoke %[1]s-test verb instead of %[1]s", verb))
 	cmd.Flags().StringVarP(&osEnvironmentMode, "os-environment", "", "no-tfvars",

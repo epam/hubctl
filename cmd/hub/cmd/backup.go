@@ -71,17 +71,16 @@ func backupCreate(args []string, pipe io.WriteCloser) error {
 	setOsEnvForNestedCli(manifests, stateManifests, componentsBaseDir)
 
 	request := &lifecycle.Request{
-		Verb:                 "backup",
-		DryRun:               dryRun,
-		ManifestFilenames:    manifests,
-		StateFilenames:       stateManifests,
-		Components:           components,
-		OsEnvironmentMode:    osEnvironmentMode,
-		ComponentsBaseDir:    componentsBaseDir,
-		PipeOutputInRealtime: pipeOutputInRealtime,
-		Environment:          hubEnvironment,
-		StackInstance:        hubStackInstance,
-		Application:          hubApplication,
+		Verb:              "backup",
+		DryRun:            dryRun,
+		ManifestFilenames: manifests,
+		StateFilenames:    stateManifests,
+		Components:        components,
+		OsEnvironmentMode: osEnvironmentMode,
+		ComponentsBaseDir: componentsBaseDir,
+		Environment:       hubEnvironment,
+		StackInstance:     hubStackInstance,
+		Application:       hubApplication,
 	}
 
 	lifecycle.BackupCreate(request, bundleFiles, backupBundleInJson, backupAllowPartial, pipe)

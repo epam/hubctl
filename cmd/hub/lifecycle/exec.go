@@ -23,7 +23,7 @@ func goWait(routine func()) chan string {
 	return ch
 }
 
-func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []byte, error) {
+func execImplementation(impl *exec.Cmd, passStdin, paginate bool) ([]byte, []byte, error) {
 	stderrImpl, err := impl.StderrPipe()
 	if err != nil {
 		return nil, nil, fmt.Errorf("Unable to obtain sub-process stderr pipe: %v", err)
@@ -39,41 +39,42 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []by
 	}
 	implBlurb := fmt.Sprintf("%s%s (%s)", impl.Path, args, impl.Dir)
 
-	var stdoutBuffer bytes.Buffer
-	var stderrBuffer bytes.Buffer
-	var stdoutWritter io.Writer = &stdoutBuffer
-	var stderrWritter io.Writer = &stderrBuffer
 	logOutput := log.Writer()
-	if pipeOutputInRealtime {
-		var stdout io.Writer = os.Stdout
-		var stderr io.Writer = os.Stderr
 
-		if config.Tty && !config.Debug {
-			stdoutTerminal := isatty.IsTerminal(os.Stdout.Fd())
-			stderrTerminal := isatty.IsTerminal(os.Stderr.Fd())
-			to := os.Stdout
-			if !stdoutTerminal && stderrTerminal {
-				to = os.Stderr
-			}
-			tail := newTail(to)
-			defer tail.Close()
-			if stdoutTerminal || config.TtyForced {
-				stdout = tail
-			}
-			if stderrTerminal || config.TtyForced {
-				stderr = tail
-			}
-			// send CLI messages to common stream so that output is formatted correctly
-			log.SetOutput(tail)
+	var stdout io.Writer = os.Stdout
+	var stderr io.Writer = os.Stderr
+
+	if paginate && config.Tty && !config.Debug {
+		stdoutTerminal := isatty.IsTerminal(os.Stdout.Fd())
+		stderrTerminal := isatty.IsTerminal(os.Stderr.Fd())
+		to := os.Stdout
+		if !stdoutTerminal && stderrTerminal {
+			to = os.Stderr
 		}
-
-		stdoutWritter = io.MultiWriter(&stdoutBuffer, stdout)
-		stderrWritter = io.MultiWriter(&stderrBuffer, stderr)
-		fmt.Printf("--- %s\n", implBlurb)
+		tail := newTail(to)
+		defer tail.Close()
+		if stdoutTerminal || config.TtyForced {
+			stdout = tail
+		}
+		if stderrTerminal || config.TtyForced {
+			stderr = tail
+		}
+		// send CLI messages to common stream so that output is formatted correctly
+		log.SetOutput(tail)
 	}
 
+	var stdoutBuffer bytes.Buffer
+	var stderrBuffer bytes.Buffer
+	stdoutWritter := io.MultiWriter(&stdoutBuffer, stdout)
+	stderrWritter := io.MultiWriter(&stderrBuffer, stderr)
+
+	fmt.Printf("--- %s\n", implBlurb)
 	os.Stdout.Sync()
 	os.Stderr.Sync()
+
+	if passStdin {
+		impl.Stdin = os.Stdin
+	}
 
 	stdoutComplete := goWait(func() { io.Copy(stdoutWritter, stdoutImpl) })
 	stderrComplete := goWait(func() { io.Copy(stderrWritter, stderrImpl) })
@@ -85,10 +86,7 @@ func execImplementation(impl *exec.Cmd, pipeOutputInRealtime bool) ([]byte, []by
 	<-stdoutComplete
 	<-stderrComplete
 
-	if pipeOutputInRealtime {
-		fmt.Print("---\n")
-	}
-
+	fmt.Print("---\n")
 	os.Stdout.Sync()
 	os.Stderr.Sync()
 

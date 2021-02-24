@@ -56,7 +56,6 @@ func invoke(args []string) error {
 		OsEnvironmentMode:    osEnvironmentMode,
 		EnvironmentOverrides: environmentOverrides,
 		ComponentsBaseDir:    componentsBaseDir,
-		PipeOutputInRealtime: pipeOutputInRealtime,
 	}
 	lifecycle.Invoke(request)
 
@@ -74,7 +73,5 @@ func init() {
 		"OS environment mode for child process, one of: everything, no-tfvars, strict")
 	invokeCmd.Flags().StringVarP(&environmentOverrides, "environment", "e", "",
 		"Set additional environment variables: -e 'PORT=5000,...'")
-	invokeCmd.Flags().BoolVarP(&pipeOutputInRealtime, "pipe", "p", true,
-		"Pipe sub-commands output to console in real-time")
 	RootCmd.AddCommand(invokeCmd)
 }

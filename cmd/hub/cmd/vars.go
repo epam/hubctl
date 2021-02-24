@@ -30,7 +30,6 @@ var (
 	environmentOverrides  string
 	dryRun                bool
 	osEnvironmentMode     string
-	pipeOutputInRealtime  bool
 	outputFiles           string
 	waitAndTailDeployLogs bool
 	showSecrets           bool

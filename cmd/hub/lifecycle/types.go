@@ -15,7 +15,6 @@ type Request struct {
 	OsEnvironmentMode          string
 	EnvironmentOverrides       string
 	ComponentsBaseDir          string
-	PipeOutputInRealtime       bool
 	GitOutputs                 bool
 	GitOutputsStatus           bool
 	Environment                string

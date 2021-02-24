@@ -370,7 +370,7 @@ NEXT_COMPONENT:
 		componentDir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
 		stdout, stderr, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
 			component, componentManifest, componentParameters,
-			componentDir, osEnv, randomStr, request.PipeOutputInRealtime)
+			componentDir, osEnv, randomStr)
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
@@ -578,7 +578,7 @@ func maybeTestVerb(verb string, test bool) string {
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
 	componentParameters parameters.LockedParameters,
-	dir string, osEnv []string, random string, pipeOutputInRealtime bool) ([]byte, []byte, error) {
+	dir string, osEnv []string, random string) ([]byte, []byte, error) {
 
 	if config.Debug && len(componentParameters) > 0 {
 		log.Print("Component parameters:")
@@ -614,10 +614,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 		}
 	}
 
-	stdout, stderr, err := execImplementation(impl, pipeOutputInRealtime)
-	if !pipeOutputInRealtime && (config.Trace || err != nil) {
-		log.Print(formatStdoutStderr(stdout, stderr))
-	}
+	stdout, stderr, err := execImplementation(impl, false, true)
 	return stdout, stderr, err
 }
 
