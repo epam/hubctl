@@ -276,7 +276,12 @@ NEXT_COMPONENT:
 			updateStateComponentFailed = func(msg string, final bool) {
 				stateManifest = state.UpdateComponentStatus(stateManifest, componentName, &componentManifest.Meta, "error", msg)
 				stateManifest = state.UpdatePhase(stateManifest, operationLogId, componentName, "error")
-				eraseProvides(provides, componentName)
+				// Erasing provides of a failed component on redeploy has undesirable effect on undeploy, for example:
+				// Kubernetes Terraform failed safely - failed to download plugin, or failed to add minor resource - leaving
+				// Kubernetes fully operation, yet the `kubernetes` capability is removed from stack provides. Such stack
+				// will fail to undeploy due to components being unable to satisfy the [kubernetes] requirement, ie.
+				// requiring deploy to undeploy, which is dumb.
+				// eraseProvides(provides, componentName)
 				stateManifest.Provides = noEnvironmentProvides(provides)
 				if !config.Force && !optionalComponent(&stackManifest.Lifecycle, componentName) {
 					stateManifest = state.UpdateStackStatus(stateManifest, "incomplete", msg)
@@ -332,13 +337,20 @@ NEXT_COMPONENT:
 
 		if optionalNotProvided, err := prepareComponentRequires(provides, componentManifest, allParameters, allOutputs, optionalRequires, request.EnabledClouds); len(optionalNotProvided) > 0 || err != nil {
 			if err != nil {
-				maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName, fmt.Sprintf("%v", err), updateStateComponentFailed)
+				if request.Verb == "undeploy" {
+					// proceed without --force set to handle required component (depends on) being already undeployed via --component
+					util.Warn("%v", err)
+				} else {
+					maybeFatalIfMandatory(&stackManifest.Lifecycle, componentName, fmt.Sprintf("%v", err), updateStateComponentFailed)
+					continue NEXT_COMPONENT
+				}
+			}
+			if len(optionalNotProvided) > 0 {
+				log.Printf("Skip %s due to unsatisfied optional requirements %v", componentName, optionalNotProvided)
+				// there will be a gap in state file but `deploy -c` will be able to find some state from
+				// a preceding component
 				continue NEXT_COMPONENT
 			}
-			log.Printf("Skip %s due to unsatisfied optional requirements %v", componentName, optionalNotProvided)
-			// there will be a gap in state file but `deploy -c` will be able to find some state from
-			// a preceding component
-			continue NEXT_COMPONENT
 		}
 
 		if stateManifest != nil {
