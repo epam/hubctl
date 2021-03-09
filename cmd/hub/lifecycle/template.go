@@ -525,7 +525,11 @@ func goTemplateBindings(kv map[string]interface{}) map[string]interface{} {
 					util.WarnOnce("Template nested values already installed under `%s`, cannot install leaf value `%[1]s`", k)
 					break
 				}
-				innerkv[part] = v
+				if str, ok := v.(string); ok {
+					innerkv[part] = strings.TrimSpace(str)
+				} else {
+					innerkv[part] = v
+				}
 			} else {
 				ref, exist := innerkv[part]
 				if exist {
