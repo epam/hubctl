@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+
+    - name: Build
+      run: make compile
+      env:
+        METRICS_API_SECRET: ${{ secrets.METRICS_API_SECRET }}
+        DD_CLIENT_API_KEY: ${{ secrets.DD_CLIENT_API_KEY }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: bin/hub.*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

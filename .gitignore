@@ -2,6 +2,7 @@
 
 /hub
 bin/hub
+bin/hub.*
 bin/cel
 bin/linux*
 bin/darwin*
