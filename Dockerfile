@@ -5,6 +5,7 @@ RUN \
     apk update && apk upgrade && \
     apk add --no-cache \
         aws-cli \
+        bash \
         git \
         git-subtree \
         jq && \
