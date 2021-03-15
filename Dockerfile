@@ -4,7 +4,9 @@ LABEL maintainer="${FULLNAME} <support@agilestacks.com>"
 RUN \
     apk update && apk upgrade && \
     apk add --no-cache \
+        aws-cli \
         git \
-        git-subtree && \
+        git-subtree \
+        jq && \
     rm -rf /var/cache/apk/*
 COPY bin/linux/hub /usr/local/bin/hub
