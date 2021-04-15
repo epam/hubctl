@@ -25,12 +25,12 @@ Or directly with `go`:
 
 Install [Hub CLI](https://docs.agilestacks.com/article/zrban5vpb5-install-toolbox#hub_cli):
 
-    curl -O https://controlplane.agilestacks.io/dist/hub-cli/hub.linux_amd64
+    curl -O https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_amd64
     mv hub.linux_amd64 hub
     chmod +x hub
     sudo mv hub /usr/local/bin
 
-There are [Linux amd64](https://controlplane.agilestacks.io/dist/hub-cli/hub.linux_amd64), [Linux arm64](https://controlplane.agilestacks.io/dist/hub-cli/hub.linux_arm64), and [macOS amd64](https://controlplane.agilestacks.io/dist/hub-cli/hub.darwin_amd64) binaries.
+There are [Linux amd64](https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_amd64), [Linux arm64](https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_arm64), and [macOS amd64](https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.darwin_amd64) binaries.
 
 ### Extensions
 
@@ -44,9 +44,9 @@ Windows users please [read on](https://docs.agilestacks.com/article/u6a9cq5yya-h
 
 ### macOS users
 
-Depending on your machine Security & Privacy settings and macOS version (10.15+), you may get an error _cannot be opened because the developer cannot be verified_. Please [read on](https://github.com/hashicorp/terraform/issues/23033#issuecomment-542302933) for a simple workaround.
+Depending on your's machine Security & Privacy settings and macOS version (10.15+), you may get an error _cannot be opened because the developer cannot be verified_. Please [read on](https://github.com/hashicorp/terraform/issues/23033#issuecomment-542302933) for a simple workaround.
 
-Alternativelly, to set global preference to _Allow apps downloaded from: Anywhere_, execute:
+Alternatively, to set a global preference to _Allow apps downloaded from: Anywhere_, execute:
 
     $ sudo spctl --master-disable
 
