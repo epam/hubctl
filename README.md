@@ -25,7 +25,7 @@ Or directly with `go`:
 
 Install [Hub CLI](https://docs.agilestacks.com/article/zrban5vpb5-install-toolbox#hub_cli):
 
-    curl -O https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_amd64
+    curl -L -O https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_amd64
     mv hub.linux_amd64 hub
     chmod +x hub
     sudo mv hub /usr/local/bin
