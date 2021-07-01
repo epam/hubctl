@@ -25,12 +25,12 @@ Or directly with `go`:
 
 Install [Hub CLI](https://docs.agilestacks.com/article/zrban5vpb5-install-toolbox#hub_cli):
 
-    curl -L -O https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_amd64
+    curl -L -O https://github.com/agilestacks/hub/releases/download/v1.0.1/hub.linux_amd64
     mv hub.linux_amd64 hub
     chmod +x hub
     sudo mv hub /usr/local/bin
 
-There are [Linux amd64](https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_amd64), [Linux arm64](https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.linux_arm64), and [macOS amd64](https://github.com/agilestacks/hub/releases/download/v1.0.0/hub.darwin_amd64) binaries.
+There are [Linux amd64](https://github.com/agilestacks/hub/releases/download/v1.0.1/hub.linux_amd64), [Linux arm64](https://github.com/agilestacks/hub/releases/download/v1.0.1/hub.linux_arm64), and [macOS amd64](https://github.com/agilestacks/hub/releases/download/v1.0.1/hub.darwin_amd64) binaries.
 
 ### Extensions
 
