@@ -14,7 +14,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/alexkappa/mustache v0.0.0-20191113130723-8bb9cfca2bfa
 	github.com/arkadijs/golang-socketio v0.0.0-20180405140456-dc2d2a43165c
-	github.com/aws/aws-sdk-go v1.31.15
+	github.com/aws/aws-sdk-go v1.38.70
 	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/cel-go v0.5.1
 	github.com/google/uuid v1.1.1
@@ -30,6 +30,7 @@ require (
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0
+	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/tmthrgd/go-bindata v0.0.0-20190904063317-a4b65675e0fb
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
