@@ -44,7 +44,9 @@ Windows users please [read on](https://docs.agilestacks.com/article/u6a9cq5yya-h
 
 ### macOS users
 
-Depending on your's machine Security & Privacy settings and macOS version (10.15+), you may get an error _cannot be opened because the developer cannot be verified_. Please [read on](https://github.com/hashicorp/terraform/issues/23033#issuecomment-542302933) for a simple workaround.
+Depending on your's machine Security & Privacy settings and macOS version (10.15+), you may get an error _cannot be opened because the developer cannot be verified_. Please [read on](https://github.com/hashicorp/terraform/issues/23033#issuecomment-542302933) for a simple workaround:
+
+    $ xattr -d com.apple.quarantine hub.darwin_amd64
 
 Alternatively, to set a global preference to _Allow apps downloaded from: Anywhere_, execute:
 
