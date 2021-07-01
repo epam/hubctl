@@ -59,7 +59,7 @@ func init() {
 	}
 	RootCmd.PersistentFlags().StringVar(&config.ApiBaseUrl, "api", apiDefault, "Hub API service base URL, HUB_API")
 
-	RootCmd.PersistentFlags().StringVar(&config.AwsProfile, "aws_profile", os.Getenv("AWS_PROFILE"), "AWS ~/.aws/credentials profile, AWS_PROFILE")
+	RootCmd.PersistentFlags().StringVar(&config.AwsProfile, "aws_profile", "", "AWS ~/.aws/credentials profile, AWS_PROFILE")
 	awsRegion := os.Getenv(envVarNameAwsRegion)
 	if awsRegion == "" {
 		awsRegion = os.Getenv("AWS_DEFAULT_REGION")

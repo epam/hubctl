@@ -3,6 +3,7 @@ package aws
 import (
 	"fmt"
 	"log"
+	"os"
 
 	awsaws "github.com/aws/aws-sdk-go/aws"
 	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
@@ -57,6 +58,9 @@ func ProfileCredentials(profile, purpose string) *awscredentials.Credentials {
 
 func DefaultCredentials(purpose string) *awscredentials.Credentials {
 	profile := "default"
+	if envProfile := os.Getenv("AWS_PROFILE"); envProfile != "" {
+		profile = envProfile
+	}
 	if config.AwsProfile != "" {
 		profile = config.AwsProfile
 	}
@@ -64,7 +68,20 @@ func DefaultCredentials(purpose string) *awscredentials.Credentials {
 }
 
 func Session(region, purpose string) (*awssession.Session, error) {
-	return SessionWithCredentials(region, purpose, cachedCredentials(purpose))
+	var session *awssession.Session
+	var err error
+	if config.AwsProfile != "" || !config.AwsUseIamRoleCredentials || config.AwsPreferProfileCredentials {
+		session, err = SessionWithCredentials(region, purpose, cachedCredentials(purpose))
+	} else {
+		session, err = SessionWithSharedConfig(region)
+	}
+	if err != nil {
+		if purpose != "" {
+			purpose = fmt.Sprintf(" for %s", purpose)
+		}
+		return nil, fmt.Errorf("Error initializing AWS session%s: %v", purpose, err)
+	}
+	return session, nil
 }
 
 func SessionWithStaticCredentials(region, purpose, accessKey, secretKey, token string) (*awssession.Session, error) {
@@ -77,12 +94,13 @@ func SessionWithCredentials(region, purpose string, credentials *awscredentials.
 		awsConfig = awsConfig.WithRegion(region)
 	}
 	awsConfig = awsConfig.WithCredentials(credentials)
-	session, err := awssession.NewSession(awsConfig)
-	if err != nil {
-		if purpose != "" {
-			purpose = fmt.Sprintf(" for %s", purpose)
-		}
-		return nil, fmt.Errorf("Error initializing AWS session%s: %v", purpose, err)
+	return awssession.NewSession(awsConfig)
+}
+
+func SessionWithSharedConfig(region string) (*awssession.Session, error) {
+	options := awssession.Options{SharedConfigState: awssession.SharedConfigEnable}
+	if region != "" {
+		options.Config = *awsaws.NewConfig().WithRegion(region)
 	}
-	return session, nil
+	return awssession.NewSessionWithOptions(options)
 }
