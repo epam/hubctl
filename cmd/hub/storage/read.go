@@ -231,7 +231,8 @@ func chooseFile(files *Files) (*File, error) {
 			(file.Size == largest.Size ||
 				file.Size+crypto.EncryptionV1Overhead == largest.Size ||
 				file.Size+crypto.EncryptionV2Overhead == largest.Size ||
-				file.Size+crypto.EncryptionV3Overhead == largest.Size) {
+				file.Size+crypto.EncryptionV3Overhead == largest.Size ||
+				file.Size+crypto.EncryptionV4Overhead == largest.Size) {
 			return &file, nil
 		}
 	}

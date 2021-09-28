@@ -82,7 +82,7 @@ func init() {
 
 	RootCmd.PersistentFlags().BoolVar(&config.Compressed, "compressed", true, "Write gzip compressed files")
 	RootCmd.PersistentFlags().StringVar(&config.EncryptionMode, "encrypted", "if-key-set",
-		"Write encrypted files if HUB_CRYPTO_PASSWORD, HUB_CRYPTO_AWS_KMS_KEY_ARN, HUB_CRYPTO_AZURE_KEYVAULT_KEY_ID is set. true / false")
+		"Write encrypted files if HUB_CRYPTO_PASSWORD, HUB_CRYPTO_AWS_KMS_KEY_ARN, HUB_CRYPTO_AZURE_KEYVAULT_KEY_ID, HUB_CRYPTO_GCP_KMS_KEY_NAME is set. true / false")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -146,5 +146,8 @@ func initConfig() {
 	}
 	if key := viper.GetString("crypto-azure-keyvault-key-id"); key != "" {
 		config.CryptoAzureKeyVaultKeyId = key
+	}
+	if key := viper.GetString("crypto-gcp-kms-key-name"); key != "" {
+		config.CryptoGcpKmsKeyName = key
 	}
 }

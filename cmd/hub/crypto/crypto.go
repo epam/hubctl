@@ -14,29 +14,38 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/aws"
 	"github.com/agilestacks/hub/cmd/hub/azure"
 	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/agilestacks/hub/cmd/hub/gcp"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
 const (
 	aes256KeySize = 32
 
+	// V1 is pbkdf2 password derived key
+	// V2 is AWS KMS
+	// V3 is Azure KeyVault
+	// V4 is GCP KMS
 	encryptionMarkerByte0        = '\x26'
 	encryptionV1MarkerByte1      = '\x01'
 	encryptionV2MarkerByte1      = '\x02'
 	encryptionV3MarkerByte1      = '\x03'
+	encryptionV4MarkerByte1      = '\x04'
 	encryptionV1SaltLen          = 8
 	encryptionNonceLen           = 12
 	encryptionV2EncryptedBlobLen = 184 // encrypted AES256 key and 152 bytes of fixed-size AWS KMS meta
 	encryptionV3EncryptedBlobLen = 256 // RSA-OAEP-256
+	encryptionV4EncryptedBlobLen = 113 // encrypted AES256 key and 81 bytes of fixed-size GCP KMS meta
 	encryptionMacLen             = 16
 
 	EncryptionV1Overhead = 2 + encryptionV1SaltLen + encryptionNonceLen + encryptionMacLen
 	EncryptionV2Overhead = 2 + encryptionV2EncryptedBlobLen + encryptionNonceLen + encryptionMacLen
 	EncryptionV3Overhead = 2 + encryptionV3EncryptedBlobLen + encryptionNonceLen + encryptionMacLen
+	EncryptionV4Overhead = 2 + encryptionV4EncryptedBlobLen + encryptionNonceLen + encryptionMacLen
 
 	helpPassword      = "HUB_CRYPTO_PASSWORD='random password'"
 	helpAwsKms        = "HUB_CRYPTO_AWS_KMS_KEY_ARN='arn:aws:kms:...'"
 	helpAzukeKeyvault = "HUB_CRYPTO_AZURE_KEYVAULT_KEY_ID='https://*.vault.azure.net/keys/...'"
+	helpGcpKms        = "HUB_CRYPTO_GCP_KMS_KEY_NAME='projects/*/locations/*/keyRings/my-key-ring/cryptoKeys/my-key'"
 )
 
 var (
@@ -46,13 +55,13 @@ var (
 )
 
 func IsEncryptedData(data []byte) bool {
-	return (len(data) > EncryptionV1Overhead || len(data) > EncryptionV2Overhead || len(data) > EncryptionV3Overhead) &&
+	return (len(data) > EncryptionV1Overhead || len(data) > EncryptionV2Overhead || len(data) > EncryptionV3Overhead || len(data) > EncryptionV4Overhead) &&
 		data[0] == encryptionMarkerByte0 &&
-		(data[1] == encryptionV1MarkerByte1 || data[1] == encryptionV2MarkerByte1 || data[1] == encryptionV3MarkerByte1)
+		(data[1] == encryptionV1MarkerByte1 || data[1] == encryptionV2MarkerByte1 || data[1] == encryptionV3MarkerByte1 || data[1] == encryptionV4MarkerByte1)
 }
 
 // for password based key the blob is salt
-// for AWS KMS and Azure Key Vault the blob is encrypted data key
+// for AWS KMS, Azure Key Vault, GCP KMS the blob is encrypted data key
 // if no blob is supplied then a new key is requested
 // if ver is supplied then it must match envionment setup
 func encryptionKeyInit(ver byte, blob []byte) (byte, []byte, []byte, error) {
@@ -67,6 +76,10 @@ func encryptionKeyInit(ver byte, blob []byte) (byte, []byte, []byte, error) {
 	if ver == encryptionV3MarkerByte1 && config.CryptoAzureKeyVaultKeyId == "" {
 		return 0, nil, nil,
 			fmt.Errorf("Set %s", helpAzukeKeyvault)
+	}
+	if ver == encryptionV4MarkerByte1 && config.CryptoGcpKmsKeyName == "" {
+		return 0, nil, nil,
+			fmt.Errorf("Set %s", helpGcpKms)
 	}
 	if config.CryptoPassword != "" && (ver == 0 || ver == encryptionV1MarkerByte1) {
 		salt := blob
@@ -93,6 +106,13 @@ func encryptionKeyInit(ver byte, blob []byte) (byte, []byte, []byte, error) {
 			return 0, nil, nil, err
 		}
 		return encryptionV3MarkerByte1, encryptedKey, clearKey, nil
+	}
+	if config.CryptoGcpKmsKeyName != "" && (ver == 0 || ver == encryptionV4MarkerByte1) {
+		clearKey, encryptedKey, err := gcp.KmsKey(config.CryptoGcpKmsKeyName, blob)
+		if err != nil {
+			return 0, nil, nil, err
+		}
+		return encryptionV4MarkerByte1, encryptedKey, clearKey, nil
 	}
 	return 0, nil, nil,
 		fmt.Errorf("Set %s or %s or %s", helpPassword, helpAwsKms, helpAzukeKeyvault)
@@ -121,6 +141,10 @@ func Encrypt(data []byte) ([]byte, error) {
 	if ver == encryptionV3MarkerByte1 && len(blob) != encryptionV3EncryptedBlobLen {
 		util.WarnOnce("Azure Key Vault encrypted key size %d doesn't match built-in size %d",
 			len(blob), encryptionV3EncryptedBlobLen)
+	}
+	if ver == encryptionV4MarkerByte1 && len(blob) != encryptionV4EncryptedBlobLen {
+		util.WarnOnce("GCP KMS encrypted key size %d doesn't match built-in size %d",
+			len(blob), encryptionV4EncryptedBlobLen)
 	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -166,6 +190,9 @@ func Decrypt(encrypted []byte) ([]byte, error) {
 	} else if ver == encryptionV3MarkerByte1 {
 		overhead = EncryptionV3Overhead
 		blobLen = encryptionV3EncryptedBlobLen
+	} else if ver == encryptionV4MarkerByte1 {
+		overhead = EncryptionV4Overhead
+		blobLen = encryptionV4EncryptedBlobLen
 	}
 	if len(encrypted) < overhead+aes.BlockSize {
 		return nil, errors.New("Insufficient ciphertext length")

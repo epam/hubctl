@@ -3,6 +3,7 @@ module github.com/agilestacks/hub
 go 1.15
 
 require (
+	cloud.google.com/go v0.57.0
 	cloud.google.com/go/storage v1.9.0
 	github.com/Azure/azure-sdk-for-go v50.1.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.17
@@ -35,6 +36,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	google.golang.org/api v0.26.0
+	google.golang.org/genproto v0.0.0-20200603110839-e855014d5736
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 )
