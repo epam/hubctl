@@ -52,6 +52,35 @@ Alternatively, to set a global preference to _Allow apps downloaded from: Anywhe
 
     $ sudo spctl --master-disable
 
+### Usage metrics
+
+When you use a pre-built binary from the releases page, it will send usage metrics to SuperHub and Datadog.
+
+We value your privacy and only send anonymized usage metrics for the following commands:
+
+- elaborate
+- deploy
+- undeploy
+- backup create
+- api *
+
+A usage metric sample contains:
+
+- Hub CLI command invoked without arguments, ie. 'deploy' or 'backup create', or 'api instance get'
+- synthetic machine id - an UUID generated in first interactive session (stdout is a TTY)
+- usage counter - 1 per invocation
+
+Edit `$HOME/.hub-cache.yaml` to change settings:
+
+    metrics:
+      disabled: false
+      host: 68af657e-6a51-4d4b-890c-4b548852724d
+
+Set `disabled: true` to skip usage metrics reporting.
+Set `host: ""` to send the counter but not the UUID.
+
+You could always review an up-to-date help via `hub util metrics -h`.
+
 ### Beta binaries
 
 We also publish latest binaries to the `controlplane.stage.agilestacks.io` for [Linux amd64](https://controlplane.stage.agilestacks.io/dist/hub-cli/hub.linux_amd64), [Linux arm64](https://controlplane.stage.agilestacks.io/dist/hub-cli/hub.linux_arm64), and [macOS amd64](https://controlplane.stage.agilestacks.io/dist/hub-cli/hub.darwin_amd64).
