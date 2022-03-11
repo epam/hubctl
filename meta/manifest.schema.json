@@ -95,10 +95,10 @@
                             "git": {
                                 "type": "object",
                                 "additionalProperties": true,
-                                "required": [
-                                    "remote"
-                                ],
                                 "properties": {
+                                    "repo": {
+                                        "type": "string"
+                                    },
                                     "remote": {
                                         "type": "string"
                                     },
