@@ -50,7 +50,7 @@ metrics-keys:
 compile: bin/$(OS)/gox version metrics-keys
 	go mod download
 	nice $(GOBIN)/gox -parallel=4 -rebuild -tags "git metrics"\
-		-osarch="linux/amd64 linux/arm64 darwin/amd64 windows/amd64" \
+		-osarch="linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64" \
 		-output=bin/hub.{{.OS}}_{{.Arch}} \
 		github.com/agilestacks/hub/cmd/hub
 .PHONY: compile
@@ -59,6 +59,7 @@ distribute: compile
 	$(aws) s3 cp --no-progress bin/hub.linux_amd64       $(S3_DISTRIBUTION)/
 	$(aws) s3 cp --no-progress bin/hub.linux_arm64       $(S3_DISTRIBUTION)/
 	$(aws) s3 cp --no-progress bin/hub.darwin_amd64      $(S3_DISTRIBUTION)/
+	$(aws) s3 cp --no-progress bin/hub.darwin_arm64      $(S3_DISTRIBUTION)/
 	$(aws) s3 cp --no-progress bin/hub.windows_amd64.exe $(S3_DISTRIBUTION)/
 .PHONY: distribute
 
@@ -66,6 +67,7 @@ undistribute:
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_amd64
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.linux_arm64
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.darwin_amd64
+	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.darwin_arm64
 	-$(aws) s3 rm $(S3_DISTRIBUTION)/hub.windows_amd64.exe
 .PHONY: undistribute
 
