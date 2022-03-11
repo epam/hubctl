@@ -94,7 +94,7 @@
                             },
                             "git": {
                                 "type": "object",
-                                "additionalProperties": false,
+                                "additionalProperties": true,
                                 "required": [
                                     "remote"
                                 ],
