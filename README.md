@@ -1,65 +1,87 @@
-## Hub CLI
+# Hub CLI
 
-Hub CLI is stack composition and lifecycle tool.
+[Hub CLI](https://superhub.io) is stack composition and lifecycle tool.
 
-    $ hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
-    $ hub deploy hub.yaml.elaborate -e NAME=stage
-    $ hub version
-    $ hub help
+## Example of usage
 
-## Build
+```shell
+hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
+hub deploy hub.yaml.elaborate -e NAME=stage
+hub version
+hub help
+```
 
-Use `make` to build Hub CLI:
+## Installation
 
-    $ make
+There are [macOS amd64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.darwin_amd64), [macOS arm64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.darwin_arm64), [Linux amd64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.linux_amd64), [Linux arm64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.linux_arm64) and [Windows x64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.windows_amd64.exe) binaries.
 
-Or directly with `go`:
+### Pre-build binary
 
-    $ go get github.com/agilestacks/hub/cmd/hub
+```shell
+VERSION=v1.0.5
+BINARY=hub.darwin_amd64
+curl -L -O https://github.com/agilestacks/hub/releases/download/$VERSION/$BINARY
+mv $BINARY hub
+chmod +x hub
+sudo mv hub /usr/local/bin
+```
 
-## Clean up
+### Homebrew
 
-    $ make clean
+```shell
+brew tap agilestacks/brew
+brew install agilestacks/brew/hub
+```
 
-## Pre-built binaries
-
-Install [Hub CLI](https://docs.agilestacks.com/article/zrban5vpb5-install-toolbox#hub_cli):
-
-    curl -L -O https://github.com/agilestacks/hub/releases/download/v1.0.2/hub.linux_amd64
-    mv hub.linux_amd64 hub
-    chmod +x hub
-    sudo mv hub /usr/local/bin
-
-There are [Linux amd64](https://github.com/agilestacks/hub/releases/download/v1.0.2/hub.linux_amd64), [Linux arm64](https://github.com/agilestacks/hub/releases/download/v1.0.2/hub.linux_arm64), and [macOS amd64](https://github.com/agilestacks/hub/releases/download/v1.0.2/hub.darwin_amd64) binaries.
+Sorry for the name conflict with [GitHub hub](https://hub.github.com).
 
 ### Extensions
 
 Optionally, install extensions:
 
-    $ hub extensions install
+```shell
+hub extensions install
+```
 
 Hub CLI Extensions require [AWS CLI] or [Azure CLI], [kubectl], [jq], [yq v4]. Optionally install [Node.js] and NPM for `hub pull` extension. Optionally install [eksctl] for `hub ext eks` extension.
-
-Windows users please [read on](https://docs.agilestacks.com/article/u6a9cq5yya-hub-cli-on-windows).
 
 ### macOS users
 
 Depending on your's machine Security & Privacy settings and macOS version (10.15+), you may get an error _cannot be opened because the developer cannot be verified_. Please [read on](https://github.com/hashicorp/terraform/issues/23033#issuecomment-542302933) for a simple workaround:
 
-    $ xattr -d com.apple.quarantine hub.darwin_amd64
+```shell
+xattr -d com.apple.quarantine hub.darwin_amd64
+```
 
 Alternatively, to set a global preference to _Allow apps downloaded from: Anywhere_, execute:
 
-    $ sudo spctl --master-disable
+```shell
+sudo spctl --master-disable
+```
 
-#### Homebrew
+## Development
 
-    brew tap agilestacks/brew
-    brew install agilestacks/brew/hub
+### Build
 
-Sorry for the name conflict with [GitHub hub](https://hub.github.com).
+Use `make` to build Hub CLI:
 
-### Usage metrics
+```shell
+make
+```
+
+Or directly with `go`:
+
+```shell
+go get github.com/agilestacks/hub/cmd/hub
+```
+
+### Clean up
+
+```shell
+make clean
+```
+
+## Usage metrics
 
 When you use a pre-built binary from the releases page, it will send usage metrics to SuperHub and Datadog.
 
@@ -79,25 +101,22 @@ A usage metric sample contains:
 
 Edit `$HOME/.hub-cache.yaml` to change settings:
 
+```yaml
     metrics:
       disabled: false
       host: 68af657e-6a51-4d4b-890c-4b548852724d
+```
 
 Set `disabled: true` to skip usage metrics reporting.
 Set `host: ""` to send the counter but not the UUID.
 
 You could always review an up-to-date help via `hub util metrics -h`.
 
-### Beta binaries
-
-We also publish latest binaries to the `controlplane.stage.agilestacks.io` for [Linux amd64](https://controlplane.stage.agilestacks.io/dist/hub-cli/hub.linux_amd64), [Linux arm64](https://controlplane.stage.agilestacks.io/dist/hub-cli/hub.linux_arm64), and [macOS amd64](https://controlplane.stage.agilestacks.io/dist/hub-cli/hub.darwin_amd64).
-
 ## What's next?
 
 Deploy [App Stack](https://github.com/agilestacks/stack-app-eks) or [Machine Learning Stack](https://github.com/agilestacks/stack-ml-eks) on AWS EKS.
 
-More information in the [wiki](https://github.com/agilestacks/hub/wiki) and [docs](https://docs.agilestacks.com).
-
+More information in the [wiki](https://github.com/agilestacks/hub/wiki).
 
 [AWS CLI]: https://aws.amazon.com/cli/
 [Azure CLI]: https://docs.microsoft.com/en-us/cli/azure/
