@@ -30,6 +30,7 @@ var (
 	hubSaveStackInstanceOutputs   bool
 	hubSyncStackInstance          bool
 	hubSyncSkipParametersAndOplog bool
+	writeOplogToStateOnError      bool
 )
 
 var deployCmd = &cobra.Command{
@@ -141,6 +142,7 @@ func lifecycleRequest(args []string, verb string) (*lifecycle.Request, error) {
 		Application:                hubApplication,
 		SyncStackInstance:          hubSyncStackInstance,
 		SyncSkipParametersAndOplog: hubSyncSkipParametersAndOplog,
+		WriteOplogToStateOnError:   writeOplogToStateOnError,
 	}
 
 	return request, nil
@@ -174,6 +176,8 @@ func initDeployUndeployFlags(cmd *cobra.Command, verb string) {
 		"Sync Stack Instance state to SuperHub (--hub-stack-instance must be set)")
 	cmd.Flags().BoolVarP(&hubSyncSkipParametersAndOplog, "hub-sync-skip-parameters-and-oplog", "", false,
 		"Sync skip syncing Stack Instance parameters and operation log")
+	cmd.Flags().BoolVar(&writeOplogToStateOnError, "write-oplog-to-state-on-error", false,
+		"Write operations log to state files on error")
 	initCommonLifecycleFlags(cmd, verb)
 	initCommonApiFlags(cmd)
 }

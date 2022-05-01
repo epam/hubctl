@@ -386,7 +386,7 @@ NEXT_COMPONENT:
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
-			if stateManifest != nil {
+			if stateManifest != nil && request.WriteOplogToStateOnError {
 				stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
 					fmt.Sprintf("%v%s", err, formatStdoutStderr(stdout, stderr)))
 			}

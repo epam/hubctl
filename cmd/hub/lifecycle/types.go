@@ -22,4 +22,5 @@ type Request struct {
 	Application                string
 	SyncStackInstance          bool
 	SyncSkipParametersAndOplog bool
+	WriteOplogToStateOnError   bool
 }
