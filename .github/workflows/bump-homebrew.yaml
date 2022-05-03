@@ -23,12 +23,13 @@ jobs:
         if: "!contains(github.ref, '-')" # skip prereleases
         with:
           formula-name: hub
+          formula-path: Formula/hub.rb
+          tag-name: ${{ github.event.inputs.tag-name || steps.extract-version.outputs.tag-name }}
+          download-url: https://github.com/agilestacks/hub/releases/download/${{ github.event.inputs.tag-name || steps.extract-version.outputs.tag-name }}/hub.darwin_amd64
           homebrew-tap: agilestacks/homebrew-brew
           base-branch: master
-          download-url: https://github.com/agilestacks/hub/releases/download/${{ github.event.inputs.tag-name || steps.extract-version.outputs.tag-name }}/hub.darwin_amd64
           create-pullrequest: false
-          tag-name: ${{ github.event.inputs.tag-name || steps.extract-version.outputs.tag-name }}
           commit-message: |
             `{{formulaName}}` binary {{version}}
         env:
-          COMMITTER_TOKEN: ${{ secrets.GH_PRIVATE_ACCESS_TOKEN }}
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
