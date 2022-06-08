@@ -13,24 +13,22 @@ hub help
 
 ## Installation
 
-There are [macOS amd64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.darwin_amd64), [macOS arm64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.darwin_arm64), [Linux amd64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.linux_amd64), [Linux arm64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.linux_arm64) and [Windows x64](https://github.com/agilestacks/hub/releases/download/v1.0.5/hub.windows_amd64.exe) binaries.
-
 ### Pre-build binary
 
+To download the latest release, run:
+
 ```shell
-VERSION=v1.0.5
-BINARY=hub.darwin_amd64
-curl -L -O https://github.com/agilestacks/hub/releases/download/$VERSION/$BINARY
-mv $BINARY hub
-chmod +x hub
-sudo mv hub /usr/local/bin
+curl -LJ "https://github.com/agilestacks/hub/releases/latest/download/hub_$(uname -s)_$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/hub /usr/local/bin
 ```
 
-### Homebrew
+There are [macOS amd64](https://github.com/agilestacks/hub/releases/latest/download/hub_Darwin_arm64.tar.gz), [macOS arm64](https://github.com/agilestacks/hub/releases/latest/download/hub_Darwin_x86_64.tar.gz), [Linux amd64](https://github.com/agilestacks/hub/releases/latest/download/hub_Linux_arm64.tar.gz), [Linux arm64](https://github.com/agilestacks/hub/releases/latest/download/hub_Linux_x86_64.tar.gz) and [Windows x64](https://github.com/agilestacks/hub/releases/latest/download/hub_Windows_x86_64.zip) binaries.
+
+### [Homebrew](https://brew.sh/)
 
 ```shell
-brew tap agilestacks/brew
-brew install agilestacks/brew/hub
+brew tap agilestacks/tap
+brew install agilestacks/tap/hub
 ```
 
 Sorry for the name conflict with [GitHub hub](https://hub.github.com).
@@ -43,7 +41,8 @@ Optionally, install extensions:
 hub extensions install
 ```
 
-Hub CLI Extensions require [AWS CLI] or [Azure CLI], [kubectl], [jq], [yq v4]. Optionally install [Node.js] and NPM for `hub pull` extension. Optionally install [eksctl] for `hub ext eks` extension.
+Hub CLI Extensions requires: [jq] and [yq v4].
+Optionally install [Node.js] and NPM for `hub pull` extension, [AWS CLI], [Azure CLI], [GCP SDK] [kubectl], [eksctl] for `hub ext eks` extension.
 
 ### macOS users
 
@@ -120,6 +119,7 @@ More information in the [wiki](https://github.com/agilestacks/hub/wiki).
 
 [AWS CLI]: https://aws.amazon.com/cli/
 [Azure CLI]: https://docs.microsoft.com/en-us/cli/azure/
+[GCP SDK CLI]: https://cloud.google.com/sdk/docs/install
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/overview/
 [eksctl]: https://eksctl.io
 [jq]: https://stedolan.github.io/jq/

@@ -17,6 +17,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print Hub CLI version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Hub CLI %s %s\n", util.CliVersion, runtime.Version())
+		fmt.Printf("Hub CLI %s %s\n", util.Version(), runtime.Version())
 	},
 }

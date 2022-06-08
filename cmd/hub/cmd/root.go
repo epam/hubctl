@@ -29,7 +29,7 @@ var RootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.Update()
 		if config.Debug {
-			log.Printf("Hub CLI %s %s\n", util.CliVersion, runtime.Version())
+			log.Printf("Hub CLI %s %s\n", util.Version(), runtime.Version())
 		}
 		maybeMeterCommand(cmd)
 	},

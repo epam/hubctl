@@ -1,8 +1,6 @@
-// +build !metrics
-
 package metrics
 
-const (
+var (
 	MetricsServiceKey = ""
 	DDKey             = ""
 )

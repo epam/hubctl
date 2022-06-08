@@ -1,0 +1,98 @@
+project_name: hub
+
+before:
+  hooks:
+    - go mod download
+
+dist: bin
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./cmd/hub
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s
+      - -w
+      - -X 'github.com/agilestacks/hub/cmd/hub/util.ref={{ .Tag }}'
+      - -X 'github.com/agilestacks/hub/cmd/hub/util.commit={{ .ShortCommit }}'
+      - -X 'github.com/agilestacks/hub/cmd/hub/util.buildAt={{ time "2006.01.02 15:04:05 MST" }}'
+      - -X 'github.com/agilestacks/hub/cmd/hub/metrics.MetricsServiceKey={{ if index .Env "METRICS_API_SECRET" }}{{ .Env.METRICS_API_SECRET }}{{ else }}{{ end }}'
+      - -X 'github.com/agilestacks/hub/cmd/hub/metrics.DDKey={{ if index .Env "DD_CLIENT_API_KEY" }}{{ .Env.DD_CLIENT_API_KEY }}{{ else }}{{ end }}'
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  filters:
+    exclude:
+      - "(?i)readme"
+      - "(?i)^[typo]{4}"
+      - "upd"
+
+brews:
+  - name: hub
+
+    tap:
+      owner: agilestacks
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+
+    commit_author:
+      name: asibot
+      email: asibot@users.noreply.github.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Version }}"
+
+    folder: Formula
+
+    homepage: "https://superhub.io/"
+    description: "Hub CLI is stack composition and lifecycle tool."
+    license: "GPLv3"
+    custom_block: |
+      head "https://github.com/asibot/hub"
+    caveats: |
+      hub version
+      hub help
+      hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
+      hub deploy hub.yaml.elaborate -e NAME=stage
+
+    dependencies:
+      - name: jq
+      - name: yq
+      - name: npm
+        type: optional
+
+    test: |
+      output = shell_output("#{bin}/hub version").chomp
+      assert output.start_with?("Hub CLI git ")
+      system "false"
+
+    post_install: |
+      hub_home = Pathname.new "#{Dir.home}/.hub"
+      unless hub_home.exist?
+          system "#{Formula["hub"].opt_bin}/hub", "extensions", "install"
+      end
