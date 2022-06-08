@@ -29,7 +29,7 @@ func TestMaybeHooks(t *testing.T) {
 			},
 		},
 	}
-	res := maybeHooks("pre-deploy", hooks)
+	res := findRelevantHooks("pre-deploy", hooks)
 	assert.Equal(t, len(res), 2)
 	hooks = []manifest.Hook{
 		{
@@ -52,7 +52,7 @@ func TestMaybeHooks(t *testing.T) {
 			},
 		},
 	}
-	res = maybeHooks("pre-backup", hooks)
+	res = findRelevantHooks("pre-backup", hooks)
 	assert.Equal(t, len(res), 1)
 	assert.Equal(t, res[0].File, "/etc/hook1")
 	hooks = []manifest.Hook{
@@ -76,7 +76,7 @@ func TestMaybeHooks(t *testing.T) {
 			},
 		},
 	}
-	res = maybeHooks("post-deploy", hooks)
+	res = findRelevantHooks("post-deploy", hooks)
 	assert.Equal(t, len(res), 1)
 	assert.Equal(t, res[0].File, "/etc/hook3")
 }
