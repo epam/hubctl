@@ -2,7 +2,10 @@
     "$id": "superhub.io/manifest.schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Manifest",
-    "type": ["object", "null"],
+    "type": [
+        "object",
+        "null"
+    ],
     "additionalProperties": false,
     "properties": {
         "version": {
@@ -114,6 +117,34 @@
                                 }
                             }
                         }
+                    },
+                    "hooks": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "file",
+                                "triggers"
+                            ],
+                            "properties": {
+                                "file": {
+                                    "type": "string"
+                                },
+                                "brief": {
+                                    "type": "string"
+                                },
+                                "triggers": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -149,7 +180,7 @@
                         "type": "string"
                     }
                 }
-           }
+            }
         },
         "lifecycle": {
             "type": "object",
@@ -469,7 +500,12 @@
                         "type": "string"
                     },
                     "value": {
-                        "type": ["string", "boolean", "integer", "number"]
+                        "type": [
+                            "string",
+                            "boolean",
+                            "integer",
+                            "number"
+                        ]
                     },
                     "kind": {
                         "type": "string"

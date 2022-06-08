@@ -35,11 +35,18 @@ type PlatformMetadata struct {
 	Provides []string `yaml:",omitempty"`
 }
 
+type Hook struct {
+	File     string   `yaml:",omitempty"`
+	Brief    string   `yaml:",omitempty"`
+	Triggers []string `yaml:",omitempty"`
+}
+
 type ComponentRef struct {
 	Name        string
 	Source      SourceLocation    `yaml:",omitempty"`
 	Depends     []string          `yaml:",omitempty"`
 	Annotations map[string]string `yaml:",omitempty"`
+	Hooks       []Hook            `yaml:",omitempty"`
 }
 
 type RequiresTuning struct {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
@@ -380,9 +381,18 @@ NEXT_COMPONENT:
 			util.Warn("Unable to set %s: %v", HubEnvVarNameRandom, err)
 		}
 		componentDir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, stderr, err := delegate(maybeTestVerb(request.Verb, request.DryRun),
+
+		verb := maybeTestVerb(request.Verb, request.DryRun)
+
+		preHookVerb := fmt.Sprintf("pre-%s", verb)
+		fireHooks(preHookVerb, stackBaseDir, componentName, component.Hooks, componentParameters, osEnv)
+
+		stdout, stderr, err := delegate(verb,
 			component, componentManifest, componentParameters,
 			componentDir, osEnv, randomStr)
+
+		postHookVerb := fmt.Sprintf("post-%s", verb)
+		fireHooks(postHookVerb, stackBaseDir, componentName, component.Hooks, componentParameters, osEnv)
 
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
@@ -586,6 +596,63 @@ func maybeTestVerb(verb string, test bool) string {
 		return verb + "-test"
 	}
 	return verb
+}
+
+func fireHooks(currentHook, stackBaseDir, componentName string, componentHooks []manifest.Hook,
+	componentParameters parameters.LockedParameters, osEnv []string) {
+	hooks := findRelevantHooks(currentHook, componentHooks)
+	if len(hooks) > 0 {
+		log.Printf("Running %s hooks:", currentHook)
+	}
+	for i := range hooks {
+		hook := hooks[i]
+		_, _, err := delegateHook(&hook, stackBaseDir, componentName, componentParameters, osEnv)
+		if err != nil {
+			log.Printf("ERROR: %s", err.Error())
+		}
+	}
+}
+
+func findRelevantHooks(trigger string, hooks []manifest.Hook) []manifest.Hook {
+	matches := make([]manifest.Hook, 0)
+	for i := range hooks {
+		hook := hooks[i]
+		for t := range hook.Triggers {
+			triggerPattern := hook.Triggers[t]
+			matched, _ := filepath.Match(triggerPattern, trigger)
+			if matched {
+				matches = append(matches, hook)
+				break
+			}
+		}
+	}
+	return matches
+}
+
+func delegateHook(hook *manifest.Hook,
+	stackBaseDir, componentName string,
+	componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
+	if config.Debug && len(componentParameters) > 0 {
+		log.Print("Hook " + hook.File + " parameters:")
+		parameters.PrintLockedParameters(componentParameters)
+	}
+	processEnv := parametersInEnv(componentName, componentParameters)
+	hookFilePath := fmt.Sprintf("%s/%s", stackBaseDir, hook.File)
+	if strings.HasPrefix(hook.File, "/") {
+		hookFilePath = hook.File
+	}
+	hookDir, hookFileName := filepath.Split(hookFilePath)
+	script, err := probeScript(hookDir, hookFileName)
+	if err != nil {
+		return nil, nil, err
+	}
+	command := &exec.Cmd{Path: script, Dir: hookDir, Env: mergeOsEnviron(osEnv, processEnv)}
+	if config.Debug && len(processEnv) > 0 {
+		log.Print("Hook " + hook.File + " environment:")
+		printEnvironment(processEnv)
+	}
+	stdout, stderr, err := execImplementation(command, false, true)
+	return stdout, stderr, err
 }
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
