@@ -637,7 +637,7 @@ func fireHooks(currentHook, stackBaseDir, componentName string, componentHooks [
 			if strings.Contains(err.Error(), "fork/exec : no such file or directory") {
 				log.Printf("Error: file %s has not been found.", filePath)
 				return stdout, stderr, err
-			} else if hook.Errors == "ignore" {
+			} else if hook.Error == "ignore" {
 				log.Printf("Error ignored: %s", err.Error())
 				continue
 			}
