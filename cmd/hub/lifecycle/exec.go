@@ -33,12 +33,6 @@ func execImplementation(impl *exec.Cmd, passStdin, paginate bool) ([]byte, []byt
 		return nil, nil, fmt.Errorf("Unable to obtain sub-process stdout pipe: %v", err)
 	}
 
-	args := ""
-	if len(impl.Args) > 1 {
-		args = fmt.Sprintf(" %v", impl.Args[1:])
-	}
-	implBlurb := fmt.Sprintf("%s%s (%s)", impl.Path, args, impl.Dir)
-
 	logOutput := log.Writer()
 
 	var stdout io.Writer = os.Stdout
@@ -67,8 +61,18 @@ func execImplementation(impl *exec.Cmd, passStdin, paginate bool) ([]byte, []byt
 	var stderrBuffer bytes.Buffer
 	stdoutWritter := io.MultiWriter(&stdoutBuffer, stdout)
 	stderrWritter := io.MultiWriter(&stderrBuffer, stderr)
-
-	fmt.Printf("--- %s\n", implBlurb)
+	if impl.Path != "" {
+		dir := impl.Dir
+		fmt.Printf("--- Dir: %s\n", dir)
+		fmt.Printf("--- File: %s\n", impl.Path)
+		args := ""
+		if len(impl.Args) > 1 {
+			args = fmt.Sprintf("Args: %v", impl.Args[1:])
+		}
+		if args != "" {
+			fmt.Printf("--- %s\n", args)
+		}
+	}
 	os.Stdout.Sync()
 	os.Stderr.Sync()
 
@@ -86,7 +90,9 @@ func execImplementation(impl *exec.Cmd, passStdin, paginate bool) ([]byte, []byt
 	<-stdoutComplete
 	<-stderrComplete
 
-	fmt.Print("---\n")
+	if impl.Path != "" {
+		fmt.Printf("--- \n")
+	}
 	os.Stdout.Sync()
 	os.Stderr.Sync()
 
@@ -96,7 +102,7 @@ func execImplementation(impl *exec.Cmd, passStdin, paginate bool) ([]byte, []byt
 		err = impl.Wait()
 	}
 	if err != nil {
-		err = fmt.Errorf("%s: %v", implBlurb, err)
+		err = fmt.Errorf("%v", err)
 	}
 
 	return stdoutBuffer.Bytes(), stderrBuffer.Bytes(), err

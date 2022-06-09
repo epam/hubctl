@@ -385,15 +385,19 @@ NEXT_COMPONENT:
 		verb := maybeTestVerb(request.Verb, request.DryRun)
 
 		preHookVerb := fmt.Sprintf("pre-%s", verb)
-		fireHooks(preHookVerb, stackBaseDir, componentName, component.Hooks, componentParameters, osEnv)
+		stdout, stderr, err := fireHooks(preHookVerb, stackBaseDir, componentName,
+			component.Hooks, componentParameters, osEnv)
+		if err != nil {
+			if stateManifest != nil && request.WriteOplogToStateOnError {
+				stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
+					fmt.Sprintf("%v%s", err, formatStdoutStderr(stdout, stderr)))
+			}
+			util.MaybeFatalf2(updateStateComponentFailed, "One of %s hooks failed. See logs", preHookVerb)
+		}
 
-		stdout, stderr, err := delegate(verb,
+		stdout, stderr, err = delegate(verb,
 			component, componentManifest, componentParameters,
 			componentDir, osEnv, randomStr)
-
-		postHookVerb := fmt.Sprintf("post-%s", verb)
-		fireHooks(postHookVerb, stackBaseDir, componentName, component.Hooks, componentParameters, osEnv)
-
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
 			if stateManifest != nil && request.WriteOplogToStateOnError {
@@ -451,6 +455,17 @@ NEXT_COMPONENT:
 			if stateManifest != nil {
 				stateManifest.Provides = noEnvironmentProvides(provides)
 			}
+		}
+
+		postHookVerb := fmt.Sprintf("post-%s", verb)
+		stdout, stderr, err = fireHooks(postHookVerb, stackBaseDir, componentName,
+			component.Hooks, componentParameters, osEnv)
+		if err != nil {
+			if stateManifest != nil && request.WriteOplogToStateOnError {
+				stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
+					fmt.Sprintf("%v%s", err, formatStdoutStderr(stdout, stderr)))
+			}
+			util.MaybeFatalf2(updateStateComponentFailed, "One of %s hooks failed. See logs", postHookVerb)
 		}
 
 		if ctx.Err() != nil {
@@ -599,18 +614,39 @@ func maybeTestVerb(verb string, test bool) string {
 }
 
 func fireHooks(currentHook, stackBaseDir, componentName string, componentHooks []manifest.Hook,
-	componentParameters parameters.LockedParameters, osEnv []string) {
+	componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
 	hooks := findRelevantHooks(currentHook, componentHooks)
 	if len(hooks) > 0 {
 		log.Printf("Running %s hooks:", currentHook)
+		if len(componentParameters) > 0 {
+			log.Print("Environment:")
+			parameters.PrintLockedParameters(componentParameters)
+		}
 	}
 	for i := range hooks {
 		hook := hooks[i]
-		_, _, err := delegateHook(&hook, stackBaseDir, componentName, componentParameters, osEnv)
+		filePath := fmt.Sprintf("%s/%s", stackBaseDir, hook.File)
+		if strings.HasPrefix(hook.File, "/") {
+			filePath = hook.File
+		}
+		if hook.Brief != "" {
+			log.Printf("Brief: %s", hook.Brief)
+		}
+		stdout, stderr, err := delegateHook(&hook, stackBaseDir, componentName, componentParameters, osEnv)
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
+			if strings.Contains(err.Error(), "fork/exec : no such file or directory") {
+				log.Printf("Error: file %s has not been found.", filePath)
+				return stdout, stderr, err
+			} else if hook.Errors == "ignore" {
+				log.Printf("Error ignored: %s", err.Error())
+				continue
+			}
+			log.Printf("Error: %s", err.Error())
+			return stdout, stderr, err
 		}
 	}
+
+	return nil, nil, nil
 }
 
 func findRelevantHooks(trigger string, hooks []manifest.Hook) []manifest.Hook {
@@ -632,10 +668,6 @@ func findRelevantHooks(trigger string, hooks []manifest.Hook) []manifest.Hook {
 func delegateHook(hook *manifest.Hook,
 	stackBaseDir, componentName string,
 	componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
-	if config.Debug && len(componentParameters) > 0 {
-		log.Print("Hook " + hook.File + " parameters:")
-		parameters.PrintLockedParameters(componentParameters)
-	}
 	processEnv := parametersInEnv(componentName, componentParameters)
 	hookFilePath := fmt.Sprintf("%s/%s", stackBaseDir, hook.File)
 	if strings.HasPrefix(hook.File, "/") {
@@ -647,10 +679,6 @@ func delegateHook(hook *manifest.Hook,
 		return nil, nil, err
 	}
 	command := &exec.Cmd{Path: script, Dir: hookDir, Env: mergeOsEnviron(osEnv, processEnv)}
-	if config.Debug && len(processEnv) > 0 {
-		log.Print("Hook " + hook.File + " environment:")
-		printEnvironment(processEnv)
-	}
 	stdout, stderr, err := execImplementation(command, false, true)
 	return stdout, stderr, err
 }

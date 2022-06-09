@@ -142,6 +142,9 @@
                                     "items": {
                                         "type": "string"
                                     }
+                                },
+                                "errors": {
+                                    "type": "string"
                                 }
                             }
                         }

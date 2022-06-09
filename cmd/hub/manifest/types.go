@@ -39,6 +39,7 @@ type Hook struct {
 	File     string   `yaml:",omitempty"`
 	Brief    string   `yaml:",omitempty"`
 	Triggers []string `yaml:",omitempty"`
+	Errors   string   `yaml:",omitempty"`
 }
 
 type ComponentRef struct {
