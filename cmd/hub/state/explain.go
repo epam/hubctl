@@ -77,6 +77,11 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 		if err != nil {
 			util.Warn("Unable to parse: %v", err)
 		} else if stackManifest != nil {
+			order, err := manifest.GenerateLifecycleOrder(stackManifest)
+			if err != nil {
+				log.Fatal(err)
+			}
+			stackManifest.Lifecycle.Order = order
 			components = stackManifest.Lifecycle.Order
 		}
 	}

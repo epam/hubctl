@@ -1,0 +1,14 @@
+version: 1
+kind: stack
+meta:
+  name: Single file manifest
+
+components:
+  - name: component1
+    source:
+      dir: components/component1
+
+---
+parameters:
+  - name: parameter
+    value: parameterValue

@@ -167,6 +167,12 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 
 	stackManifest := parseManifest(manifestFilename)
 
+	order, err := manifest.GenerateLifecycleOrder(stackManifest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stackManifest.Lifecycle.Order = order
+
 	parametersManifests, parametersFilenamesRead := parseParameters(parametersFilenames)
 
 	stackBaseDir := util.StripDotDirs(filepath.Dir(manifestFilename))
@@ -209,8 +215,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 	if config.Verbose {
 		components := "with no sub-components"
 		if len(stackManifest.Components) > 0 {
-			components = fmt.Sprintf("with components: %s",
-				strings.Join(manifest.ComponentsNamesFromRefs(stackManifest.Components), ", "))
+			components = fmt.Sprintf("with components: %s", strings.Join(stackManifest.Lifecycle.Order, ", "))
 		}
 		log.Printf("*** %s %s %s", strings.Title(stackManifest.Kind), stackManifest.Meta.Name,
 			components)

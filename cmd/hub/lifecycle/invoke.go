@@ -39,6 +39,12 @@ func Invoke(request *Request) {
 		util.MaybeFatalf("Unable to check state file: %v", util.Errors2(errs...))
 	}
 
+	order, err := manifest.GenerateLifecycleOrder(stackManifest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stackManifest.Lifecycle.Order = order
+
 	stackBaseDir := util.Basedir(request.ManifestFilenames)
 	componentsBaseDir := request.ComponentsBaseDir
 	if componentsBaseDir == "" {

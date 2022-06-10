@@ -56,6 +56,12 @@ func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 		log.Printf("Base directory for sources is `%s`", baseDirCurrent)
 	}
 
+	order, err := manifest.GenerateLifecycleOrder(stackManifest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stackManifest.Lifecycle.Order = order
+
 	stackName := stackManifest.Meta.Name
 	if i := strings.Index(stackName, ":"); i > 0 {
 		stackName = stackName[0:i]

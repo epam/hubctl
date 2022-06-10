@@ -1,0 +1,128 @@
+version: 1
+kind: stack
+meta:
+  name: Kubeflow
+
+components:
+  - name: external-dns
+    source:
+      dir: components/external-dns
+  - name: cert-manager
+    source:
+      dir: components/cert-manager
+  - name: nginx
+    source:
+      dir: components/nginx
+    depends: [cert-manager, external-dns]
+  - name: istio
+    source:
+      dir: components/istio
+  - name: istio-ingressgateway
+    source:
+      dir: components/istio-ingressgateway
+    depends: [istio]
+  - name: dex
+    source:
+      dir: components/dex
+  - name: minio
+    source:
+      dir: components/minio
+  - name: mysql-argo
+    source:
+      dir: components/mysql
+  - name: mysql-pipeline
+    source:
+      dir: components/mysql
+  - name: mysql-katib
+    source:
+      dir: components/mysql
+  - name: mysql-metadata
+    source:
+      dir: components/mysql
+  - name: argo
+    source:
+      dir: components/argo
+    depends: [mysql-argo, minio, dex]
+  - name: kubeflow-common
+    source:
+      dir: components/kubeflow-common
+    depends: [dex]
+  - name: kubeflow-rbac
+    source:
+      dir: components/kubeflow-rbac
+    depends: [dex, kubeflow-common]
+  - name: kubeflow-authn
+    source:
+      dir: components/kubeflow-authn
+    depends: [dex, kubeflow-common, istio]
+  - name: kubeflow-profiles
+    source:
+      dir: components/kubeflow-profiles
+    depends:
+      - istio
+      - kubeflow-authn
+      - kubeflow-common
+  - name: kubeflow-centraldashboard
+    source:
+      dir: components/kubeflow-centraldashboard
+    depends:
+      - istio-ingressgateway
+      - kubeflow-common
+      - kubeflow-rbac
+      - kubeflow-profiles
+  - name: kubeflow-jupyter
+    source:
+      dir: components/kubeflow-jupyter
+    depends:
+      - istio-ingressgateway
+      - kubeflow-common
+      - kubeflow-profiles
+      - kubeflow-rbac
+      - kubeflow-webhooks
+  - name: kubeflow-katib
+    source:
+      dir: components/kubeflow-katib
+    depends:
+      - kubeflow-common
+      - kubeflow-rbac
+      - mysql-katib
+  - name: kubeflow-metadata
+    source:
+      dir: components/kubeflow-metadata
+    depends:
+      - kubeflow-common
+      - kubeflow-rbac
+      - mysql-metadata
+  - name: kubeflow-pipelines
+    source:
+      dir: components/kubeflow-pipeline
+    depends:
+      - kubeflow-profiles
+      - kubeflow-metadata
+      - mysql-metadata
+      - minio
+  - name: kubeflow-webhooks
+    source:
+      dir: components/kubeflow-webhooks
+    depends:
+      - kubeflow-rbac
+      - kubeflow-common
+  - name: kubeflow-tf-training
+    source:
+      dir: components/kubeflow-tf-training
+    depends:
+      - kubeflow-rbac
+      - kubeflow-common
+  - name: seldon-core
+    source:
+      dir: components/seldon-core
+    depends:
+      - istio-ingressgateway
+  - name: replikate
+    source:
+      dir: components/replikate
+    depends:
+      - minio
+      - istio-ingressgateway
+      - kubeflow-pipelines
+      - istio

@@ -1,0 +1,15 @@
+version: 1
+kind: stack
+meta:
+  name: Single file manifest
+
+components:
+  - name: component1
+    source:
+      dir: components/component1
+  - name: component2
+    source:
+      dir: components/component1
+  - name: component3
+    source:
+      dir: components/component1

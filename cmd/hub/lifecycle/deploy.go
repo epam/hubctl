@@ -52,6 +52,12 @@ func Execute(request *Request, pipe io.WriteCloser) {
 		log.Fatalf("Unable to parse environment settings `%s`: %v", request.EnvironmentOverrides, err)
 	}
 
+	order, err := manifest.GenerateLifecycleOrder(stackManifest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stackManifest.Lifecycle.Order = order
+
 	if config.Verbose {
 		printStartBlurb(request, chosenManifestFilename, stackManifest)
 	}
@@ -198,7 +204,7 @@ func Execute(request *Request, pipe io.WriteCloser) {
 	addLockedParameter(stackParameters, plainStackNameParameterName, "STACK_NAME", plainStackName)
 	stackParametersNoLinks := parameters.ParametersWithoutLinks(stackParameters)
 
-	order := stackManifest.Lifecycle.Order
+	order = stackManifest.Lifecycle.Order
 	if stateManifest != nil {
 		stateManifest.Lifecycle.Order = order
 	}

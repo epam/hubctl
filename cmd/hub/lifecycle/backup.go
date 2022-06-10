@@ -62,9 +62,13 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		componentsBaseDir = stackBaseDir
 	}
 
+	order, err := manifest.GenerateLifecycleOrder(stackManifest)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stackManifest.Lifecycle.Order = order
 	components := stackManifest.Components
 	checkComponentsManifests(components, componentsManifests)
-	order := stackManifest.Lifecycle.Order
 	if len(request.Components) > 0 {
 		manifest.CheckComponentsExist(components, request.Components...)
 		components = make([]manifest.ComponentRef, 0, len(request.Components))

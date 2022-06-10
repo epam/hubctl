@@ -1,0 +1,52 @@
+version: 1
+kind: stack
+meta:
+  name: Cycle dependency 1
+
+components:
+  - name: component1
+    source:
+      dir: components/component1
+    depends: [component2]
+  - name: component2
+    source:
+      dir: components/component2
+    depends: [component1]
+  - name: component3
+    source:
+      dir: components/component3
+    depends: [component1]
+---
+version: 1
+kind: stack
+meta:
+  name: Cycle dependency 2
+
+components:
+  - name: component1
+    source:
+      dir: components/component1
+    depends: [component1]
+  - name: component2
+    source:
+      dir: components/component2
+    depends: [component1]
+  - name: component3
+    source:
+      dir: components/component3
+    depends: [component1]
+---
+version: 1
+kind: stack
+meta:
+  name: Not defined component dependency
+
+components:
+  - name: component2
+    source:
+      dir: components/component2
+    depends: [component1]
+  - name: component3
+    source:
+      dir: components/component3
+    depends: [component1]

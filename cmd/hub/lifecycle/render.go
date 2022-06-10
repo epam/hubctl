@@ -68,6 +68,11 @@ func Render(manifestFilenames, stateFilenames []string, componentName,
 	var outputs parameters.CapturedOutputs
 
 	if stackManifest != nil && componentName != "" {
+		order, err := manifest.GenerateLifecycleOrder(stackManifest)
+		if err != nil {
+			log.Fatal(err)
+		}
+		stackManifest.Lifecycle.Order = order
 		manifest.CheckComponentsExist(stackManifest.Components, componentName)
 		component := manifest.ComponentRefByName(stackManifest.Components, componentName)
 		componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)

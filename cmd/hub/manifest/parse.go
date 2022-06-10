@@ -165,3 +165,84 @@ func ParseComponentsManifestsWithExclusion(components []ComponentRef, excludedCo
 
 	return ParseComponentsManifests(filtered, stackBaseDir, componentsBaseDir)
 }
+
+func GenerateLifecycleOrder(manifest *Manifest) ([]string, error) {
+	componentsOrder := manifest.Lifecycle.Order
+	notDefinedComponents := make([]string, 0)
+
+	if len(componentsOrder) == 0 {
+		componentsMap := make(map[string]ComponentRef)
+		for _, ref := range manifest.Components {
+			componentsMap[ref.Name] = ref
+		}
+
+		componentsOrder = make([]string, 0)
+		for _, ref := range manifest.Components {
+			if util.Contains(componentsOrder, ref.Name) {
+				continue
+			}
+			dependencies, notDefinedDeps, err := resolveComponentDependencies(ref, componentsMap, "")
+			if err != nil {
+				return nil, err
+			}
+			for _, dependency := range dependencies {
+				if !util.Contains(componentsOrder, dependency) {
+					componentsOrder = append(componentsOrder, dependency)
+				}
+			}
+			notDefinedComponents = appendUniq(notDefinedComponents, notDefinedDeps)
+			componentsOrder = append(componentsOrder, ref.Name)
+		}
+	}
+
+	if len(notDefinedComponents) > 0 {
+		return nil, fmt.Errorf("These components are not defined but used as dependencies: %s", strings.Join(notDefinedComponents, ", "))
+	}
+
+	return componentsOrder, nil
+}
+
+func resolveComponentDependencies(ref ComponentRef, componentsMap map[string]ComponentRef, prevComponentName string) ([]string, []string, error) {
+	componentDependensies := ref.Depends
+	if len(componentDependensies) == 0 {
+		return componentDependensies, nil, nil
+	}
+
+	if util.Contains(componentDependensies, ref.Name) || util.Contains(componentDependensies, prevComponentName) {
+		return nil, nil, fmt.Errorf("Components dependency cycle detected in definition of \"%s\" component", ref.Name)
+	}
+
+	result := make([]string, 0)
+	notDefined := make([]string, 0)
+	for _, dependencyName := range componentDependensies {
+		if util.Contains(result, dependencyName) {
+			continue
+		}
+		dependencyRef, exists := componentsMap[dependencyName]
+		if exists {
+			dependenciesChain, notDefinedChain, err := resolveComponentDependencies(dependencyRef, componentsMap, ref.Name)
+			if err != nil {
+				return nil, nil, err
+			}
+			result = appendUniq(result, dependenciesChain)
+			notDefined = appendUniq(notDefined, notDefinedChain)
+			result = append(result, dependencyName)
+		} else {
+			if !util.Contains(notDefined, dependencyName) {
+				notDefined = append(notDefined, dependencyName)
+			}
+		}
+	}
+
+	return result, notDefined, nil
+}
+
+func appendUniq(result []string, items []string) []string {
+	for _, item := range items {
+		if !util.Contains(result, item) {
+			result = append(result, item)
+		}
+	}
+
+	return result
+}

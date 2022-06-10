@@ -25,11 +25,13 @@ REF      ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT   ?= $(shell git rev-parse HEAD | cut -c-7)
 BUILD_AT ?= $(shell date +"%Y.%m.%d %H:%M %Z")
 
-install: bin/$(OS)/gocloc bin/$(OS)/go-bindata
+install: bin/$(OS)/gocloc bin/$(OS)/go-bindata bin/$(OS)/staticcheck
 bin/$(OS)/go-bindata:
 	go get -u github.com/tmthrgd/go-bindata/...
 bin/$(OS)/gocloc:
 	go get -u github.com/hhatto/gocloc/cmd/gocloc
+bin/$(OS)/staticcheck:
+	go install honnef.co/go/tools/cmd/staticcheck@2022.1.2
 
 cel:
 	go get github.com/agilestacks/hub/cmd/cel
@@ -66,6 +68,14 @@ vet:
 loc: bin/$(OS)/gocloc
 	@$(GOBIN)/gocloc cmd/hub --not-match-d='cmd/hub/bindata'
 .PHONY: loc
+
+staticcheck: bin/staticcheck
+	@$(GOBIN)/staticcheck github.com/agilestacks/hub/...
+.PHONY: staticcheck
+
+test:
+	go test -timeout 30s github.com/agilestacks/hub/cmd/hub/...
+.PHONY: test
 
 clean:
 	@rm -f hub cel bin/hub bin/cel
