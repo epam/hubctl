@@ -102,8 +102,10 @@ func Write(data []byte, files *Files) (bool, []error) {
 			}
 		}
 
-		if config.Verbose && nErrs == len(errs) {
-			log.Printf("Wrote %s `%s`", files.Kind, file.Path)
+		if nErrs == 0 {
+			if config.Verbose {
+				log.Printf("Wrote %s `%s`", files.Kind, file.Path)
+			}
 			written = true
 		}
 	}

@@ -243,10 +243,11 @@ func ContainsSubstring(list []string, substr string) bool {
 	return false
 }
 
-func ContainsPrefix(list []string, value string) bool {
-	for _, v := range list {
-		if v == value ||
-			(strings.HasSuffix(v, "*") && strings.HasPrefix(value, v[:len(v)-1])) {
+func ContainsPrefix(prefixes []string, value string) bool {
+	for _, prefix := range prefixes {
+		if prefix == value ||
+			(strings.HasSuffix(prefix, "*") && strings.HasPrefix(value, prefix[:len(prefix)-1])) ||
+			strings.HasPrefix(value, prefix) {
 			return true
 		}
 	}
