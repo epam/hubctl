@@ -25,11 +25,13 @@ REF      ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT   ?= $(shell git rev-parse HEAD | cut -c-7)
 BUILD_AT ?= $(shell date +"%Y.%m.%d %H:%M %Z")
 
-install: bin/$(OS)/gocloc bin/$(OS)/staticcheck
+install: bin/$(OS)/gocloc bin/$(OS)/staticcheck bin/$(OS)/gotests
 bin/$(OS)/gocloc:
 	go install github.com/hhatto/gocloc/cmd/gocloc@latest
 bin/$(OS)/staticcheck:
 	go install honnef.co/go/tools/cmd/staticcheck@2022.1.2
+bin/$(OS)/gotests:
+	$ go get -u github.com/cweill/gotests/...
 
 cel:
 	go get github.com/agilestacks/hub/cmd/cel
