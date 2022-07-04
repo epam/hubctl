@@ -1,5 +1,6 @@
 .envrc
 .DS_Store
 
-.vscode/launch.json
+.vscode/*.json
+.vscode/*.log
 bin/
