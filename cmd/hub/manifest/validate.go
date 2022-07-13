@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,6 +7,7 @@
 package manifest
 
 import (
+	_ "embed"
 	"fmt"
 	"log"
 	"strings"
@@ -14,11 +15,12 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 	"gopkg.in/yaml.v2"
 
-	"github.com/agilestacks/hub/cmd/hub/bindata"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
+//go:embed manifest.schema.json
+var manifestSchemaFile []byte
 var schemaLoader gojsonschema.JSONLoader
 
 func validateManifest(name string, yamlDocument []byte) {
@@ -69,11 +71,7 @@ func validate(name string, yamlDocument []byte) error {
 
 func manifestSchema() (gojsonschema.JSONLoader, error) {
 	if schemaLoader == nil {
-		jsonBytes, err := bindata.Asset("meta/manifest.schema.json")
-		if err != nil {
-			return nil, fmt.Errorf("No manifest schema embedded: %v", err)
-		}
-		schemaLoader = gojsonschema.NewBytesLoader(jsonBytes)
+		schemaLoader = gojsonschema.NewBytesLoader(manifestSchemaFile)
 	}
 	return schemaLoader, nil
 }

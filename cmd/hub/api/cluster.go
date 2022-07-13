@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,6 +8,7 @@ package api
 
 import (
 	"bytes"
+	"embed"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -20,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/agilestacks/hub/cmd/hub/aws"
-	"github.com/agilestacks/hub/cmd/hub/bindata"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
@@ -44,6 +44,18 @@ type ImportConfig struct {
 	TemplateNameFormat string
 	SecretsOrder       []Secret
 }
+
+//go:embed requests/*-cluster-template.json.template
+var clusterTemplateFiles embed.FS
+
+//go:embed requests/*-adapter-template.json.template
+var adapterTemplateFiles embed.FS
+
+//go:embed requests/*-cluster-instance.json.template
+var clusterInstanceFiles embed.FS
+
+//go:embed requests/*-adapter-instance.json.template
+var adapterInstanceFiles embed.FS
 
 var importConfigs = map[string]ImportConfig{
 	"k8s-aws": {
@@ -154,7 +166,7 @@ func createK8s(kind, name, environmentSelector, templateSelector string,
 		}
 
 		asset := fmt.Sprintf("%s/%s-cluster-template.json.template", requestsBindata, kind)
-		templateBytes, err := bindata.Asset(asset)
+		templateBytes, err := clusterTemplateFiles.ReadFile(asset)
 		if err != nil {
 			return fmt.Errorf("No %s embedded: %v", asset, err)
 		}
@@ -185,7 +197,7 @@ func createK8s(kind, name, environmentSelector, templateSelector string,
 	}
 
 	asset := fmt.Sprintf("%s/%s-cluster-instance.json.template", requestsBindata, kind)
-	instanceBytes, err := bindata.Asset(asset)
+	instanceBytes, err := clusterInstanceFiles.ReadFile(asset)
 	if err != nil {
 		return fmt.Errorf("No %s embedded: %v", asset, err)
 	}
@@ -424,7 +436,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 		}
 
 		asset := fmt.Sprintf("%s/%s-adapter-template.json.template", requestsBindata, kind)
-		templateBytes, err := bindata.Asset(asset)
+		templateBytes, err := adapterTemplateFiles.ReadFile(asset)
 		if err != nil {
 			return fmt.Errorf("No %s embedded: %v", asset, err)
 		}
@@ -455,7 +467,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 	}
 
 	asset := fmt.Sprintf("%s/%s-adapter-instance.json.template", requestsBindata, kind)
-	instanceBytes, err := bindata.Asset(asset)
+	instanceBytes, err := adapterInstanceFiles.ReadFile(asset)
 	if err != nil {
 		return fmt.Errorf("No %s embedded: %v", asset, err)
 	}

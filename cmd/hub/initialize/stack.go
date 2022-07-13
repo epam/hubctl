@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,32 +7,33 @@
 package initialize
 
 import (
-	"fmt"
+	_ "embed"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/bindata"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
-const initializeTemplates = "cmd/hub/initialize"
+//go:embed hub.yaml.template
+var stackManifestTemplate string
+
+//go:embed hub-component.yaml.template
+var componentManifestTemplate string
 
 func InitStack(manifestDir string) {
-	initManifest(manifestDir, "hub.yaml")
+	initManifest(manifestDir, "hub.yaml", stackManifestTemplate)
 }
 
 func InitComponent(manifestDir string) {
-	initManifest(manifestDir, "hub-component.yaml")
+	initManifest(manifestDir, "hub-component.yaml", componentManifestTemplate)
 }
 
-func initManifest(dir string, template string) {
-	file, manifest, project := initFile(dir, template)
-	bytes := bindata.MustAsset(fmt.Sprintf("%s/%s.template", initializeTemplates, template))
-	yaml := string(bytes)
-	yaml = strings.Replace(yaml, "${project}", project, -1)
+func initManifest(dir string, templateName string, template string) {
+	file, manifest, project := initFile(dir, templateName)
+	yaml := strings.Replace(template, "${project}", project, -1)
 
 	wrote, err := strings.NewReader(yaml).WriteTo(file)
 	if err != nil || wrote != int64(len(yaml)) {

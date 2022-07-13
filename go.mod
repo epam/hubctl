@@ -1,6 +1,6 @@
 module github.com/agilestacks/hub
 
-go 1.17
+go 1.18
 
 require (
 	cloud.google.com/go/kms v1.4.0
@@ -21,7 +21,6 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.7.2
-	github.com/tmthrgd/go-bindata v0.0.0-20190904063317-a4b65675e0fb
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	google.golang.org/api v0.83.0

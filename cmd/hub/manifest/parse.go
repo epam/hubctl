@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,6 +8,7 @@ package manifest
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -15,11 +16,13 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/agilestacks/hub/cmd/hub/bindata"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/storage"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
+
+//go:embed hub-well-known-parameters.yaml
+var hubWellKnownParameters []byte
 
 func ParseManifest(manifestFilenames []string) (*Manifest, []Manifest, string, error) {
 	yamlBytes, manifestFilename, err := storage.CheckAndRead(manifestFilenames, "manifest")
@@ -86,17 +89,13 @@ func ParseParametersManifest(manifestFilenames []string) (*ParametersManifest, s
 }
 
 func GetWellKnownParametersManifest() (*WellKnownParametersManifest, error) {
-	yamlBytes, err := bindata.Asset("meta/hub-well-known-parameters.yaml")
-	if err != nil {
-		return nil, fmt.Errorf("No well-known parameters embedded: %v", err)
-	}
-	yamlDocuments := bytes.Split(yamlBytes, []byte("\n---\n"))
+	yamlDocuments := bytes.Split(hubWellKnownParameters, []byte("\n---\n"))
 	for i, yamlDocument := range yamlDocuments {
 		if len(yamlDocument) == 0 {
 			continue
 		}
 		var manifest WellKnownParametersManifest
-		err = yaml.Unmarshal(yamlDocument, &manifest)
+		err := yaml.Unmarshal(yamlDocument, &manifest)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to parse well-known parameters: %v", err)
 		}
