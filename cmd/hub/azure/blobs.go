@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -38,7 +38,7 @@ func storageClient(account string) (*storage.BlobStorageClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	storageClient, err := storage.NewClient(account, key, env.StorageEndpointSuffix, storage.DefaultAPIVersion, true)
+	storageClient, _ := storage.NewClient(account, key, env.StorageEndpointSuffix, storage.DefaultAPIVersion, true)
 	storageClient.HTTPClient = util.RobustHttpClient(storageTimeout, false)
 	blobClient := storageClient.GetBlobService()
 	blobClients[account] = &blobClient

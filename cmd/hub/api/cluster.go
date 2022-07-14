@@ -372,7 +372,7 @@ func importK8s(importConfig ImportConfig, kind, name, environmentSelector, templ
 						endpoint = endpoint[8:]
 					}
 					nativeEndpoint = endpoint
-					if ca != nil && len(ca) > 0 {
+					if len(ca) > 0 {
 						pems = bytes.NewReader(ca)
 					}
 					break

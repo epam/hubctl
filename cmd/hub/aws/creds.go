@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -57,7 +57,8 @@ func ProfileCredentials(profile, purpose string) *awscredentials.Credentials {
 		providers = []awscredentials.Provider{shared, env}
 	}
 	if config.AwsUseIamRoleCredentials {
-		providers = append(providers, &awsec2rolecreds.EC2RoleProvider{Client: awsec2metadata.New(awssession.New())})
+		awsSession, _ := awssession.NewSession()
+		providers = append(providers, &awsec2rolecreds.EC2RoleProvider{Client: awsec2metadata.New(awsSession)})
 	}
 	return awscredentials.NewCredentials(&awscredentials.ChainProvider{Providers: providers, VerboseErrors: config.Verbose})
 }

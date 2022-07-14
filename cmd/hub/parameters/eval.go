@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -19,7 +19,7 @@ import (
 
 // ${var.name} or
 // #{cel - expression {optionaly one nested level of braces for maps}}
-var CurlyReplacement = regexp.MustCompile("\\$\\{[^}]+\\}|#\\{(?:[^}{]|\\{[^}{]+\\})*\\}")
+var CurlyReplacement = regexp.MustCompile(`\$\{[^}]+\}|#\{(?:[^}{]|\{[^}{]+\})*\}`)
 
 func StripCurly(match string) (string, bool) {
 	return match[2 : len(match)-1], match[0] == '#'
@@ -349,10 +349,8 @@ func mergeParameter(parameters LockedParameters, add LockedParameter) {
 
 func MergeParameters(parameters LockedParameters, toMerge ...[]LockedParameter) LockedParameters {
 	merged := make(LockedParameters)
-	if parameters != nil {
-		for k, v := range parameters {
-			merged[k] = v
-		}
+	for k, v := range parameters {
+		merged[k] = v
 	}
 	for _, list := range toMerge {
 		for _, p := range list {

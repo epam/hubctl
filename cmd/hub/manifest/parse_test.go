@@ -29,7 +29,7 @@ func TestManifestParse(t *testing.T) {
 func TestGenerateLifecycleOrder(t *testing.T) {
 	manifestsFile, manifestsFiles, _, _ := ParseManifest([]string{filepath.Join(manifestFilepath, "manifest_with_errors.yaml")})
 	manifestsFiles = append(manifestsFiles, *manifestsFile)
-	for _, file := range manifestsFiles{
+	for _, file := range manifestsFiles {
 		order, err := GenerateLifecycleOrder(&file)
 		t.Log(err)
 		assert.NotNil(t, err, "GenerateLifecycleOrder should return error", err)

@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -400,9 +400,7 @@ func Value(values ...string) string {
 }
 
 func Wrap(str string) string {
-	if strings.Contains(str, "\n") {
-		str = strings.Replace(str, "\n", "\\n", -1)
-	}
+	str = strings.Replace(str, "\n", "\\n", -1)
 	if len(str) > 102 {
 		str = str[:100] + "..."
 	}

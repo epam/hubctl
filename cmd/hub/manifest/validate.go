@@ -76,6 +76,7 @@ func manifestSchema() (gojsonschema.JSONLoader, error) {
 	return schemaLoader, nil
 }
 
+//lint:ignore U1000 still needed?
 func convertForValidator(value interface{}) (interface{}, error) {
 	return convertToStringKeysRecursive(value, "")
 }

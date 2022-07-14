@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -125,7 +125,7 @@ func storageManagementClient() (*storageManagement.AccountsClient, error) {
 	if err != nil && authz == nil {
 		return nil, err
 	}
-	sets, _, err := settings()
+	sets, _, _ := settings()
 	subscriptionId := sets[auth.SubscriptionID]
 	client := storageManagement.NewAccountsClient(subscriptionId)
 	client.Authorizer = authz

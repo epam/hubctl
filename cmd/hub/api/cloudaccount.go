@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,7 +27,8 @@ import (
 const cloudAccountsResource = "hub/api/v1/cloud-accounts"
 
 var (
-	GovCloudRegions    = []string{"us-gov-east-1", "us-gov-west-1"}
+	GovCloudRegions = []string{"us-gov-east-1", "us-gov-west-1"}
+	//lint:ignore U1000 still needed?
 	cloudAccountsCache = make(map[string]*CloudAccount)
 )
 
@@ -168,6 +169,7 @@ func formatCloudAccount(cloudAccount *CloudAccount) {
 	}
 }
 
+//lint:ignore U1000 still needed?
 func cachedCloudAccountBy(selector string) (*CloudAccount, error) {
 	cloudAccount, cached := cloudAccountsCache[selector]
 	if !cached {
@@ -302,7 +304,7 @@ func rawCloudAccountCredentials(id string) ([]byte, error) {
 		log.Printf("Getting Cloud Account `%s` credentials", id)
 	}
 	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
-	code, err, body := get2(hubApi(), path)
+	code, body, err := get2(hubApi(), path)
 	if err != nil {
 		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
 			id, err)
@@ -412,10 +414,6 @@ func formatRawCloudAccountCredentialsSh(raw []byte) (string, error) {
 	}
 	ident := "\n\t\t\t"
 	return ident + strings.Join(lines, ident), nil
-}
-
-func formatRawCloudAccountCredentialsNativeConfig(raw []byte) (string, error) {
-	return string(raw), nil
 }
 
 func OnboardCloudAccount(domain, kind, region string, args []string, zone, awsVpc, awsKeypair string, waitAndTailDeployLogs bool) {
@@ -682,7 +680,7 @@ func cloudAccountDownloadCfTemplate(filename string, govcloud bool) error {
 	if govcloud {
 		path = fmt.Sprintf("%s?govcloud=true", path)
 	}
-	code, err, body := get2(hubApi(), path)
+	code, body, err := get2(hubApi(), path)
 	if err != nil {
 		return err
 	}

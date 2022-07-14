@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -58,6 +58,7 @@ func gitDebug2(cmd *exec.Cmd, stdoutCopy io.Writer) {
 	}
 }
 
+//lint:ignore U1000 still needed?
 func gitDebug4(cmd *exec.Cmd, stdoutCopy io.Writer) {
 	if config.Trace {
 		printGitArgs(cmd)
@@ -68,6 +69,7 @@ func gitDebug4(cmd *exec.Cmd, stdoutCopy io.Writer) {
 	}
 }
 
+//lint:ignore U1000 still needed?
 func gitDebug3(cmd *exec.Cmd, stdoutCopy io.Writer, stderrCopy io.Writer) {
 	if config.Debug {
 		stderrCopy = io.MultiWriter(stderrCopy, os.Stdout)

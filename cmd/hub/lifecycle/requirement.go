@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -175,12 +175,12 @@ type BinVersion struct {
 }
 
 var binVersion = map[string]BinVersion{
-	"gcloud":    {"246.0.0", regexp.MustCompile("Google Cloud SDK ([\\d.]+)")},
-	"gsutil":    {"4.38", regexp.MustCompile("version: ([\\d.]+)")},
-	"vault":     {"1.3.2", regexp.MustCompile("Vault v([\\d.]+)")},
-	"kubectl":   {"1.18.15", regexp.MustCompile("GitVersion:\"v([\\d.]+)")},
-	"helm":      {"3.5.1", regexp.MustCompile("(?:SemVer|Version):\"v([\\d.]+)")},
-	"terraform": {"0.14.0", regexp.MustCompile("Terraform v([\\d.]+)")},
+	"gcloud":    {"246.0.0", regexp.MustCompile(`Google Cloud SDK ([\d.]+)`)},
+	"gsutil":    {"4.38", regexp.MustCompile(`version: ([\d.]+)`)},
+	"vault":     {"1.3.2", regexp.MustCompile(`Vault v([\d.]+)`)},
+	"kubectl":   {"1.18.15", regexp.MustCompile(`GitVersion:"v([\d.]+)`)},
+	"helm":      {"3.5.1", regexp.MustCompile(`(?:SemVer|Version):"v([\d.]+)`)},
+	"terraform": {"0.14.0", regexp.MustCompile(`Terraform v([\d.]+)`)},
 }
 
 func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {

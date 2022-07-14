@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -37,15 +37,15 @@ var (
 	error404            = errors.New("404 HTTP")
 	_hubApi             *http.Client
 	_hubApiLongWait     *http.Client
-	wsApi               = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
+	//lint:ignore U1000 still needed?
+	wsApi = &websocket.Dialer{HandshakeTimeout: 10 * time.Second}
 )
 
 func Invoke(method, path string, body io.Reader) {
 	method = strings.ToUpper(method)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-	code, err, resp := doWithAuthorization(hubApi(), method, path, body, nil)
+
+	path = strings.TrimPrefix(path, "/")
+	code, resp, err := doWithAuthorization(hubApi(), method, path, body, nil)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -102,6 +102,7 @@ func hubRequest(method, path, token string, body io.Reader) (*http.Request, erro
 	return req, nil
 }
 
+//lint:ignore U1000 still needed?
 func hubWs() (*websocket.Conn, *http.Response, error) {
 	if !strings.HasPrefix(config.ApiBaseUrl, "http://") && !strings.HasPrefix(config.ApiBaseUrl, "https://") {
 		log.Fatalf("Unable to construct Hub WebSocket URL from `%s`", config.ApiBaseUrl)
@@ -175,16 +176,16 @@ func hubWsSocketIo(connect, disconnect, ex func()) (*gosocketio.Client, error) {
 }
 
 func get(client *http.Client, path string, jsResp interface{}) (int, error) {
-	code, err, _ := doWithAuthorization(client, "GET", path, nil, jsResp)
+	code, _, err := doWithAuthorization(client, "GET", path, nil, jsResp)
 	return code, err
 }
 
-func get2(client *http.Client, path string) (int, error, []byte) {
+func get2(client *http.Client, path string) (int, []byte, error) {
 	return doWithAuthorization(client, "GET", path, nil, nil)
 }
 
 func delete(client *http.Client, path string) (int, error) {
-	code, err, _ := doWithAuthorization(client, "DELETE", path, nil, nil)
+	code, _, err := doWithAuthorization(client, "DELETE", path, nil, nil)
 	return code, err
 }
 
@@ -192,12 +193,14 @@ func post(client *http.Client, path string, req interface{}, jsResp interface{})
 	return ppp(client, "POST", path, req, jsResp)
 }
 
+//lint:ignore U1000 still needed?
 func put(client *http.Client, path string, req interface{}, jsResp interface{}) (int, error) {
 	return ppp(client, "PUT", path, req, jsResp)
 }
 
 func patch(client *http.Client, path string, req interface{}, jsResp interface{}) (int, error) {
-	return ppp(client, "PATCH", path, req, jsResp)
+	code, err := ppp(client, "PATCH", path, req, jsResp)
+	return code, err
 }
 
 func ppp(client *http.Client, method, path string, req interface{}, jsResp interface{}) (int, error) {
@@ -213,25 +216,25 @@ func ppp(client *http.Client, method, path string, req interface{}, jsResp inter
 		}
 		body = bytes.NewReader(reqBody)
 	}
-	code, err, _ := doWithAuthorization(client, method, path, body, jsResp)
+	code, _, err := doWithAuthorization(client, method, path, body, jsResp)
 	return code, err
 }
 
 // post2() trace no request body as it come from CLI user on stdin
 func post2(client *http.Client, path string, req io.Reader, jsResp interface{}) (int, error) {
-	code, err, _ := doWithAuthorization(client, "POST", path, req, jsResp)
+	code, _, err := doWithAuthorization(client, "POST", path, req, jsResp)
 	return code, err
 }
 
 func patch2(client *http.Client, path string, req io.Reader, jsResp interface{}) (int, error) {
-	code, err, _ := doWithAuthorization(client, "PATCH", path, req, jsResp)
+	code, _, err := doWithAuthorization(client, "PATCH", path, req, jsResp)
 	return code, err
 }
 
-func doWithAuthorization(client *http.Client, method, path string, reqBody io.Reader, jsResp interface{}) (int, error, []byte) {
+func doWithAuthorization(client *http.Client, method, path string, reqBody io.Reader, jsResp interface{}) (int, []byte, error) {
 	req, err := hubRequestWithBearerToken(method, path, reqBody)
 	if err != nil {
-		return 0, fmt.Errorf("Error creating HTTP request: %v", err), nil
+		return 0, nil, fmt.Errorf("Error creating HTTP request: %v", err)
 	}
 	if reqBody != nil && util.Contains(MethodsWithJsonBody, method) {
 		req.Header.Add("Content-type", "application/json")
@@ -239,10 +242,10 @@ func doWithAuthorization(client *http.Client, method, path string, reqBody io.Re
 	return do(client, req, jsResp)
 }
 
-func do(client *http.Client, req *http.Request, jsResp interface{}) (int, error, []byte) {
+func do(client *http.Client, req *http.Request, jsResp interface{}) (int, []byte, error) {
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("Error during HTTP request: %v", err), nil
+		return 0, nil, fmt.Errorf("Error during HTTP request: %v", err)
 	}
 	respBody := func() ([]byte, int64, error) {
 		var body bytes.Buffer
@@ -261,7 +264,7 @@ func do(client *http.Client, req *http.Request, jsResp interface{}) (int, error,
 		log.Printf("<<< %s %s: %s", req.Method, req.URL.String(), resp.Status)
 	}
 	if resp.StatusCode == 404 {
-		return resp.StatusCode, error404, nil
+		return resp.StatusCode, nil, error404
 	}
 	if resp.StatusCode >= 300 {
 		b, _, _ := respBody()
@@ -270,21 +273,21 @@ func do(client *http.Client, req *http.Request, jsResp interface{}) (int, error,
 		if maybeErrors == "" {
 			maybeJson = indentIfJsonAndDebug(resp, b)
 		}
-		return resp.StatusCode, fmt.Errorf("%d HTTP%s%s", resp.StatusCode, maybeErrors, maybeJson), nil
+		return resp.StatusCode, nil, fmt.Errorf("%d HTTP%s%s", resp.StatusCode, maybeErrors, maybeJson)
 	}
 	body, read, err := respBody()
 	if err != nil || (read < 2 && resp.StatusCode != 202 && resp.StatusCode != 204 && jsResp != nil) {
-		return resp.StatusCode, fmt.Errorf("%d HTTP, error reading response (read %d bytes): %s%s",
-			resp.StatusCode, read, util.Errors2(err), indentIfJsonAndDebug(resp, body)), body
+		return resp.StatusCode, body, fmt.Errorf("%d HTTP, error reading response (read %d bytes): %s%s",
+			resp.StatusCode, read, util.Errors2(err), indentIfJsonAndDebug(resp, body))
 	}
 	if jsResp != nil && read >= 2 {
 		err = json.Unmarshal(body, jsResp)
 		if err != nil {
-			return resp.StatusCode, fmt.Errorf("%d HTTP, error unmarshalling response (read %d bytes): %v%s",
-				resp.StatusCode, read, err, indentIfJsonAndDebug(resp, body)), body
+			return resp.StatusCode, body, fmt.Errorf("%d HTTP, error unmarshalling response (read %d bytes): %v%s",
+				resp.StatusCode, read, err, indentIfJsonAndDebug(resp, body))
 		}
 	}
-	return resp.StatusCode, nil, body
+	return resp.StatusCode, body, nil
 }
 
 func identJson(in []byte) []byte {

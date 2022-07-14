@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -724,7 +724,7 @@ func kubeconfigStackInstance(selector, filename string) error {
 		return error404
 	}
 	path := fmt.Sprintf("%s/%s/kubeconfig", stackInstancesResource, url.PathEscape(instance.Id))
-	code, err, body := get2(hubApi(), path)
+	code, body, err := get2(hubApi(), path)
 	if err != nil {
 		return err
 	}
@@ -806,7 +806,7 @@ func logsStackInstance(selector, operationId, filename string) error {
 		return errors.New("Inflight operation has no location")
 	}
 	path := fmt.Sprintf("%s/%s?log=true", tasksResource, op.Location)
-	code, err, body := get2(hubApi(), path) // TODO stream log into file
+	code, body, err := get2(hubApi(), path) // TODO stream log into file
 	if err != nil {
 		return err
 	}

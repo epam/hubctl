@@ -33,7 +33,7 @@ type tail struct {
 
 func newTail(out *os.File) io.WriteCloser {
 	_, cols := tiocgwinsz(out.Fd())
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
 	t := &tail{out: out, ch: ch, cols: cols}
 	signal.Notify(ch, syscall.SIGWINCH)
 	go func() {

@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -91,10 +91,10 @@ func ReadGCS(path string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), gcsTimeout)
 	defer cancel()
 	reader, err := bucket.Object(noRoot(location.Path)).NewReader(ctx)
-	defer reader.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer reader.Close()
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read GCS object `%s`: %v", path, err)

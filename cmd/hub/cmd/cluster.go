@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -105,7 +105,7 @@ to construct FQDN.`,
 	},
 }
 
-var maybeValidHostname = regexp.MustCompile("^[0-9a-z\\.-]+$")
+var maybeValidHostname = regexp.MustCompile(`^[0-9a-z\.-]+$`)
 
 func createKubernetes(args []string) error {
 	// create <name or FQDN> <instance type> <count> [max count]

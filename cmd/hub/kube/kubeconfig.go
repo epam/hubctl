@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -137,6 +137,7 @@ func readKubeconfig(filename string) (*KubeConfig, error) {
 	return &config, nil
 }
 
+//lint:ignore U1000 WIP
 func writeKubeconfig(filename string, config *KubeConfig) error {
 	file, err := os.OpenFile(filename, os.O_WRONLY, 0644)
 	if err != nil {
@@ -162,6 +163,7 @@ func writeKubeconfig(filename string, config *KubeConfig) error {
 	return nil
 }
 
+//lint:ignore U1000 WIP
 func addHeptioUser(configFilename, user, cluster string) {
 	config, err := readKubeconfig(configFilename)
 	if err != nil {

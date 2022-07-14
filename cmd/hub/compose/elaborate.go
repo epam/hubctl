@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -28,24 +28,11 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
 
-var globalEnvVarsAllowed = []string{
-	"DEPLOYMENT_ID",
-	"AWS_DEFAULT_REGION",
-	"STATE_BUCKET",
-	"STATE_REGION",
-	"NAME",
-	"BASE_DOMAIN",
-	"DOMAIN",
-	"KUBECONTEXT",
-	"NAMESPACE",
-}
-
 // this must match to lifecycle.checkRequires()
 var requirementProvidedByEnvironment = []string{
 	"aws", "gcp", "gcs", "azure", "kubectl", "kubernetes", "helm", "vault",
 }
 var defaultLifecycleVerbs = []string{"deploy", "undeploy"}
-var environment map[string]string
 
 func Elaborate(manifestFilename string,
 	parametersFilenames []string, environmentOverrides, explicitProvides string,

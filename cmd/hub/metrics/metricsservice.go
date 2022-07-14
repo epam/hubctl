@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -76,7 +76,7 @@ func putMetricsServiceMetric(cmd, host string, additionaTags []string) error {
 		return fmt.Errorf("Metrics Service returned HTTP status %d; expected 202", resp.StatusCode)
 	}
 	var body bytes.Buffer
-	read, err := body.ReadFrom(resp.Body)
+	read, _ := body.ReadFrom(resp.Body)
 	resp.Body.Close()
 	bResp := body.Bytes()
 	if read == 0 {

@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -233,60 +233,54 @@ func parseFilters(selectors []string) []Filter {
 				accounts, err := cloudAccountsBy(selector, false)
 				if err != nil {
 					log.Fatalf("Unable to get Cloud Account by `%s`: %v", selector, err)
-				} else if accounts != nil {
-					for _, account := range accounts {
-						ids = append(ids, account.Id)
-					}
+				}
+				for _, account := range accounts {
+					ids = append(ids, account.Id)
 				}
 
 			case "environment":
 				environments, err := environmentsBy(selector)
 				if err != nil {
 					log.Fatalf("Unable to get Environment by `%s`: %v", selector, err)
-				} else if environments != nil {
-					for _, environment := range environments {
-						ids = append(ids, environment.Id)
-					}
+				}
+				for _, environment := range environments {
+					ids = append(ids, environment.Id)
 				}
 
 			case "stackTemplate":
 				templates, err := templatesBy(selector)
 				if err != nil {
 					log.Fatalf("Unable to get Template by `%s`: %v", selector, err)
-				} else if templates != nil {
-					for _, template := range templates {
-						ids = append(ids, template.Id)
-					}
+				}
+				for _, template := range templates {
+					ids = append(ids, template.Id)
 				}
 
 			case "stackInstance":
 				instances, err := stackInstancesBy(selector, "")
 				if err != nil {
 					log.Fatalf("Unable to get Stack Instance by `%s`: %v", selector, err)
-				} else if instances != nil {
-					for _, instance := range instances {
-						ids = append(ids, instance.Id)
-					}
+				}
+				for _, instance := range instances {
+					ids = append(ids, instance.Id)
 				}
 
 			case "backup":
 				backups, err := backupsBy(selector)
 				if err != nil {
 					log.Fatalf("Unable to get Backup by `%s`: %v", selector, err)
-				} else if backups != nil {
-					for _, backup := range backups {
-						ids = append(ids, backup.Id)
-					}
+				}
+				for _, backup := range backups {
+					ids = append(ids, backup.Id)
 				}
 
 			case "application":
 				applications, err := applicationsBy(selector)
 				if err != nil {
 					log.Fatalf("Unable to get Application by `%s`: %v", selector, err)
-				} else if applications != nil {
-					for _, application := range applications {
-						ids = append(ids, application.Id)
-					}
+				}
+				for _, application := range applications {
+					ids = append(ids, application.Id)
 				}
 
 			default:

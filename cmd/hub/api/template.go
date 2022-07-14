@@ -1,5 +1,5 @@
 // Copyright (c) 2022 EPAM Systems, Inc.
-// 
+//
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -22,6 +22,7 @@ import (
 
 const templatesResource = "hub/api/v1/templates"
 
+//lint:ignore U1000 still needed?
 var templatesCache = make(map[string]*StackTemplate)
 
 func Templates(selector string, showSecrets, showGitRemote, wildcardSecret, showGitStatus, jsonFormat bool) {
@@ -182,6 +183,7 @@ func formatTemplate(template *StackTemplate) {
 	}
 }
 
+//lint:ignore U1000 still needed?
 func cachedTemplateBy(selector string) (*StackTemplate, error) {
 	template, cached := templatesCache[selector]
 	if !cached {
