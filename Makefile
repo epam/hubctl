@@ -45,7 +45,7 @@ build:
 		-X 'github.com/agilestacks/hub/cmd/hub/metrics.MetricsServiceKey=$(METRICS_API_SECRET)' \
 		-X 'github.com/agilestacks/hub/cmd/hub/metrics.DDKey=$(DD_CLIENT_API_KEY)'" \
 		github.com/agilestacks/hub/cmd/hub
-.PHONY: get
+.PHONY: build
 
 fmt:
 	go fmt github.com/agilestacks/hub/...

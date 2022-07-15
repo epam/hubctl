@@ -60,6 +60,14 @@ sudo spctl --master-disable
 
 ## Development
 
+### Setup
+
+Before make any changes you should configure git hooks for this repository
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ### Build
 
 Use `make` to build Hub CLI:
@@ -71,7 +79,7 @@ make
 Or directly with `go`:
 
 ```shell
-go get github.com/agilestacks/hub/cmd/hub
+go build -o bin/$(go env GOOS)/hub github.com/agilestacks/hub/cmd/hub
 ```
 
 ### Clean up
