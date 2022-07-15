@@ -1,7 +1,9 @@
 name: Tests
 on:
-  - push
-  - pull_request
+  push:
+    paths:
+      - "*/**.go"
+  pull_request: {}
 
 permissions:
   contents: read
