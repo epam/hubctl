@@ -12,7 +12,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -22,6 +21,8 @@ import (
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/util"
 )
+
+var initializers []func()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -53,17 +54,16 @@ func Execute() {
 	}
 }
 
+//lint:ignore U1000 Used by cmd commands to read config parameters from config file
+func onInitialize(i ...func()) {
+	initializers = append(initializers, i...)
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
 	RootCmd.PersistentFlags().StringVar(&config.ConfigFile, "config", "", "Config file (default is $HOME/.hub-config.{yaml,json})")
 	RootCmd.PersistentFlags().StringVar(&config.CacheFile, "cache", "", "API cache file (default is $HOME/.hub-cache.yaml)")
-
-	apiDefault := os.Getenv(envVarNameHubApi)
-	if apiDefault == "" {
-		apiDefault = "https://api.agilestacks.io"
-	}
-	RootCmd.PersistentFlags().StringVar(&config.ApiBaseUrl, "api", apiDefault, "Hub API service base URL, HUB_API")
 
 	RootCmd.PersistentFlags().StringVar(&config.AwsProfile, "aws_profile", "", "AWS ~/.aws/credentials profile, AWS_PROFILE")
 	awsRegion := os.Getenv(envVarNameAwsRegion)
@@ -121,12 +121,6 @@ func initConfig() {
 			log.Printf("Using config file %s", viper.ConfigFileUsed())
 		}
 	}
-	if api := viper.GetString("api"); api != "" {
-		config.ApiBaseUrl = api
-	}
-	if loginToken := viper.GetString("token"); loginToken != "" {
-		config.ApiLoginToken = loginToken
-	}
 	if viper.GetBool("force") {
 		config.Force = true
 	}
@@ -135,11 +129,6 @@ func initConfig() {
 	}
 	if viper.GetBool("trace") {
 		config.Trace = true
-	}
-	if t := viper.GetString("api-timeout"); t != "" {
-		if timeout, err := strconv.Atoi(t); err == nil && timeout > 0 {
-			config.ApiTimeout = timeout
-		}
 	}
 	if tty := viper.GetString("tty"); tty != "" {
 		config.TtyMode = tty
@@ -155,5 +144,9 @@ func initConfig() {
 	}
 	if key := viper.GetString("crypto-gcp-kms-key-name"); key != "" {
 		config.CryptoGcpKmsKeyName = key
+	}
+
+	for _, initializer := range initializers {
+		initializer()
 	}
 }

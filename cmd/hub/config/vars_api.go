@@ -4,14 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//go:build !api
+//go:build api
 
-package lifecycle
+package config
 
-import (
-	"github.com/agilestacks/hub/cmd/hub/state"
+var (
+	ApiBaseUrl      string
+	ApiLoginToken   string
+	ApiDerefSecrets bool
+	ApiTimeout      int = 30
 )
-
-func hubSyncer(request *Request) func(*state.StateManifest) {
-	return nil
-}

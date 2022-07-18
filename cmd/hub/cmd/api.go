@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+//go:build api
+
 package cmd
 
 import (
@@ -11,8 +13,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/agilestacks/hub/cmd/hub/api"
 	"github.com/agilestacks/hub/cmd/hub/config"
@@ -59,6 +63,25 @@ func apiInvoke(args []string) error {
 }
 
 func init() {
+	onInitialize(func() {
+		if api := viper.GetString("api"); api != "" {
+			config.ApiBaseUrl = api
+		}
+		if loginToken := viper.GetString("token"); loginToken != "" {
+			config.ApiLoginToken = loginToken
+		}
+		if t := viper.GetString("api-timeout"); t != "" {
+			if timeout, err := strconv.Atoi(t); err == nil && timeout > 0 {
+				config.ApiTimeout = timeout
+			}
+		}
+	})
+
+	apiDefault := os.Getenv(envVarNameHubApi)
+	if apiDefault == "" {
+		apiDefault = "https://api.agilestacks.io"
+	}
+	apiCmd.PersistentFlags().StringVar(&config.ApiBaseUrl, "api", apiDefault, "Hub API service base URL, HUB_API")
 	apiCmd.PersistentFlags().BoolVar(&config.ApiDerefSecrets, "deref-secrets",
 		os.Getenv(envVarNameDerefSecrets) != "false",
 		fmt.Sprintf("Always retrieve secrets to catch API errors (%s)", envVarNameDerefSecrets))

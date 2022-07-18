@@ -11,7 +11,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/manifest"
 	"github.com/agilestacks/hub/cmd/hub/parameters"
@@ -166,27 +165,5 @@ func printStackOutputs(outputs []parameters.ExpandedOutput) {
 				log.Printf("\t%s%s => %s", output.Name, brief, value)
 			}
 		}
-	}
-}
-
-func printStackInstancePatch(patch api.StackInstancePatch) {
-	if len(patch.Outputs) > 0 {
-		log.Print("Outputs to API:")
-		for _, output := range patch.Outputs {
-			brief := ""
-			if output.Brief != "" {
-				brief = fmt.Sprintf("[%s] ", output.Brief)
-			}
-			component := ""
-			if output.Component != "" {
-				component = fmt.Sprintf("%s:", output.Component)
-			}
-			// this is under Trace, no secret value masking required
-			log.Printf("\t%s%s%s => `%v`", brief, component, output.Name, output.Value)
-		}
-	}
-	if len(patch.Provides) > 0 {
-		log.Print("Provides to API:")
-		util.PrintMap2(patch.Provides)
 	}
 }
