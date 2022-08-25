@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+//go:build api
+
 package cmd
 
 import (
@@ -60,5 +62,5 @@ func login(args []string) error {
 func init() {
 	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "SuperHub username")
 	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "SuperHub password")
-	RootCmd.AddCommand(loginCmd)
+	apiCmd.AddCommand(loginCmd)
 }

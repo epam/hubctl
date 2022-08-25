@@ -26,7 +26,6 @@ builds:
       - -X 'github.com/agilestacks/hub/cmd/hub/util.ref={{ .Tag }}'
       - -X 'github.com/agilestacks/hub/cmd/hub/util.commit={{ .ShortCommit }}'
       - -X 'github.com/agilestacks/hub/cmd/hub/util.buildAt={{ time "2006.01.02 15:04:05 MST" }}'
-      - -X 'github.com/agilestacks/hub/cmd/hub/metrics.MetricsServiceKey={{ if index .Env "METRICS_API_SECRET" }}{{ .Env.METRICS_API_SECRET }}{{ else }}{{ end }}'
       - -X 'github.com/agilestacks/hub/cmd/hub/metrics.DDKey={{ if index .Env "DD_CLIENT_API_KEY" }}{{ .Env.DD_CLIENT_API_KEY }}{{ else }}{{ end }}'
 
 archives:

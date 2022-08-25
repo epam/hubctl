@@ -17,11 +17,6 @@ var (
 	ConfigFile string
 	CacheFile  string
 
-	ApiBaseUrl      string
-	ApiLoginToken   string
-	ApiDerefSecrets bool
-	ApiTimeout      int = 30
-
 	AwsProfile                  string
 	AwsRegion                   string
 	AwsPreferProfileCredentials bool

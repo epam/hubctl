@@ -8,10 +8,7 @@
 
 package lifecycle
 
-import (
-	"github.com/agilestacks/hub/cmd/hub/state"
-)
-
-func hubSyncer(request *Request) func(*state.StateManifest) {
-	return nil
+func getParameterOrMaybeCreateSecret(environment, stackInstance, application,
+	name, component string, create bool) (bool, string, []error) {
+	return false, "", nil
 }

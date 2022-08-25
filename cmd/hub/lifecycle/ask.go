@@ -15,7 +15,6 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
 	"github.com/agilestacks/hub/cmd/hub/config"
 	"github.com/agilestacks/hub/cmd/hub/manifest"
 	"github.com/agilestacks/hub/cmd/hub/util"
@@ -67,7 +66,7 @@ func AskParameter(parameter manifest.Parameter,
 	}
 
 	if hubEnvironment != "" || hubStackInstance != "" || hubApplication != "" {
-		found, v, errs := api.GetParameterOrMaybeCreateSecret(hubEnvironment, hubStackInstance, hubApplication,
+		found, v, errs := getParameterOrMaybeCreateSecret(hubEnvironment, hubStackInstance, hubApplication,
 			parameter.Name, parameter.Component, isDeploy && parameter.Empty != "allow")
 		if len(errs) > 0 {
 			where := make([]string, 0, 3)

@@ -42,10 +42,22 @@ build:
 		-X 'github.com/agilestacks/hub/cmd/hub/util.ref=$(REF)' \
 		-X 'github.com/agilestacks/hub/cmd/hub/util.commit=$(COMMIT)' \
 		-X 'github.com/agilestacks/hub/cmd/hub/util.buildAt=$(BUILD_AT)' \
-		-X 'github.com/agilestacks/hub/cmd/hub/metrics.MetricsServiceKey=$(METRICS_API_SECRET)' \
 		-X 'github.com/agilestacks/hub/cmd/hub/metrics.DDKey=$(DD_CLIENT_API_KEY)'" \
 		github.com/agilestacks/hub/cmd/hub
 .PHONY: build
+
+build-with-api:
+	go build \
+		-o bin/$(OS)/hub \
+		-tags="api" \
+		-ldflags="-s -w \
+		-X 'github.com/agilestacks/hub/cmd/hub/util.ref=$(REF)' \
+		-X 'github.com/agilestacks/hub/cmd/hub/util.commit=$(COMMIT)' \
+		-X 'github.com/agilestacks/hub/cmd/hub/util.buildAt=$(BUILD_AT)' \
+		-X 'github.com/agilestacks/hub/cmd/hub/metrics.MetricsServiceKey=$(METRICS_API_SECRET)' \
+		-X 'github.com/agilestacks/hub/cmd/hub/metrics.DDKey=$(DD_CLIENT_API_KEY)'" \
+		github.com/agilestacks/hub/cmd/hub
+.PHONY: build-with-api
 
 fmt:
 	go fmt github.com/agilestacks/hub/...
