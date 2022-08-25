@@ -1,6 +1,8 @@
 name: Tests
 on:
   push:
+    branches:
+      - "master"
     paths:
       - "*/**.go"
   pull_request: {}
