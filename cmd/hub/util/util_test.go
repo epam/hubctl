@@ -51,7 +51,7 @@ func TestWarn(t *testing.T) {
 		v      []interface{}
 	}
 
-	var msgs []interface{} = make([]interface{}, 0)
+	var msgs = make([]interface{}, 0)
 	msgs = append(msgs, "Just string")
 
 	tests := []struct {
@@ -75,7 +75,7 @@ func TestWarnOnce(t *testing.T) {
 		v      []interface{}
 	}
 
-	var msgs []interface{} = make([]interface{}, 0)
+	var msgs = make([]interface{}, 0)
 	msgs = append(msgs, "Just string")
 
 	tests := []struct {
@@ -264,7 +264,6 @@ func TestAppendMapList(t *testing.T) {
 		{"Should contain value by key", args{testMap, "key2", "value2"}},
 		{"Should contain value by key", args{testMap, "", "value1"}},
 		{"Should contain value by key", args{testMap, "", "value2"}},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -321,7 +320,7 @@ func TestConcatMaps(t *testing.T) {
 				secondMap,
 			},
 			map[string]string{
-				"first": "map",
+				"first":  "map",
 				"second": "map",
 			},
 		},
