@@ -22,9 +22,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/aws"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/aws"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 type ClusterOptions struct {

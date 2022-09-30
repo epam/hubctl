@@ -13,7 +13,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 var dirMode = os.FileMode(0755)

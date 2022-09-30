@@ -18,8 +18,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var initializers []func()
@@ -27,16 +27,15 @@ var initializers []func()
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "hub",
-	Short: "Hub CLI is a stack composition and lifecycle tool",
-	Long: `Hub CLI is a stack composition and lifecycle tool:
+	Short: "Hub CTL is a stack composition and lifecycle tool",
+	Long: `Hub CTL is a stack composition and lifecycle tool:
 - template and stack creation, stack deploy / undeploy / backup lifecycle;
-- stack and component parameters, output variables, and status;
-- management of templates, stacks, components on SuperHub.io`,
+- stack and component parameters, output variables, and status`,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.Update()
 		if config.Debug {
-			log.Printf("Hub CLI %s %s\n", util.Version(), runtime.Version())
+			log.Printf("Hub CTL %s %s\n", util.Version(), runtime.Version())
 		}
 		maybeMeterCommand(cmd)
 	},

@@ -17,7 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/api"
 )
 
 var (
@@ -54,7 +54,7 @@ var componentCreateCmd = &cobra.Command{
 		"category": "Kubernetes Tools",
 		"license": "Apache 2.0",
 		"icon": "data:image/png;base64",
-		"template": "456", // https://git.agilestacks.io/repo/org/kube-dashboard-456
+		"template": "456", // https://git.epam.devops.delivery/repo/org/kube-dashboard-456
 		"git": {
 			"subDir": "optional"
 		},

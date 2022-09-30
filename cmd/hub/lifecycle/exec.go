@@ -16,7 +16,7 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 func goWait(routine func()) chan string {

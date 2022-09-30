@@ -16,9 +16,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/manifest"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/manifest"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func Pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool) {

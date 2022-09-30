@@ -11,8 +11,8 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func FlattenParameters(parameters []Parameter, tag string) []Parameter {

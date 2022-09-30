@@ -19,8 +19,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const applicationsResource = "hub/api/v1/applications"
@@ -170,10 +170,10 @@ func applicationById(id string) (*Application, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Applications: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Applications: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Applications, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Applications, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -204,10 +204,10 @@ func applicationsByName(name string) ([]Application, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Applications: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Applications: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Applications, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Applications, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -216,13 +216,13 @@ func InstallApplication(req ApplicationRequest, waitAndTailDeployLogs bool) {
 	if req.Platform != "" && !util.IsUint(req.Platform) {
 		platform, err := stackInstanceByDomain(req.Platform)
 		if err != nil {
-			log.Fatalf("Unable to install SuperHub Application: %v", err)
+			log.Fatalf("Unable to install HubCTL Application: %v", err)
 		}
 		req.Platform = platform.Id
 	}
 	reqBody, err := json.Marshal(&req)
 	if err != nil {
-		log.Fatalf("Unable to install SuperHub Application: %v", err)
+		log.Fatalf("Unable to install HubCTL Application: %v", err)
 	}
 	RawInstallApplication(bytes.NewReader(reqBody), waitAndTailDeployLogs)
 }
@@ -230,7 +230,7 @@ func InstallApplication(req ApplicationRequest, waitAndTailDeployLogs bool) {
 func RawInstallApplication(body io.Reader, waitAndTailDeployLogs bool) {
 	application, err := rawInstallApplication(body)
 	if err != nil {
-		log.Fatalf("Unable to install SuperHub Application: %v", err)
+		log.Fatalf("Unable to install HubCTL Application: %v", err)
 	}
 	formatApplication(application)
 	if waitAndTailDeployLogs {
@@ -248,7 +248,7 @@ func rawInstallApplication(body io.Reader) (*Application, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 && code != 202 {
-		return nil, fmt.Errorf("Got %d HTTP installing SuperHub Application, expected [200, 201, 202] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP installing HubCTL Application, expected [200, 201, 202] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -256,7 +256,7 @@ func rawInstallApplication(body io.Reader) (*Application, error) {
 func DeleteApplication(selector string, waitAndTailDeployLogs bool) {
 	err := deleteApplication(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Application: %v", err)
+		log.Fatalf("Unable to delete HubCTL Application: %v", err)
 	}
 	if waitAndTailDeployLogs {
 		if config.Verbose {
@@ -293,7 +293,7 @@ func deleteApplication(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Application, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting HubCTL Application, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -301,7 +301,7 @@ func deleteApplication(selector string) error {
 func PatchApplication(selector string, change ApplicationPatch, waitAndTailDeployLogs bool) {
 	application, err := patchApplication(selector, change)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Application: %v", err)
+		log.Fatalf("Unable to patch HubCTL Application: %v", err)
 	}
 	formatApplication(application)
 	if waitAndTailDeployLogs {
@@ -327,7 +327,7 @@ func patchApplication(selector string, change ApplicationPatch) (*Application, e
 		return nil, err
 	}
 	if code != 200 && code != 202 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Application, expected [200, 202] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Application, expected [200, 202] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -335,7 +335,7 @@ func patchApplication(selector string, change ApplicationPatch) (*Application, e
 func RawPatchApplication(selector string, body io.Reader, waitAndTailDeployLogs bool) {
 	application, err := rawPatchApplication(selector, body)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Application: %v", err)
+		log.Fatalf("Unable to patch HubCTL Application: %v", err)
 	}
 	formatApplication(application)
 	if waitAndTailDeployLogs {
@@ -371,7 +371,7 @@ func rawPatchApplication(selector string, body io.Reader) (*Application, error) 
 		return nil, err
 	}
 	if code != 200 && code != 202 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Application, expected [200, 204] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Application, expected [200, 204] HTTP", code)
 	}
 	return &jsResp, nil
 }

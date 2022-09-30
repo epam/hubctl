@@ -15,7 +15,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 // TODO use golang.org/x/sys/unix FcntlFlock()

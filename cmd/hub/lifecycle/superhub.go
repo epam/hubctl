@@ -9,7 +9,7 @@
 package lifecycle
 
 import (
-	"github.com/agilestacks/hub/cmd/hub/state"
+	"github.com/epam/hubctl/cmd/hub/state"
 )
 
 func hubSyncer(request *Request) func(*state.StateManifest) {

@@ -11,15 +11,15 @@
         "outputs": [
           {
             "name": "cloud.ec2.master.ignitionProfileS3",
-            "value": "s3://agilestacks.bestofzeeto.superhub.io/vpcchild.bestofzeeto.superhub.io/stack-k8s-aws/ignition/ignition_master.json"
+            "value": "s3://hubctl.bestofzeeto.epam.devops.delivery/vpcchild.bestofzeeto.epam.devops.delivery/stack-k8s-aws/ignition/ignition_master.json"
           },
           {
             "name": "cloud.ec2.worker.ignitionProfileS3",
-            "value": "s3://agilestacks.bestofzeeto.superhub.io/vpcchild.bestofzeeto.superhub.io/stack-k8s-aws/ignition/ignition_worker.json"
+            "value": "s3://hubctl.bestofzeeto.epam.devops.delivery/vpcchild.bestofzeeto.epam.devops.delivery/stack-k8s-aws/ignition/ignition_worker.json"
           },
           {
             "name": "cloud.iam.worker.instanceProfile",
-            "value": "worker-profile-vpcchild-bestofzeeto.superhub.io"
+            "value": "worker-profile-vpcchild-bestofzeeto.epam.devops.delivery"
           },
           {
             "name": "cloud.role.master",
@@ -63,16 +63,16 @@
           },
           {
             "name": "dns.domain",
-            "value": "vpcchild.bestofzeeto.superhub.io",
+            "value": "vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "Cluster domain"
           },
           {
             "name": "kubernetes.api.endpoint",
-            "value": "api.vpcchild.bestofzeeto.superhub.io:6443"
+            "value": "api.vpcchild.bestofzeeto.epam.devops.delivery:6443"
           },
           {
             "name": "kubernetes.api.host",
-            "value": "api.vpcchild.bestofzeeto.superhub.io"
+            "value": "api.vpcchild.bestofzeeto.epam.devops.delivery"
           },
           {
             "name": "kubernetes.api.port",
@@ -153,11 +153,11 @@
         "outputs": [
           {
             "name": "component.ingress.dashboard.url",
-            "value": "https://apps.vpcchild.bestofzeeto.superhub.io/dashboard/"
+            "value": "https://apps.vpcchild.bestofzeeto.epam.devops.delivery/dashboard/"
           },
           {
             "name": "component.ingress.fqdn",
-            "value": "app.vpcchild.bestofzeeto.superhub.io",
+            "value": "app.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "FQDN of ingress"
           },
           {
@@ -178,7 +178,7 @@
           },
           {
             "name": "component.ingress.ssoFqdn",
-            "value": "apps.vpcchild.bestofzeeto.superhub.io",
+            "value": "apps.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "FQDN of ingress protected by SSO"
           },
           {
@@ -209,7 +209,7 @@
         "outputs": [
           {
             "name": "component.dex.issuer",
-            "value": "https://auth.vpcchild.bestofzeeto.superhub.io"
+            "value": "https://auth.vpcchild.bestofzeeto.epam.devops.delivery"
           }
         ],
         "timestamps": {
@@ -236,7 +236,7 @@
           },
           {
             "name": "component.istio.ingressGateway.default.fqdn",
-            "value": "mesh.vpcchild.bestofzeeto.superhub.io"
+            "value": "mesh.vpcchild.bestofzeeto.epam.devops.delivery"
           },
           {
             "name": "component.istio.ingressGateway.default.name",
@@ -244,7 +244,7 @@
           },
           {
             "name": "component.istio.kiali.url",
-            "value": "https://istio-kiali.apps.vpcchild.bestofzeeto.superhub.io",
+            "value": "https://istio-kiali.apps.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "Istio Service Graph"
           },
           {
@@ -288,7 +288,7 @@
         "outputs": [
           {
             "name": "component.kubernetes-dashboard.url",
-            "value": "https://kubernetes.apps.vpcchild.bestofzeeto.superhub.io",
+            "value": "https://kubernetes.apps.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "Kubernetes Dashboard"
           }
         ],
@@ -311,17 +311,17 @@
         "outputs": [
           {
             "name": "component.prometheus.alertmanager.url",
-            "value": "https://alertmanager.apps.vpcchild.bestofzeeto.superhub.io",
+            "value": "https://alertmanager.apps.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "Alertmanager URL"
           },
           {
             "name": "component.prometheus.grafana.url",
-            "value": "https://grafana.apps.vpcchild.bestofzeeto.superhub.io",
+            "value": "https://grafana.apps.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "Grafana URL"
           },
           {
             "name": "component.prometheus.url",
-            "value": "https://prometheus.apps.vpcchild.bestofzeeto.superhub.io",
+            "value": "https://prometheus.apps.vpcchild.bestofzeeto.epam.devops.delivery",
             "brief": "Prometheus URL"
           }
         ],

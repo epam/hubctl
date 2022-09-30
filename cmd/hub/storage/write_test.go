@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 func getRealFile() *Files {
@@ -17,17 +17,17 @@ func getRealFile() *Files {
 
 func TestWrite(t *testing.T) {
 	type args struct {
-		data  []byte
-		files *Files
-		encrypted bool
+		data       []byte
+		files      *Files
+		encrypted  bool
 		compressed bool
 	}
 	fakeFiles, _ := Check([]string{"/a/b/c/d"}, "fake kind")
 
 	tests := []struct {
-		name  string
-		args  args
-		want  bool
+		name    string
+		args    args
+		want    bool
 		wantErr []error
 	}{
 		{

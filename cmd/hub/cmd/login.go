@@ -14,9 +14,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -25,7 +25,7 @@ var (
 )
 
 var loginCmd = &cobra.Command{
-	Use:   "login [https://api.agilestacks.io] [-u email] [-p password]",
+	Use:   "login [https://api.epam.devops.delivery] [-u email] [-p password]",
 	Short: "Obtain Login Token for subsequent Hub API calls",
 	Long: `Sign-in to Hub API service to obtain a Login Token.
 
@@ -60,7 +60,7 @@ func login(args []string) error {
 }
 
 func init() {
-	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "SuperHub username")
-	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "SuperHub password")
+	loginCmd.Flags().StringVarP(&loginUsername, "username", "u", "", "HubCTL username")
+	loginCmd.Flags().StringVarP(&loginPassword, "password", "p", "", "HubCTL password")
 	apiCmd.AddCommand(loginCmd)
 }

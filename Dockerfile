@@ -1,6 +1,6 @@
 FROM alpine:3.13
-ARG FULLNAME="Agile Stacks"
-LABEL maintainer="${FULLNAME} <support@agilestacks.com>"
+ARG FULLNAME="EPAM Systems"
+LABEL maintainer="${FULLNAME} <opensource@epam.com>"
 RUN \
     apk update && apk upgrade && \
     apk add --no-cache \

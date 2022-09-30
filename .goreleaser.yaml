@@ -23,10 +23,9 @@ builds:
     ldflags:
       - -s
       - -w
-      - -X 'github.com/agilestacks/hub/cmd/hub/util.ref={{ .Tag }}'
-      - -X 'github.com/agilestacks/hub/cmd/hub/util.commit={{ .ShortCommit }}'
-      - -X 'github.com/agilestacks/hub/cmd/hub/util.buildAt={{ time "2006.01.02 15:04:05 MST" }}'
-      - -X 'github.com/agilestacks/hub/cmd/hub/metrics.DDKey={{ if index .Env "DD_CLIENT_API_KEY" }}{{ .Env.DD_CLIENT_API_KEY }}{{ else }}{{ end }}'
+      - -X 'github.com/epam/hubctl/cmd/hub/util.ref={{ .Tag }}'
+      - -X 'github.com/epam/hubctl/cmd/hub/util.commit={{ .ShortCommit }}'
+      - -X 'github.com/epam/hubctl/cmd/hub/util.buildAt={{ time "2006.01.02 15:04:05 MST" }}'
 
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
@@ -56,23 +55,23 @@ brews:
   - name: hub
 
     tap:
-      owner: agilestacks
+      owner: epam
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
 
     commit_author:
-      name: asibot
-      email: asibot@users.noreply.github.com
+      name: epambot
+      email: epambot@users.noreply.github.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Version }}"
 
     folder: Formula
 
     homepage: "https://superhub.io/"
-    description: "Hub CLI is stack composition and lifecycle tool."
-    license: "GPLv3"
+    description: "Hub CTL is stack composition and lifecycle tool."
+    license: "MPL-2.0"
     custom_block: |
-      head "https://github.com/asibot/hub"
+      head "https://github.com/epam/hubctl"
     caveats: |
       hub version
       hub help
@@ -87,7 +86,7 @@ brews:
 
     test: |
       output = shell_output("#{bin}/hub version").chomp
-      assert output.start_with?("Hub CLI git ")
+      assert output.start_with?("Hub CTL git ")
       system "false"
 
     post_install: |

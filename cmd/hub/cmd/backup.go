@@ -13,9 +13,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/compose"
-	"github.com/agilestacks/hub/cmd/hub/lifecycle"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/compose"
+	"github.com/epam/hubctl/cmd/hub/lifecycle"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (

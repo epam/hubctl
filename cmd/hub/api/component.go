@@ -17,8 +17,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const componentsResource = "hub/api/v1/components"
@@ -164,10 +164,10 @@ func componentById(id string) (*Component, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Components: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Components: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Components, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Components, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -205,10 +205,10 @@ func componentsByName(name string, onlyCustomComponents bool) ([]Component, erro
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Components: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Components: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Components, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Components, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -216,7 +216,7 @@ func componentsByName(name string, onlyCustomComponents bool) ([]Component, erro
 func CreateComponent(req ComponentRequest) {
 	component, err := createComponent(req)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Component: %v", err)
+		log.Fatalf("Unable to create HubCTL Component: %v", err)
 	}
 	formatComponent(component)
 }
@@ -235,7 +235,7 @@ func createComponent(req ComponentRequest) (*Component, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Component, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Component, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -243,7 +243,7 @@ func createComponent(req ComponentRequest) (*Component, error) {
 func RawCreateComponent(body io.Reader) {
 	component, err := rawCreateComponent(body)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Component: %v", err)
+		log.Fatalf("Unable to create HubCTL Component: %v", err)
 	}
 	formatComponent(component)
 }
@@ -255,7 +255,7 @@ func rawCreateComponent(body io.Reader) (*Component, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Component, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Component, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -263,7 +263,7 @@ func rawCreateComponent(body io.Reader) (*Component, error) {
 func DeleteComponent(selector string) {
 	err := deleteComponent(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Component: %v", err)
+		log.Fatalf("Unable to delete HubCTL Component: %v", err)
 	}
 }
 
@@ -294,7 +294,7 @@ func deleteComponent(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Component, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting HubCTL Component, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -302,7 +302,7 @@ func deleteComponent(selector string) error {
 func PatchComponent(selector string, change ComponentPatch) {
 	component, err := patchComponent(selector, change)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Component: %v", err)
+		log.Fatalf("Unable to patch HubCTL Component: %v", err)
 	}
 	formatComponent(component)
 }
@@ -322,7 +322,7 @@ func patchComponent(selector string, change ComponentPatch) (*Component, error) 
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Component, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Component, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -330,7 +330,7 @@ func patchComponent(selector string, change ComponentPatch) (*Component, error) 
 func RawPatchComponent(selector string, body io.Reader) {
 	component, err := rawPatchComponent(selector, body)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Component: %v", err)
+		log.Fatalf("Unable to patch HubCTL Component: %v", err)
 	}
 	formatComponent(component)
 }
@@ -350,7 +350,7 @@ func rawPatchComponent(selector string, body io.Reader) (*Component, error) {
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Component, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Component, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }

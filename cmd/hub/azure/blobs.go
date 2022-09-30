@@ -17,7 +17,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (

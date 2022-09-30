@@ -19,8 +19,8 @@ import (
 	gosocketio "github.com/arkadijs/golang-socketio"
 	"github.com/logrusorgru/aurora"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 type WsMessage struct {

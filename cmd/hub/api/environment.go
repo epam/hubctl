@@ -18,8 +18,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const environmentsResource = "hub/api/v1/environments"
@@ -263,10 +263,10 @@ func environmentById(id string) (*Environment, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Environments: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Environments: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Environments, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Environments, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -297,10 +297,10 @@ func environmentsByName(name string) ([]Environment, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Environments: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Environments: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Environments, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Environments, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -314,11 +314,11 @@ func myTeams(environmentId string) ([]Team, error) {
 	var jsResp []Team
 	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Environment `%s` My Teams: %v",
+		return nil, fmt.Errorf("Error querying HubCTL Environment `%s` My Teams: %v",
 			environmentId, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Environment `%s` My Teams, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Environment `%s` My Teams, expected 200 HTTP",
 			code, environmentId)
 	}
 	return jsResp, nil
@@ -337,11 +337,11 @@ func serviceAccount(environmentId, teamId string) (*ServiceAccount, error) {
 	var jsResp ServiceAccount
 	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Team `%s` Service Account: %v",
+		return nil, fmt.Errorf("Error querying HubCTL Team `%s` Service Account: %v",
 			teamId, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Team `%s` Service Account, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Team `%s` Service Account, expected 200 HTTP",
 			code, teamId)
 	}
 	return &jsResp, nil
@@ -358,10 +358,10 @@ func formatServiceAccount(team Team, account *ServiceAccount, showLoginToken boo
 func CreateEnvironment(name, cloudAccountSelector string) {
 	cloudAccount, err := cloudAccountBy(cloudAccountSelector)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Environment: %v", err)
+		log.Fatalf("Unable to create HubCTL Environment: %v", err)
 	}
 	if cloudAccount == nil {
-		log.Fatal("Unable to create SuperHub Environment: Cloud Account not found")
+		log.Fatal("Unable to create HubCTL Environment: Cloud Account not found")
 	}
 	req := &EnvironmentRequest{
 		Name:         name,
@@ -371,7 +371,7 @@ func CreateEnvironment(name, cloudAccountSelector string) {
 	}
 	environment, err := createEnvironment(req)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Environment: %v", err)
+		log.Fatalf("Unable to create HubCTL Environment: %v", err)
 	}
 	formatEnvironment(environment)
 }
@@ -383,7 +383,7 @@ func createEnvironment(environment *EnvironmentRequest) (*Environment, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Environment, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Environment, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -391,7 +391,7 @@ func createEnvironment(environment *EnvironmentRequest) (*Environment, error) {
 func DeleteEnvironment(selector string) {
 	err := deleteEnvironment(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Environment: %v", err)
+		log.Fatalf("Unable to delete HubCTL Environment: %v", err)
 	}
 }
 
@@ -422,7 +422,7 @@ func deleteEnvironment(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Environments, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting HubCTL Environments, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -430,7 +430,7 @@ func deleteEnvironment(selector string) error {
 func PatchEnvironment(selector string, change EnvironmentPatch) {
 	environment, err := patchEnvironment(selector, change)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Environment: %v", err)
+		log.Fatalf("Unable to patch HubCTL Environment: %v", err)
 	}
 	formatEnvironment(environment)
 }
@@ -450,7 +450,7 @@ func patchEnvironment(selector string, change EnvironmentPatch) (*Environment, e
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Environment, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Environment, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -458,7 +458,7 @@ func patchEnvironment(selector string, change EnvironmentPatch) (*Environment, e
 func RawPatchEnvironment(selector string, body io.Reader) {
 	environment, err := rawPatchEnvironment(selector, body)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Environment: %v", err)
+		log.Fatalf("Unable to patch HubCTL Environment: %v", err)
 	}
 	formatEnvironment(environment)
 }
@@ -488,7 +488,7 @@ func rawPatchEnvironment(selector string, body io.Reader) (*Environment, error) 
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Environment, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Environment, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }

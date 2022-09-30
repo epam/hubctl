@@ -17,11 +17,11 @@ import (
 
 	"golang.org/x/crypto/pbkdf2"
 
-	"github.com/agilestacks/hub/cmd/hub/aws"
-	"github.com/agilestacks/hub/cmd/hub/azure"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/gcp"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/aws"
+	"github.com/epam/hubctl/cmd/hub/azure"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/gcp"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const (

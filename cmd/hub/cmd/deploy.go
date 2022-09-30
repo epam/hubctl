@@ -15,9 +15,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/lifecycle"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/lifecycle"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -66,7 +66,7 @@ func setOsEnvForNestedCli(manifests []string, stateManifests []string, component
 			os.Setenv(envVarNameComponentsBaseDir, componentsBaseDir)
 		}
 	} else {
-		util.Warn("Unable to determine path to Hub CLI executable - `hub invoke / render / util otp` are broken: %v", err)
+		util.Warn("Unable to determine path to Hub CTL executable - `hub invoke / render / util otp` are broken: %v", err)
 	}
 }
 
@@ -178,7 +178,7 @@ func initDeployUndeployFlags(cmd *cobra.Command, verb string) {
 	cmd.Flags().StringVarP(&environmentOverrides, "environment", "e", "",
 		"Set environment overrides: -e 'NAME=demo,INSTANCE=r4.large,...'")
 	cmd.Flags().BoolVarP(&hubSyncStackInstance, "hub-sync", "", false,
-		"Sync Stack Instance state to SuperHub (--hub-stack-instance must be set)")
+		"Sync Stack Instance state to HubCTL (--hub-stack-instance must be set)")
 	cmd.Flags().BoolVarP(&hubSyncSkipParametersAndOplog, "hub-sync-skip-parameters-and-oplog", "", false,
 		"Sync skip syncing Stack Instance parameters and operation log")
 	cmd.Flags().BoolVar(&writeOplogToStateOnError, "write-oplog-to-state-on-error", false,
@@ -202,11 +202,11 @@ func initCommonLifecycleFlags(cmd *cobra.Command, verb string) {
 
 func initCommonApiFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&hubEnvironment, "hub-environment", "", "",
-		"The Id or Name of SuperHub Environment to obtain deployment parameters from")
+		"The Id or Name of HubCTL Environment to obtain deployment parameters from")
 	cmd.Flags().StringVarP(&hubStackInstance, "hub-stack-instance", "", "",
-		"The Id or Domain of SuperHub Stack Instance to obtain deployment parameters from")
+		"The Id or Domain of HubCTL Stack Instance to obtain deployment parameters from")
 	cmd.Flags().StringVarP(&hubApplication, "hub-application", "", "",
-		"The Id or Domain of SuperHub Application to obtain deployment parameters from")
+		"The Id or Domain of HubCTL Application to obtain deployment parameters from")
 }
 
 func init() {
@@ -216,6 +216,6 @@ func init() {
 	deployCmd.Flags().BoolVarP(&gitOutputsStatus, "git-outputs-status", "", false,
 		"Produce hub.components.<component-name>.git.clean = {clean, dirty} which is expensive to calculate")
 	deployCmd.Flags().BoolVarP(&hubSaveStackInstanceOutputs, "hub-save-stack-instance-outputs", "", false,
-		"(deprecated) Send Stack Instance outputs and provides to SuperHub (--hub-stack-instance must be set)")
+		"(deprecated) Send Stack Instance outputs and provides to HubCTL (--hub-stack-instance must be set)")
 	RootCmd.AddCommand(deployCmd)
 }

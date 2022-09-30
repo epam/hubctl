@@ -1,5 +1,5 @@
 # Copyright (c) 2022 EPAM Systems, Inc.
-# 
+#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -16,12 +16,12 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
-    - rolearn: arn:aws:iam::957622438981:role/agilestacks00a75eecd71afacf76be436b27
+    - rolearn: arn:aws:iam::957622438981:role/hubctl00a75eecd71afacf76be436b27
       username: arkadi364
       groups:
         - system:masters
-    - rolearn: arn:aws:iam::957622438981:role/agilestacks00f6325e328a2c2f9c609dfd0b
-      username: superhub
+    - rolearn: arn:aws:iam::957622438981:role/hubctl00f6325e328a2c2f9c609dfd0b
+      username: hubctl
       groups:
         - system:masters
   mapUsers: |

@@ -18,7 +18,7 @@ import (
 	awsaws "github.com/aws/aws-sdk-go/aws"
 	awss3 "github.com/aws/aws-sdk-go/service/s3"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 var (

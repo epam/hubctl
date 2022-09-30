@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/agilestacks/hub/cmd/hub/util"
+	. "github.com/epam/hubctl/cmd/hub/util"
 	"github.com/stretchr/testify/assert"
 )
 

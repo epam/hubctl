@@ -19,9 +19,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -62,10 +62,10 @@ var createClusterCmd = &cobra.Command{
 	Use: fmt.Sprintf("create <%s> <name or FQDN> <instance type> <count> [max count] -e <id | environment name> [-m <id | template name>]",
 		strings.Join(knownCreateKinds, " | ")),
 	Short: "Create Kubernetes cluster",
-	Long: `Create Kubernetes cluster as SuperHub Platform Stack.
+	Long: `Create Kubernetes cluster as HubCTL Platform Stack.
 
 Currently supported cluster types are:
-- k8s-aws - Agile Stacks Kubernetes on AWS
+- k8s-aws - EPAM Systems Kubernetes on AWS
 - eks - AWS EKS
 - gke - GCP GKE
 - aks - Azure AKS
@@ -82,10 +82,10 @@ var importClusterCmd = &cobra.Command{
 	Use: fmt.Sprintf("import <%s> <name or FQDN> -e <id | environment name> [-m <id | template name>] < keys.pem",
 		strings.Join(knownImportKinds, " | ")),
 	Short: "Import Kubernetes cluster",
-	Long: `Import Kubernetes cluster into SuperHub to become Platform Stack.
+	Long: `Import Kubernetes cluster into HubCTL to become Platform Stack.
 
 Currently supported cluster types are:
-- k8s-aws - Agile Stacks Kubernetes on AWS
+- k8s-aws - EPAM Systems Kubernetes on AWS
 - eks - AWS EKS
 - gke - GCP GKE
 - aks - Azure AKS
@@ -215,7 +215,7 @@ func importKubernetes(args []string) error {
 	switch kind {
 	case "k8s-aws":
 		if k8sEndpoint == "" {
-			return errors.New("AgileStacks K8S cluster API endpoint must be specified by --k8s-endpoint")
+			return errors.New("EPAM HubCTL K8S cluster API endpoint must be specified by --k8s-endpoint")
 		}
 		nativeEndpoint = k8sEndpoint
 
@@ -348,7 +348,7 @@ func init() {
 	createClusterCmd.Flags().BoolVarP(&certManager, "cert-manager", "", true,
 		"Provision Cert-Manager for ingress TLS")
 	createClusterCmd.Flags().BoolVarP(&autoscaler, "autoscale", "a", true,
-		"Autoscale workers with cluster-autoscaler (Agile Stacks and EKS Kubernetes only)")
+		"Autoscale workers with cluster-autoscaler (EPAM Systems and EKS Kubernetes only)")
 	createClusterCmd.Flags().BoolVarP(&kubeDashboard, "kube-dashboard", "", false,
 		"Provision Kube Dashboard")
 	createClusterCmd.Flags().StringVarP(&kubeDashboardMode, "kube-dashboard-mode", "", "read-only",
@@ -363,7 +363,7 @@ func init() {
 	importClusterCmd.Flags().StringVarP(&clusterZone, "zone", "", "",
 		"Cloud zone if different from Cloud Account default zone")
 	importClusterCmd.Flags().StringVarP(&k8sEndpoint, "k8s-endpoint", "", "",
-		"Agile Stacks Kubernetes cluster API endpoint, default to api.{domain}")
+		"EPAM Systems Kubernetes cluster API endpoint, default to api.{domain}")
 	importClusterCmd.Flags().StringVarP(&eksClusterName, "eks-cluster", "", "",
 		"AWS EKS cluster native name")
 	importClusterCmd.Flags().StringVarP(&eksEndpoint, "eks-endpoint", "", "",

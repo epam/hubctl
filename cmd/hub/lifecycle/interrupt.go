@@ -13,8 +13,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var interruptSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
@@ -34,7 +34,7 @@ func watchInterrupt() context.Context {
 				interrupted()
 				if config.Verbose {
 					log.Writer().Write([]byte("\n"))
-					log.Printf("%s, Hub CLI exiting... Send ^C again to force exit", sig.String())
+					log.Printf("%s, Hub CTL exiting... Send ^C again to force exit", sig.String())
 				}
 
 			case <-unwatch:

@@ -9,7 +9,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/metrics"
+	"github.com/epam/hubctl/cmd/hub/metrics"
 )
 
 func maybeMeterCommand(cmd *cobra.Command) {

@@ -10,7 +10,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func printFiles(files []File, kind string) {

@@ -9,7 +9,7 @@
 package cmd
 
 const (
-	SuperHubIo = ".superhub.io"
+	HubCtlApiBaseDomain = ".epam.devops.delivery"
 
 	envVarNameHubApi       = "HUB_API"
 	envVarNameDerefSecrets = "HUB_API_DEREF_SECRETS"

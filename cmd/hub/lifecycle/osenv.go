@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (

@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/manifest"
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/manifest"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func waitForReadyConditions(ctx context.Context, conditions []manifest.ReadyCondition,

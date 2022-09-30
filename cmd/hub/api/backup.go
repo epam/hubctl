@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const backupsResource = "hub/api/v1/backups"
@@ -159,10 +159,10 @@ func backupById(id string) (*Backup, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Backups: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Backups: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Backups, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Backups, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -209,10 +209,10 @@ func backupsByFilter(field, value string) ([]Backup, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Backups: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Backups: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Backups, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Backups, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -224,7 +224,7 @@ func formatBackupTitle(backup *Backup) string {
 func DeleteBackup(selector string) {
 	err := deleteBackup(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Backup: %v", err)
+		log.Fatalf("Unable to delete HubCTL Backup: %v", err)
 	}
 }
 
@@ -255,7 +255,7 @@ func deleteBackup(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Backup, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting HubCTL Backup, expected [202, 204] HTTP", code)
 	}
 	return nil
 }

@@ -20,8 +20,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const stackInstancesResource = "hub/api/v1/instances"
@@ -276,10 +276,10 @@ func stackInstanceById(id string) (*StackInstance, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Stack Instances: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Stack Instances: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Stack Instances, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Stack Instances, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -325,10 +325,10 @@ func stackInstancesByField(selector, environmentId, field string) ([]StackInstan
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Stack Instances: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Stack Instances: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Stack Instances, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Stack Instances, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -341,10 +341,10 @@ func stackInstancesByPlatform(platformId string) ([]StackInstance, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Stack Instances: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Stack Instances: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Stack Instances, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Stack Instances, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -549,7 +549,7 @@ func formatLifecyclePhases(phases []LifecyclePhase, ident string) string {
 func CreateStackInstance(req StackInstanceRequest) {
 	stackInstance, err := createStackInstance(req)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to create HubCTL Stack Instance: %v", err)
 	}
 	formatStackInstance(stackInstance)
 }
@@ -582,7 +582,7 @@ func createStackInstance(req StackInstanceRequest) (*StackInstance, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Stack Instance, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Stack Instance, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -590,7 +590,7 @@ func createStackInstance(req StackInstanceRequest) (*StackInstance, error) {
 func RawCreateStackInstance(body io.Reader) {
 	stackInstance, err := rawCreateStackInstance(body)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to create HubCTL Stack Instance: %v", err)
 	}
 	formatStackInstance(stackInstance)
 }
@@ -602,7 +602,7 @@ func rawCreateStackInstance(body io.Reader) (*StackInstance, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Stack Instance, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Stack Instance, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -610,21 +610,21 @@ func rawCreateStackInstance(body io.Reader) (*StackInstance, error) {
 func DeployStackInstance(selector string, components []string, waitAndTailDeployLogs, dryRun bool) {
 	_, err := commandStackInstance(selector, "deploy", StackInstanceLifecycleRequest{components}, waitAndTailDeployLogs, dryRun)
 	if err != nil {
-		log.Fatalf("Unable to deploy SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to deploy HubCTL Stack Instance: %v", err)
 	}
 }
 
 func UndeployStackInstance(selector string, components []string, waitAndTailDeployLogs bool) {
 	_, err := commandStackInstance(selector, "undeploy", StackInstanceLifecycleRequest{components}, waitAndTailDeployLogs, false)
 	if err != nil {
-		log.Fatalf("Unable to undeploy SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to undeploy HubCTL Stack Instance: %v", err)
 	}
 }
 
 func BackupStackInstance(selector, name string, components []string, waitAndTailDeployLogs bool) {
 	resp, err := commandStackInstance(selector, "backup", &BackupRequest{Name: name, Components: components}, false, false)
 	if err != nil {
-		log.Fatalf("Unable to backup SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to backup HubCTL Stack Instance: %v", err)
 	}
 	if waitAndTailDeployLogs {
 		if config.Verbose {
@@ -656,7 +656,7 @@ func commandStackInstance(selector, verb string, req interface{}, waitAndTailDep
 		return nil, err
 	}
 	if code != 200 && code != 202 && code != 204 {
-		return nil, fmt.Errorf("Got %d HTTP in response to %s SuperHub Stack Instance, expected [200, 202, 204] HTTP",
+		return nil, fmt.Errorf("Got %d HTTP in response to %s HubCTL Stack Instance, expected [200, 202, 204] HTTP",
 			code, verb)
 	}
 	if config.Verbose {
@@ -674,7 +674,7 @@ func commandStackInstance(selector, verb string, req interface{}, waitAndTailDep
 func DeleteStackInstance(selector string) {
 	err := deleteStackInstance(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to delete HubCTL Stack Instance: %v", err)
 	}
 }
 
@@ -705,7 +705,7 @@ func deleteStackInstance(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Stack Instance, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting HubCTL Stack Instance, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -713,7 +713,7 @@ func deleteStackInstance(selector string) error {
 func KubeconfigStackInstance(selector, filename string) {
 	err := kubeconfigStackInstance(selector, filename)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Stack Instance Kubeconfig: %v", err)
+		log.Fatalf("Unable to create HubCTL Stack Instance Kubeconfig: %v", err)
 	}
 }
 
@@ -731,10 +731,10 @@ func kubeconfigStackInstance(selector, filename string) error {
 		return err
 	}
 	if code != 200 {
-		return fmt.Errorf("Got %d HTTP fetching SuperHub Stack Instance Kubeconfig, expected 200 HTTP", code)
+		return fmt.Errorf("Got %d HTTP fetching HubCTL Stack Instance Kubeconfig, expected 200 HTTP", code)
 	}
 	if len(body) == 0 {
-		return fmt.Errorf("Got empty SuperHub Stack Instance Kubeconfig")
+		return fmt.Errorf("Got empty HubCTL Stack Instance Kubeconfig")
 	}
 
 	if filename == "" {
@@ -775,7 +775,7 @@ func kubeconfigStackInstance(selector, filename string) error {
 func LogsStackInstance(selector, operationId, filename string) {
 	err := logsStackInstance(selector, operationId, filename)
 	if err != nil {
-		log.Fatalf("Unable to download SuperHub Stack Instance log: %v", err)
+		log.Fatalf("Unable to download HubCTL Stack Instance log: %v", err)
 	}
 }
 
@@ -813,10 +813,10 @@ func logsStackInstance(selector, operationId, filename string) error {
 		return err
 	}
 	if code != 200 {
-		return fmt.Errorf("Got %d HTTP fetching SuperHub Stack Instance log, expected 200 HTTP", code)
+		return fmt.Errorf("Got %d HTTP fetching HubCTL Stack Instance log, expected 200 HTTP", code)
 	}
 	if len(body) == 0 {
-		return fmt.Errorf("Got empty SuperHub Stack Instance log")
+		return fmt.Errorf("Got empty HubCTL Stack Instance log")
 	}
 
 	if filename == "" {
@@ -857,7 +857,7 @@ func logsStackInstance(selector, operationId, filename string) error {
 func PatchStackInstanceForCmd(selector string, change StackInstancePatch, replace bool) {
 	stackInstance, err := PatchStackInstance(selector, change, replace)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to patch HubCTL Stack Instance: %v", err)
 	}
 	formatStackInstance(stackInstance)
 }
@@ -886,7 +886,7 @@ func PatchStackInstance(selector string, change StackInstancePatch, replace bool
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Stack Instance, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Stack Instance, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -894,7 +894,7 @@ func PatchStackInstance(selector string, change StackInstancePatch, replace bool
 func RawPatchStackInstance(selector string, body io.Reader, replace bool) {
 	stackInstance, err := rawPatchStackInstance(selector, body, replace)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Stack Instance: %v", err)
+		log.Fatalf("Unable to patch HubCTL Stack Instance: %v", err)
 	}
 	formatStackInstance(stackInstance)
 }
@@ -928,7 +928,7 @@ func rawPatchStackInstance(selector string, body io.Reader, replace bool) (*Stac
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Stack Instance, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Stack Instance, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }

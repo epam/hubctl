@@ -18,8 +18,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -64,7 +64,7 @@ var instanceCreateCmd = &cobra.Command{
 				"value": "kubernetes"
 			}, {
 				"name": "dns.baseDomain",
-				"value": "dev01.superhub.io"
+				"value": "dev01.epam.devops.delivery"
 			}, {
 				"name": "component.postgresql.password",
 				"kind": "secret",
@@ -108,7 +108,7 @@ var instancePatchCmd = &cobra.Command{
 		"outputs": [
 			{
 				"name": "component.ingress.fqdn",
-				"value": "app.kubernetes.dev01.superhub.io"
+				"value": "app.kubernetes.dev01.epam.devops.delivery"
 			}
 		],
 		"provides": {
@@ -542,7 +542,7 @@ func init() {
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolPreemptibleVMs, "preemptible-vms", "p", false,
 		"GCP use preemptible VMs")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&workerpoolAutoscale, "autoscale", "a", false,
-		"Autoscale worker pool with cluster-autoscaler (Agile Stacks and EKS Kubernetes only)")
+		"Autoscale worker pool with cluster-autoscaler (EPAM Systems and EKS Kubernetes only)")
 	instanceWorkerpoolCreateCmd.Flags().IntVarP(&workerpoolVolumeSize, "volume-size", "z", 0,
 		"Node root volume size (default 50GB)")
 	instanceWorkerpoolCreateCmd.Flags().BoolVarP(&waitAndTailDeployLogs, "wait", "w", false,

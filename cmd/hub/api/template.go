@@ -18,8 +18,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const templatesResource = "hub/api/v1/templates"
@@ -228,10 +228,10 @@ func templateById(id string) (*StackTemplate, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Templates: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Templates: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Templates, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Templates, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -262,10 +262,10 @@ func templatesByName(name string) ([]StackTemplate, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Templates: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Templates: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Templates, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Templates, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -278,10 +278,10 @@ func templateGitStatus(id string) (*TemplateStatus, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Template Git status: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Template Git status: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Template Git status, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Template Git status, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -289,7 +289,7 @@ func templateGitStatus(id string) (*TemplateStatus, error) {
 func CreateTemplate(req StackTemplateRequest) {
 	template, err := createTemplate(req)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Template: %v", err)
+		log.Fatalf("Unable to create HubCTL Template: %v", err)
 	}
 	formatTemplate(template)
 }
@@ -301,7 +301,7 @@ func createTemplate(req StackTemplateRequest) (*StackTemplate, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Template, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Template, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -309,7 +309,7 @@ func createTemplate(req StackTemplateRequest) (*StackTemplate, error) {
 func RawCreateTemplate(body io.Reader) {
 	template, err := rawCreateTemplate(body)
 	if err != nil {
-		log.Fatalf("Unable to create SuperHub Template: %v", err)
+		log.Fatalf("Unable to create HubCTL Template: %v", err)
 	}
 	formatTemplate(template)
 }
@@ -321,7 +321,7 @@ func rawCreateTemplate(body io.Reader) (*StackTemplate, error) {
 		return nil, err
 	}
 	if code != 200 && code != 201 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Template, expected [200, 201] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Template, expected [200, 201] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -329,7 +329,7 @@ func rawCreateTemplate(body io.Reader) (*StackTemplate, error) {
 func InitTemplate(selector string) {
 	err := initTemplate(selector)
 	if err != nil {
-		log.Fatalf("Unable to initialize SuperHub Template: %v", err)
+		log.Fatalf("Unable to initialize HubCTL Template: %v", err)
 	}
 }
 
@@ -347,7 +347,7 @@ func initTemplate(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP initializing SuperHub Template, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP initializing HubCTL Template, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -355,7 +355,7 @@ func initTemplate(selector string) error {
 func DeleteTemplate(selector string) {
 	err := deleteTemplate(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Template: %v", err)
+		log.Fatalf("Unable to delete HubCTL Template: %v", err)
 	}
 }
 
@@ -386,7 +386,7 @@ func deleteTemplate(selector string) error {
 		return err
 	}
 	if code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP deleting SuperHub Template, expected [202, 204] HTTP", code)
+		return fmt.Errorf("Got %d HTTP deleting HubCTL Template, expected [202, 204] HTTP", code)
 	}
 	return nil
 }
@@ -394,7 +394,7 @@ func deleteTemplate(selector string) error {
 func PatchTemplate(selector string, change StackTemplatePatch) {
 	template, err := patchTemplate(selector, change)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Template: %v", err)
+		log.Fatalf("Unable to patch HubCTL Template: %v", err)
 	}
 	formatTemplate(template)
 }
@@ -414,7 +414,7 @@ func patchTemplate(selector string, change StackTemplatePatch) (*StackTemplate, 
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Template, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Template, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -422,7 +422,7 @@ func patchTemplate(selector string, change StackTemplatePatch) (*StackTemplate, 
 func RawPatchTemplate(selector string, body io.Reader) {
 	template, err := rawPatchTemplate(selector, body)
 	if err != nil {
-		log.Fatalf("Unable to patch SuperHub Template: %v", err)
+		log.Fatalf("Unable to patch HubCTL Template: %v", err)
 	}
 	formatTemplate(template)
 }
@@ -452,7 +452,7 @@ func rawPatchTemplate(selector string, body io.Reader) (*StackTemplate, error) {
 		return nil, err
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP patching SuperHub Template, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP patching HubCTL Template, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }

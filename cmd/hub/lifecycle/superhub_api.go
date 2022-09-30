@@ -13,11 +13,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/state"
-	"github.com/agilestacks/hub/cmd/hub/storage"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/state"
+	"github.com/epam/hubctl/cmd/hub/storage"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func hubSyncer(request *Request) func(*state.StateManifest) {
@@ -33,14 +33,14 @@ func hubSyncer(request *Request) func(*state.StateManifest) {
 			patch.InflightOperations = nil
 		}
 		if config.Verbose {
-			log.Print("Syncing Stack Instance state to SuperHub")
+			log.Print("Syncing Stack Instance state to HubCTL")
 			if config.Trace {
 				printStackInstancePatch(patch)
 			}
 		}
 		_, err := api.PatchStackInstance(request.StackInstance, patch, true)
 		if err != nil {
-			util.Warn("Unable to sync stack instance state to SuperHub: %v\n\ttry running sync manually: hub api instance sync %s -s %s ",
+			util.Warn("Unable to sync stack instance state to HubCTL: %v\n\ttry running sync manually: hub api instance sync %s -s %s ",
 				err, request.StackInstance, strings.Join(request.StateFilenames, ","))
 		}
 	}

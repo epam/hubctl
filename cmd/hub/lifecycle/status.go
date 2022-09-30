@@ -9,9 +9,9 @@ package lifecycle
 import (
 	"fmt"
 
-	"github.com/agilestacks/hub/cmd/hub/manifest"
-	"github.com/agilestacks/hub/cmd/hub/state"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/manifest"
+	"github.com/epam/hubctl/cmd/hub/state"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func calculateStackStatus(stackManifest *manifest.Manifest, stateManifest *state.StateManifest, verb string) (string, string) {

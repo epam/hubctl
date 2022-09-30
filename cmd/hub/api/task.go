@@ -16,7 +16,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 const tasksResource = "hub/api/v1/tasks"
@@ -107,10 +107,10 @@ func tasksByEnvironment(environmentId string) ([]Task, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Tasks: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Tasks: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Tasks, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Tasks, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -118,7 +118,7 @@ func tasksByEnvironment(environmentId string) ([]Task, error) {
 func TerminateTask(id string) {
 	err := terminateTask(id)
 	if err != nil {
-		log.Fatalf("Unable to terminate SuperHub automation task: %v", err)
+		log.Fatalf("Unable to terminate HubCTL automation task: %v", err)
 	}
 }
 
@@ -130,7 +130,7 @@ func terminateTask(id string) error {
 		return err
 	}
 	if code != 200 && code != 202 && code != 204 {
-		return fmt.Errorf("Got %d HTTP in response to SuperHub automation task termination request, expected [200, 202, 204] HTTP",
+		return fmt.Errorf("Got %d HTTP in response to HubCTL automation task termination request, expected [200, 202, 204] HTTP",
 			code)
 	}
 	if config.Verbose {

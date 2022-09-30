@@ -12,9 +12,9 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/storage"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/storage"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func MustParseStateFiles(stateManifests []string) *StateManifest {
@@ -49,7 +49,7 @@ func ParseState(files *storage.Files) (*StateManifest, error) {
 		return nil, fmt.Errorf("State file kind = `%s` but it must be `state`", state.Kind)
 	}
 	if state.Version != 1 {
-		return nil, fmt.Errorf("State file version = `%d` but it must be `1`; update Hub CLI", state.Version)
+		return nil, fmt.Errorf("State file version = `%d` but it must be `1`; update Hub CTL", state.Version)
 	}
 
 	return &state, nil

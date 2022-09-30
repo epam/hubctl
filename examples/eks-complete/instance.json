@@ -11,7 +11,7 @@
         "value": "us-east-1a"
     }, {
         "name": "dns.domain",
-        "value": "eks.demo.superhub.io"
+        "value": "eks.demo.epam.devops.delivery"
     }, {
         "name": "component.kubernetes.eks.cluster",
         "value": "demo"

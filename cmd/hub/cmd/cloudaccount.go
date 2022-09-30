@@ -15,8 +15,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -48,25 +48,25 @@ the particular Cloud Account (specify Id or search by full domain name)`,
 var cloudAccounOnboardCmd = &cobra.Command{
 	Use:   "onboard <domain> <aws | azure | gcp> <default region> [credentials...]",
 	Short: "Onboard Cloud Account",
-	Long: `Onboard Cloud Account to SuperHub.
+	Long: `Onboard Cloud Account to HubCTL.
 
-Domain must be a sub-domain of superhub.io or prefix, for example dev-01.superhub.io, dev-01.
+Domain must be a sub-domain of epam.devops.delivery or prefix, for example dev-01.epam.devops.delivery, dev-01.
 
 AWS:
 
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2 <access key> <secret key>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2 <profile>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2 <Role ARN>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-east-2  # credentials from OS environment, default profile, or EC2 metadata
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-east-2 <access key> <secret key>
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-east-2 <profile>
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-east-2 <Role ARN>
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-east-2  # credentials from OS environment, default profile, or EC2 metadata
 
-A cross account role will be created in your AWS account. The keys are not stored in SuperHub.
+A cross account role will be created in your AWS account. The keys are not stored in HubCTL.
 
 AWS GovCloud:
 
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds> <GovCloud access key> <GovCloud secret key>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds> <GovCloud profile>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds> <GovCloud Role ARN>
-	$ hub api cloudaccount onboard dev-01.superhub.io aws us-gov-east-1 <Public Cloud creds>  # GovCloud credentials from OS environment, default profile, or EC2 metadata
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-gov-east-1 <Public Cloud creds> <GovCloud access key> <GovCloud secret key>
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-gov-east-1 <Public Cloud creds> <GovCloud profile>
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-gov-east-1 <Public Cloud creds> <GovCloud Role ARN>
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery aws us-gov-east-1 <Public Cloud creds>  # GovCloud credentials from OS environment, default profile, or EC2 metadata
 
 AWS GovCloud Route53 has private VPC-bound zones only, thus we need a <Public Cloud creds>
 of public cloud AWS account for public DNS management.
@@ -76,12 +76,12 @@ credentials should be of the user with limited permissions - only on Route53.
 The public cloud account could be the account associated with the GovCloud account or it
 could be an independent account.
 
-SuperHub will store public cloud keys encrypted.
+HubCTL will store public cloud keys encrypted.
 
 Azure:
 
-	$ hub api cloudaccount onboard dev-01.superhub.io azure eastus2 creds.json
-	$ hub api cloudaccount onboard dev-01.superhub.io azure eastus2  # credentials from $AZURE_AUTH_LOCATION
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery azure eastus2 creds.json
+	$ hub api cloudaccount onboard dev-01.epam.devops.delivery azure eastus2  # credentials from $AZURE_AUTH_LOCATION
 
 where creds.json is a file with Service Principal credentials created by:
 
@@ -95,8 +95,8 @@ https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization
 
 GCP:
 
-	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp us-central1 creds.json
-	$ hub api cloudaccount onboard gcp dev-01.superhub.io gcp us-central1  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
+	$ hub api cloudaccount onboard gcp dev-01.epam.devops.delivery gcp us-central1 creds.json
+	$ hub api cloudaccount onboard gcp dev-01.epam.devops.delivery gcp us-central1  # credentials from $GOOGLE_APPLICATION_CREDENTIALS
 
 where creds.json is a file with Service Account credentials usually used via GOOGLE_APPLICATION_CREDENTIALS environment variable.
 
@@ -130,7 +130,7 @@ var cloudAccountCfTemplateCmd = &cobra.Command{
 7. Click Next.
 8. Set your Options (optional) and click Next.
 9. Check the I Acknowledge that AWS CloudFormation might create IAM resources box on the Review screen, and click Create.
-10. When Stack Creation has completed, go to the Resources tab and click on the AgileStacksRole's Physical ID.
+10. When Stack Creation has completed, go to the Resources tab and click on the HubCtlRole's Physical ID.
 11. Finally, copy the "Role ARN" value and paste it into:
 
 	$ hub api cloudaccount onboard ... <Role ARN>`,
@@ -176,7 +176,7 @@ func onboardCloudAccount(args []string) error {
 
 	domain := strings.ToLower(args[0])
 	if !strings.Contains(domain, ".") {
-		domain += SuperHubIo
+		domain += HubCtlApiBaseDomain
 	}
 	if !util.Contains(supportedCloudAccountKinds, cloud) {
 		return fmt.Errorf("Unsupported cloud `%s`; supported clouds are: %s", cloud, strings.Join(supportedCloudAccountKinds, ", "))

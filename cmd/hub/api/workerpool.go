@@ -16,8 +16,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -161,11 +161,11 @@ func CreateWorkerpool(selector, name, instanceType string, count, maxCount int,
 	var jsResp WorkerpoolLifecycleResponse
 	code, err := post(hubApi(), path, req, &jsResp)
 	if err != nil {
-		log.Fatalf("Error creating SuperHub `%s` Workerpool `%s`: %v",
+		log.Fatalf("Error creating HubCTL `%s` Workerpool `%s`: %v",
 			instance.Domain, name, err)
 	}
 	if code != 201 {
-		log.Fatalf("Got %d HTTP creating SuperHub `%s` Workerpool `%s`, expected 201 HTTP",
+		log.Fatalf("Got %d HTTP creating HubCTL `%s` Workerpool `%s`, expected 201 HTTP",
 			code, instance.Domain, name)
 	}
 	formatStackInstance(&jsResp.Instance)
@@ -216,11 +216,11 @@ func ScaleWorkerpool(selector, instanceType string, count, maxCount int, waitAnd
 	var jsResp WorkerpoolLifecycleResponse
 	code, err := patch(hubApi(), path, req, &jsResp)
 	if err != nil {
-		log.Fatalf("Error scaling SuperHub `%s` Workerpool `%s`: %v",
+		log.Fatalf("Error scaling HubCTL `%s` Workerpool `%s`: %v",
 			instance.Platform.Domain, instance.Name, err)
 	}
 	if code != 202 {
-		log.Fatalf("Got %d HTTP scaling SuperHub `%s` Workerpool `%s`, expected 202 HTTP",
+		log.Fatalf("Got %d HTTP scaling HubCTL `%s` Workerpool `%s`, expected 202 HTTP",
 			code, instance.Platform.Domain, instance.Name)
 	}
 	formatStackInstance(&jsResp.Instance)
@@ -236,7 +236,7 @@ func DeployWorkerpool(selector string, waitAndTailDeployLogs, dryRun bool) {
 	VerifyWorkerpool(selector)
 	_, err := commandStackInstance(selector, "deploy", nil, waitAndTailDeployLogs, dryRun)
 	if err != nil {
-		log.Fatalf("Unable to deploy SuperHub Workerpool: %v", err)
+		log.Fatalf("Unable to deploy HubCTL Workerpool: %v", err)
 	}
 }
 
@@ -256,11 +256,11 @@ func UndeployWorkerpool(selector string, useWorkerpoolApi, waitAndTailDeployLogs
 			url.PathEscape(instance.Platform.Id), url.PathEscape(instance.Id), maybeForce)
 		code, err := delete(hubApi(), path)
 		if err != nil {
-			log.Fatalf("Error deleting SuperHub `%s` Workerpool `%s`: %v",
+			log.Fatalf("Error deleting HubCTL `%s` Workerpool `%s`: %v",
 				instance.Platform.Domain, instance.Name, err)
 		}
 		if code != 202 {
-			log.Fatalf("Got %d HTTP deleting SuperHub `%s` Workerpool `%s`, expected 202 HTTP",
+			log.Fatalf("Got %d HTTP deleting HubCTL `%s` Workerpool `%s`, expected 202 HTTP",
 				code, instance.Platform.Domain, instance.Name)
 		}
 		if waitAndTailDeployLogs {
@@ -272,7 +272,7 @@ func UndeployWorkerpool(selector string, useWorkerpoolApi, waitAndTailDeployLogs
 	} else {
 		_, err := commandStackInstance(selector, "undeploy", nil, waitAndTailDeployLogs, false)
 		if err != nil {
-			log.Fatalf("Unable to undeploy SuperHub Workerpool: %v", err)
+			log.Fatalf("Unable to undeploy HubCTL Workerpool: %v", err)
 		}
 	}
 }
@@ -281,6 +281,6 @@ func DeleteWorkerpool(selector string) {
 	VerifyWorkerpool(selector)
 	err := deleteStackInstance(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Workerpool: %v", err)
+		log.Fatalf("Unable to delete HubCTL Workerpool: %v", err)
 	}
 }

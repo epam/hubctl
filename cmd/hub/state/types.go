@@ -9,7 +9,7 @@ package state
 import (
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/parameters"
 )
 
 type Metadata struct {

@@ -13,9 +13,9 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/interpreter"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func Eval(expression, vars string, autoVars, yamlValue bool) {

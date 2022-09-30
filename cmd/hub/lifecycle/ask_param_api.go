@@ -8,7 +8,7 @@
 
 package lifecycle
 
-import "github.com/agilestacks/hub/cmd/hub/api"
+import "github.com/epam/hubctl/cmd/hub/api"
 
 func getParameterOrMaybeCreateSecret(environment, stackInstance, application,
 	name, component string, create bool) (bool, string, []error) {

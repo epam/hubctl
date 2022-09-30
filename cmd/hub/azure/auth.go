@@ -18,8 +18,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const storageKeyHelp = "Please set AZURE_STORAGE_KEY environment variable, or AZURE_SUBSCRIPTION_ID, AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET"
@@ -138,7 +138,7 @@ func resourceGroup() (string, error) {
 	if name != "" {
 		return name, nil
 	}
-	hardcoded := "superhub"
+	hardcoded := "hubctl"
 	if config.Verbose {
 		util.WarnOnce("Using hardcoded `%s` Azure resource group; set %s to override",
 			hardcoded, osEnvVar)

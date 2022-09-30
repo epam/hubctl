@@ -25,8 +25,8 @@ import (
 	gosocketiotransport "github.com/arkadijs/golang-socketio/transport"
 	"github.com/gorilla/websocket"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const (

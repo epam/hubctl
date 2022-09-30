@@ -21,9 +21,9 @@ import (
 
 	awscredentials "github.com/aws/aws-sdk-go/aws/credentials"
 
-	"github.com/agilestacks/hub/cmd/hub/aws"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/aws"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const cloudAccountsResource = "hub/api/v1/cloud-accounts"
@@ -218,10 +218,10 @@ func cloudAccountById(id string, unmask bool) (*CloudAccount, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Cloud Accounts: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Cloud Accounts: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Accounts, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Cloud Accounts, expected 200 HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -252,10 +252,10 @@ func cloudAccountsByDomain(domain string) ([]CloudAccount, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Cloud Accounts: %v", err)
+		return nil, fmt.Errorf("Error querying HubCTL Cloud Accounts: %v", err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Accounts, expected 200 HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Cloud Accounts, expected 200 HTTP", code)
 	}
 	return jsResp, nil
 }
@@ -308,11 +308,11 @@ func rawCloudAccountCredentials(id string) ([]byte, error) {
 	path := fmt.Sprintf("%s/%s/session-keys", cloudAccountsResource, url.PathEscape(id))
 	code, body, err := get2(hubApi(), path)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
+		return nil, fmt.Errorf("Error querying HubCTL Cloud Account `%s` Credentials: %v",
 			id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Account `%s` Credentials, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Cloud Account `%s` Credentials, expected 200 HTTP",
 			code, id)
 	}
 	return body, nil
@@ -326,11 +326,11 @@ func awsCloudAccountCredentials(id string) (*AwsSecurityCredentials, error) {
 	var jsResp AwsSecurityCredentials
 	code, err := get(hubApi(), path, &jsResp)
 	if err != nil {
-		return nil, fmt.Errorf("Error querying SuperHub Cloud Account `%s` Credentials: %v",
+		return nil, fmt.Errorf("Error querying HubCTL Cloud Account `%s` Credentials: %v",
 			id, err)
 	}
 	if code != 200 {
-		return nil, fmt.Errorf("Got %d HTTP querying SuperHub Cloud Account `%s` Credentials, expected 200 HTTP",
+		return nil, fmt.Errorf("Got %d HTTP querying HubCTL Cloud Account `%s` Credentials, expected 200 HTTP",
 			code, id)
 	}
 	return &jsResp, nil
@@ -466,7 +466,7 @@ func onboardCloudAccount(domain, kind, region string, args []string, zone, awsVp
 		Parameters:  parameters,
 	}
 	if provider == "azure" {
-		req.Parameters = append(req.Parameters, Parameter{Name: "cloud.azureResourceGroupName", Value: "superhub-" + region})
+		req.Parameters = append(req.Parameters, Parameter{Name: "cloud.azureResourceGroupName", Value: "hubctl-" + region})
 	}
 
 	account, err := createCloudAccount(req)
@@ -617,7 +617,7 @@ func createCloudAccount(cloudAccount *CloudAccountRequest) (*CloudAccount, error
 		return nil, err
 	}
 	if code != 200 && code != 201 && code != 202 {
-		return nil, fmt.Errorf("Got %d HTTP creating SuperHub Cloud Account, expected [200, 201, 202] HTTP", code)
+		return nil, fmt.Errorf("Got %d HTTP creating HubCTL Cloud Account, expected [200, 201, 202] HTTP", code)
 	}
 	return &jsResp, nil
 }
@@ -628,7 +628,7 @@ func DeleteCloudAccount(selector string, waitAndTailDeployLogs bool) {
 	}
 	code, err := deleteCloudAccount(selector)
 	if err != nil {
-		log.Fatalf("Unable to delete SuperHub Cloud Account: %v", err)
+		log.Fatalf("Unable to delete HubCTL Cloud Account: %v", err)
 	}
 	if waitAndTailDeployLogs && code == 202 {
 		if config.Verbose {
@@ -665,7 +665,7 @@ func deleteCloudAccount(selector string) (int, error) {
 		return code, err
 	}
 	if code != 202 && code != 204 {
-		return code, fmt.Errorf("Got %d HTTP deleting SuperHub Cloud Account, expected [202, 204] HTTP", code)
+		return code, fmt.Errorf("Got %d HTTP deleting HubCTL Cloud Account, expected [202, 204] HTTP", code)
 	}
 	return code, nil
 }
@@ -673,7 +673,7 @@ func deleteCloudAccount(selector string) (int, error) {
 func CloudAccountDownloadCfTemplate(filename string, govcloud bool) {
 	err := cloudAccountDownloadCfTemplate(filename, govcloud)
 	if err != nil {
-		log.Fatalf("Unable to download SuperHub Cloud Account AWS CloudFormation template: %v", err)
+		log.Fatalf("Unable to download HubCTL Cloud Account AWS CloudFormation template: %v", err)
 	}
 }
 
@@ -687,10 +687,10 @@ func cloudAccountDownloadCfTemplate(filename string, govcloud bool) error {
 		return err
 	}
 	if code != 200 {
-		return fmt.Errorf("Got %d HTTP fetching SuperHub Cloud Account AWS CloudFormation template, expected 200 HTTP", code)
+		return fmt.Errorf("Got %d HTTP fetching HubCTL Cloud Account AWS CloudFormation template, expected 200 HTTP", code)
 	}
 	if len(body) == 0 {
-		return fmt.Errorf("Got empty SuperHub Cloud Account AWS CloudFormation template")
+		return fmt.Errorf("Got empty HubCTL Cloud Account AWS CloudFormation template")
 	}
 
 	var file io.WriteCloser

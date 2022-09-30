@@ -17,7 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/api"
 )
 
 var (
@@ -45,7 +45,7 @@ the particular environment (specify Id or search by name)`,
 var environmentCreateCmd = &cobra.Command{
 	Use:   "create <name> <cloud account id or domain>",
 	Short: "Create Environment",
-	Long: `Create Environment in SuperHub:
+	Long: `Create Environment in HubCTL:
 - name must be a valid DNS name
 - selected Cloud Account will be attached to the Environment
 `,

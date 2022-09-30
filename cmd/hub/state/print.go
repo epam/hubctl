@@ -10,8 +10,8 @@ import (
 	"log"
 	"sort"
 
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func printStateComponents(m map[string]*StateStep) {

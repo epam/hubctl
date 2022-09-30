@@ -13,8 +13,8 @@ import (
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 	awseks "github.com/aws/aws-sdk-go/service/eks"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (

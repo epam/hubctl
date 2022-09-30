@@ -18,9 +18,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/lifecycle"
-	"github.com/agilestacks/hub/cmd/hub/metrics"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/lifecycle"
+	"github.com/epam/hubctl/cmd/hub/metrics"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -62,7 +62,7 @@ var utilMetricsCmd = &cobra.Command{
 	Use:    "metrics <command>",
 	Hidden: true,
 	Short:  "Send usage metrics",
-	Long: `Send usage metrics in background to SuperHub and Datadog.
+	Long: `Send usage metrics in background to HubCTL and Datadog.
 
 We value your privacy and only send anonymized usage metrics for the following commands:
 - elaborate
@@ -72,7 +72,7 @@ We value your privacy and only send anonymized usage metrics for the following c
 - api *
 
 Usage metric contain:
-- Hub CLI command invoked without arguments, ie. 'deploy' or 'backup create', or 'api instance get'
+- Hub CTL command invoked without arguments, ie. 'deploy' or 'backup create', or 'api instance get'
 - synthetic machine id - an UUID generated in first interactive session (stdout is a TTY)
 - usage counter - 1 per invocation
 

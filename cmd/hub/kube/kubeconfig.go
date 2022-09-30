@@ -16,10 +16,10 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/state"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/state"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func Kubeconfig(filenames []string, providers []string, context string, keepPems bool) {

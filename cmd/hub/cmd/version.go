@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func init() {
@@ -21,8 +21,8 @@ func init() {
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print Hub CLI version",
+	Short: "Print Hub CTL version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Hub CLI %s %s\n", util.Version(), runtime.Version())
+		fmt.Printf("Hub CTL %s %s\n", util.Version(), runtime.Version())
 	},
 }

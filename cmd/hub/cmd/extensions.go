@@ -14,9 +14,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/ext"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/ext"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -48,13 +48,13 @@ var arbitraryExtensionCmd = &cobra.Command{
 
 var extensionsCmd = &cobra.Command{
 	Use:   "extensions",
-	Short: "Manage Hub CLI extensions",
+	Short: "Manage Hub CTL extensions",
 }
 
 var extensionsInstallCmd = &cobra.Command{
 	Use:   "install [dir]",
-	Short: "Install Hub CLI extensions",
-	Long: `Install Hub CLI extension into ~/.hub/ by cloning git@github.com:agilestacks/hub-extensions.git
+	Short: "Install Hub CTL extensions",
+	Long: `Install Hub CTL extension into ~/.hub/ by cloning git@github.com:epam/hub-extensions.git
 and installing dependencies.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return extensionsInstall(args)
@@ -63,8 +63,8 @@ and installing dependencies.`,
 
 var extensionsUpdateCmd = &cobra.Command{
 	Use:   "update [dir]",
-	Short: "Update Hub CLI extensions",
-	Long: `Update Hub CLI extension via hub pull in ~/.hub/
+	Short: "Update Hub CTL extensions",
+	Long: `Update Hub CTL extension via hub pull in ~/.hub/
 and refreshing dependencies.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return extensionsUpdate(args)
@@ -77,7 +77,7 @@ func extension(what []string, args []string) error {
 		if bin, err := os.Executable(); err == nil {
 			os.Setenv(envVarNameHubCli, bin)
 		} else {
-			util.Warn("Unable to determine path to Hub CLI executable - `hub <extension>` might be broken: %v", err)
+			util.Warn("Unable to determine path to Hub CTL executable - `hub <extension>` might be broken: %v", err)
 		}
 	}
 	ext.RunExtension(what, args)
@@ -112,7 +112,7 @@ func arbitraryExtension(args []string) error {
 
 func extensionsInstall(args []string) error {
 	if len(args) != 0 && len(args) != 1 {
-		return errors.New("Extensions Install command has one optional argument - path to Hub CLI extensions folder")
+		return errors.New("Extensions Install command has one optional argument - path to Hub CTL extensions folder")
 	}
 	dir := ""
 	if len(args) > 0 {
@@ -125,7 +125,7 @@ func extensionsInstall(args []string) error {
 
 func extensionsUpdate(args []string) error {
 	if len(args) != 0 && len(args) != 1 {
-		return errors.New("Extensions Update command has one optional argument - path to Hub CLI extensions folder")
+		return errors.New("Extensions Update command has one optional argument - path to Hub CTL extensions folder")
 	}
 	dir := ""
 	if len(args) > 0 {

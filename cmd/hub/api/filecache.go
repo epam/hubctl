@@ -13,7 +13,7 @@ import (
 	"hash/crc64"
 	"os"
 
-	"github.com/agilestacks/hub/cmd/hub/filecache"
+	"github.com/epam/hubctl/cmd/hub/filecache"
 )
 
 var crc64Table = crc64.MakeTable(crc64.ECMA)

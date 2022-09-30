@@ -12,12 +12,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/git"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/git"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
-const extensionsGitRemote = "https://github.com/agilestacks/hub-extensions.git"
+const extensionsGitRemote = "https://github.com/epam/hubctl-extensions.git"
 
 func defaultExtensionsDir() string {
 	return filepath.Join(os.Getenv("HOME"), hubDir)
@@ -67,7 +67,7 @@ func Install(dir string) {
 	}
 
 	if config.Verbose {
-		log.Printf("Hub CLI extensions installed into %s", dir)
+		log.Printf("Hub CTL extensions installed into %s", dir)
 	}
 }
 
@@ -95,6 +95,6 @@ func Update(dir string) {
 	}
 
 	if config.Verbose && err == nil {
-		log.Printf("Hub CLI extensions updated in %s", dir)
+		log.Printf("Hub CTL extensions updated in %s", dir)
 	}
 }

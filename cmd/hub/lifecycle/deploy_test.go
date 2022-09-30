@@ -9,7 +9,7 @@ package lifecycle
 import (
 	"testing"
 
-	"github.com/agilestacks/hub/cmd/hub/manifest"
+	"github.com/epam/hubctl/cmd/hub/manifest"
 	"github.com/stretchr/testify/assert"
 )
 

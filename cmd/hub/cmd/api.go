@@ -18,9 +18,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var apiCmd = &cobra.Command{
@@ -33,8 +33,8 @@ var apiCmd = &cobra.Command{
 
 var apiInvokeCmd = &cobra.Command{
 	Use:   "invoke <METHOD> <path> [< request.json]",
-	Short: "Invoke SuperHub API",
-	Long: fmt.Sprintf(`Invoke arbitrary SuperHub API path, optionally sending JSON via stdin, for example:
+	Short: "Invoke HubCTL API",
+	Long: fmt.Sprintf(`Invoke arbitrary HubCTL API path, optionally sending JSON via stdin, for example:
 %[1]s
 	{
 	}

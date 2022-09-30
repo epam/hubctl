@@ -22,7 +22,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/mattn/go-isatty"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 var (

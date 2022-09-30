@@ -11,8 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/agilestacks/hub/cmd/hub/git"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/git"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func gitStatus(dir string, calculateStatus bool) (map[string]string, error) {

@@ -16,7 +16,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 const (

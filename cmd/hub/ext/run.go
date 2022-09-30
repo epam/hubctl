@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const hubDir = ".hub"
@@ -85,7 +85,7 @@ func ExtensionPath(what, args []string) (string, []string, error) {
 				verb = "install"
 			}
 		}
-		maybeInstall = fmt.Sprintf("\n\t%s Hub CLI extensions with `hub extensions %[1]s`?", verb)
+		maybeInstall = fmt.Sprintf("\n\t%s Hub CTL extensions with `hub extensions %[1]s`?", verb)
 	}
 
 	return "", nil, fmt.Errorf("Extension not found in %v%s, nor $PATH%s", searchDirs, printCustomHubDir, maybeInstall)

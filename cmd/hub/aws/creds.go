@@ -17,7 +17,7 @@ import (
 	awsec2metadata "github.com/aws/aws-sdk-go/aws/ec2metadata"
 	awssession "github.com/aws/aws-sdk-go/aws/session"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 var (

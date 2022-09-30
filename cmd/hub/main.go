@@ -6,7 +6,7 @@
 
 package main
 
-import "github.com/agilestacks/hub/cmd/hub/cmd"
+import "github.com/epam/hubctl/cmd/hub/cmd"
 
 func main() {
 	cmd.Execute()

@@ -17,7 +17,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/api"
+	"github.com/epam/hubctl/cmd/hub/api"
 )
 
 var applicationCmd = &cobra.Command{

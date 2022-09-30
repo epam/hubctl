@@ -18,9 +18,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/filecache"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/filecache"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 var (
@@ -52,7 +52,7 @@ func meterCommand(cmd *cobra.Command, connectStdin bool) (io.WriteCloser, error)
 	}
 	bin, err := os.Executable()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to determine path to Hub CLI executable: %v", err)
+		return nil, fmt.Errorf("Unable to determine path to Hub CTL executable: %v", err)
 	}
 	args := []string{"hub", "util", "metrics"}
 	if connectStdin {

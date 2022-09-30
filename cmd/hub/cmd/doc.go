@@ -17,7 +17,7 @@ import (
 
 var docCmd = &cobra.Command{
 	Use:   "doc <directory>",
-	Short: "Generate Hub CLI reference in Markdown format",
+	Short: "Generate Hub CTL reference in Markdown format",
 	Long:  `Generate command reference and store files under directory`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return generateDoc(args)

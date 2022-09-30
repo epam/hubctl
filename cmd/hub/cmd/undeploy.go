@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/agilestacks/hub/cmd/hub/lifecycle"
+	"github.com/epam/hubctl/cmd/hub/lifecycle"
 )
 
 var undeployCmd = &cobra.Command{

@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/storage"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/storage"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func MergeState(stateFiles *storage.Files,

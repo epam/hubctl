@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/config"
 )
 
 const metricsSeriesResource = "metrics/api/v1/series"

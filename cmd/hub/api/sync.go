@@ -12,12 +12,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/kube"
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/state"
-	"github.com/agilestacks/hub/cmd/hub/storage"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/kube"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/state"
+	"github.com/epam/hubctl/cmd/hub/storage"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 func SyncStackInstance(selector, status string, stateFilenames []string) {
@@ -40,7 +40,7 @@ func SyncStackInstance(selector, status string, stateFilenames []string) {
 	}
 
 	if config.Verbose {
-		log.Print("Syncing Stack Instance state to SuperHub")
+		log.Print("Syncing Stack Instance state to HubCTL")
 	}
 	patched, err := PatchStackInstance(selector, patch, replace)
 	if err != nil {

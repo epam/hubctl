@@ -15,10 +15,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/agilestacks/hub/cmd/hub/config"
-	"github.com/agilestacks/hub/cmd/hub/manifest"
-	"github.com/agilestacks/hub/cmd/hub/parameters"
-	"github.com/agilestacks/hub/cmd/hub/util"
+	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/manifest"
+	"github.com/epam/hubctl/cmd/hub/parameters"
+	"github.com/epam/hubctl/cmd/hub/util"
 )
 
 const (
@@ -285,7 +285,7 @@ func SetupKubernetes(params parameters.LockedParameters,
 		"--namespace=kube-system")
 	switchContext := config.SwitchKubeconfigContext
 	if !switchContext && os.Getenv("KUBECONFIG") != "" {
-		// Hub CLI extensions expects a private Kubeconfig with current-context set
+		// Hub CTL extensions expects a private Kubeconfig with current-context set
 		outBytes, err := execOutput(kubectl, "config", "current-context")
 		out := string(outBytes)
 		if strings.Contains(out, "current-context is not set") {
@@ -406,7 +406,7 @@ func warnClusterCaCertMismatch(configFilename, searchContext, ca string) {
 						}
 						if string(configCa) != ca {
 							util.WarnOnce(`Kubeconfig %s CA certificate doesn't match stack Kubernetes CA certificate;
-	You may want to 'kubectl config delete-context %s' for Hub CLI to re-create it`,
+	You may want to 'kubectl config delete-context %s' for Hub CTL to re-create it`,
 								title, searchContext)
 						} else {
 							if config.Trace {
