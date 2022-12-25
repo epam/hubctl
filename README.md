@@ -1,6 +1,6 @@
-# Hub CTL
+# hubctl
 
-[Hub CTL](https://superhub.io) is stack composition and lifecycle tool.
+[hubctl](https://superhub.io) is a missing package manager for the cloud. 
 
 ## Example of usage
 
