@@ -17,7 +17,9 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	gotemplate "text/template"
 
@@ -566,8 +568,190 @@ func bcryptStr(str string) (string, error) {
 	return string(bytes), nil
 }
 
+// Splits the string into a list of strings
+//   First argument is a string to split
+//   Second optional argument is a separator (default is space)
+// Example:
+//   split "a b c" => ["a", "b", "c"]
+//   split "a-b-c", "-" => ["a", "b", "c"]
+func split(args ...string) ([]string, error) {
+	if len(args) == 0 {
+		return nil, fmt.Errorf("split expects one or two arguments")
+	}
+	if len(args) == 1 {
+		return strings.Fields(args[0]), nil
+	}
+	return strings.Split(args[0], args[1]), nil
+}
+
+// Removes empty string from the list of strings
+// Accepts variable arguments arguments (easier tolerate template nature):
+//
+// Example:
+//   compact "string1" (compatibility with parametersx)
+//   compact "string1" "string2" "string3"
+//   compact ["string1", "string2", "string3"]
+func compact(args ...interface{}) ([]string, error) {
+	var results []string
+	for _, arg := range args {
+		a := reflect.ValueOf(arg)
+		if a.Kind() == reflect.Slice {
+			if a.Len() == 0 {
+				continue
+			}
+			ret := make([]interface{}, a.Len())
+			for i := 0; i < a.Len(); i++ {
+				ret[i] = a.Index(i).Interface()
+			}
+			res, _ := compact(ret...)
+			results = append(results, res...)
+			continue
+		}
+		if a.Kind() == reflect.String {
+			trimmed := strings.TrimSpace(a.String())
+			if trimmed == "" {
+				continue
+			}
+			results = append(results, trimmed)
+			continue
+		}
+		return nil, fmt.Errorf("Argument type %T not yet supported", arg)
+	}
+	return results, nil
+}
+
+// Joins the list of strings into a single string
+// Last argument is a delimiter (default is space)
+// Accepts variable arguments arguments (easier tolerate template nature)
+//
+// Example:
+//   join "string1" "string2" "delimiter"
+//   join ["string1", "string2"] "delimiter"
+//   join ["string1", "string2"]
+//   join "string1"
+func join(args ...interface{}) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("join expects at least one argument")
+	}
+	var del string
+	if len(args) > 1 {
+		del = fmt.Sprintf("%v", args[len(args)-1])
+		args = args[:len(args)-1]
+	}
+	if del == "" {
+		del = " "
+	}
+
+	var result []string
+	for _, arg := range args {
+		a := reflect.ValueOf(arg)
+		if a.Kind() == reflect.Slice {
+			if a.Len() == 0 {
+				continue
+			}
+			for i := 0; i < a.Len(); i++ {
+				result = append(result, fmt.Sprintf("%v", a.Index(i).Interface()))
+			}
+			continue
+		}
+		if a.Kind() == reflect.String {
+			result = append(result, a.String())
+			continue
+		}
+		return "", fmt.Errorf("Argument type %T not yet supported", arg)
+	}
+
+	return strings.Join(result, del), nil
+}
+
+// Returns the first argument from list
+//
+// Example:
+//   first ["string1" "string2" "string3"] => "string1"
+func first(args []string) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("first expects at least one argument")
+	}
+	return args[0], nil
+}
+
+// Converts the string into kubernetes acceptable name
+// which consist of kebab lower case with alphanumeric characters.
+// '.' is not allowed
+//
+// Arguments:
+//   First argument is a text to convert
+//   Second optional argument is a size of the name (default is 63)
+//   Third optional argument is a delimiter (default is '-')
+func formatSubdomain(args ...interface{}) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("hostname expects at least one argument")
+	}
+	arg0 := reflect.ValueOf(args[0])
+	if arg0.Kind() != reflect.String {
+		return "", fmt.Errorf("hostname expects string as first argument")
+	}
+	text := strings.TrimSpace(arg0.String())
+	if text == "" {
+		return "", nil
+	}
+
+	size := 63
+	if len(args) > 1 {
+		arg1 := reflect.ValueOf(args[1])
+		if arg1.Kind() == reflect.Int {
+			size = int(reflect.ValueOf(args[1]).Int())
+		} else if arg1.Kind() == reflect.String {
+			size, _ = strconv.Atoi(arg1.String())
+		} else {
+			return "", fmt.Errorf("Argument type %T not yet supported", args[1])
+		}
+	}
+
+	var del = "-"
+	if len(args) > 2 {
+		del = fmt.Sprintf("%v", args[2])
+	}
+
+	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+	var matchNonAlphanumericEnd = regexp.MustCompile("[^a-zA-Z0-9]+$")
+	var matchNonLetterStart = regexp.MustCompile("^[^a-zA-Z]+")
+	var matchNonAnumericOrDash = regexp.MustCompile("[^a-zA-Z0-9-]+")
+	var matchTwoOrMoreDashes = regexp.MustCompile("-{2,}")
+
+	text = matchNonLetterStart.ReplaceAllString(text, "")
+	text = matchAllCap.ReplaceAllString(text, "${1}-${2}")
+	text = matchNonAnumericOrDash.ReplaceAllString(text, "-")
+	text = matchTwoOrMoreDashes.ReplaceAllString(text, "-")
+	text = strings.ToLower(text)
+	if len(text) > size {
+		text = text[:size]
+	}
+	text = matchNonAlphanumericEnd.ReplaceAllString(text, "")
+	if del != "-" {
+		text = strings.ReplaceAll(text, "-", del)
+	}
+	return text, nil
+}
+
+// Removes single or double or back quotes from the string
+func unquote(str string) (string, error) {
+	result, err := strconv.Unquote(str)
+	if err != nil && err.Error() == "invalid syntax" {
+		return str, err
+	}
+	return result, err
+}
+
 var hubGoTemplateFuncMap = map[string]interface{}{
-	"bcrypt": bcryptStr,
+	"bcrypt":          bcryptStr,
+	"split":           split,
+	"compact":         compact,
+	"join":            join,
+	"first":           first,
+	"formatSubdomain": formatSubdomain,
+	"unquote":         unquote,
+	"uquote":          unquote,
 }
 
 func processGo(content, filename, componentName string, kv map[string]interface{}) (string, error) {
