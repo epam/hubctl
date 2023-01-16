@@ -29,7 +29,7 @@ cel:
 
 build:
 	go build \
-		-o bin/$(OS)/hub \
+		-o bin/$(OS)/hubctl \
 		-ldflags="-s -w \
 		-X 'github.com/epam/hubctl/cmd/hub/util.ref=$(REF)' \
 		-X 'github.com/epam/hubctl/cmd/hub/util.commit=$(COMMIT)' \
@@ -39,7 +39,7 @@ build:
 
 build-with-api:
 	go build \
-		-o bin/$(OS)/hub \
+		-o "bin/$(OS)/hubctl" \
 		-tags="api" \
 		-ldflags="-s -w \
 		-X 'github.com/epam/hubctl/cmd/hub/util.ref=$(REF)' \

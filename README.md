@@ -1,6 +1,6 @@
 # hubctl
 
-[hubctl](https://superhub.io) is a missing package manager for the cloud. 
+[hubctl](https://superhub.io) is a missing package manager for the cloud.
 
 ## Example of usage
 
@@ -79,7 +79,7 @@ make
 Or directly with `go`:
 
 ```shell
-go build -o bin/$(go env GOOS)/hub github.com/epam/hubctl/cmd/hub
+go build -o bin/$(go env GOOS)/hubctl github.com/epam/hubctl/cmd/hub
 ```
 
 ### Clean up
