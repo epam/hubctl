@@ -569,11 +569,14 @@ func bcryptStr(str string) (string, error) {
 }
 
 // Splits the string into a list of strings
-//   First argument is a string to split
-//   Second optional argument is a separator (default is space)
+//
+//	First argument is a string to split
+//	Second optional argument is a separator (default is space)
+//
 // Example:
-//   split "a b c" => ["a", "b", "c"]
-//   split "a-b-c", "-" => ["a", "b", "c"]
+//
+//	split "a b c" => ["a", "b", "c"]
+//	split "a-b-c", "-" => ["a", "b", "c"]
 func split(args ...string) ([]string, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("split expects one or two arguments")
@@ -588,9 +591,10 @@ func split(args ...string) ([]string, error) {
 // Accepts variable arguments arguments (easier tolerate template nature):
 //
 // Example:
-//   compact "string1" (compatibility with parametersx)
-//   compact "string1" "string2" "string3"
-//   compact ["string1", "string2", "string3"]
+//
+//	compact "string1" (compatibility with parametersx)
+//	compact "string1" "string2" "string3"
+//	compact ["string1", "string2", "string3"]
 func compact(args ...interface{}) ([]string, error) {
 	var results []string
 	for _, arg := range args {
@@ -625,10 +629,11 @@ func compact(args ...interface{}) ([]string, error) {
 // Accepts variable arguments arguments (easier tolerate template nature)
 //
 // Example:
-//   join "string1" "string2" "delimiter"
-//   join ["string1", "string2"] "delimiter"
-//   join ["string1", "string2"]
-//   join "string1"
+//
+//	join "string1" "string2" "delimiter"
+//	join ["string1", "string2"] "delimiter"
+//	join ["string1", "string2"]
+//	join "string1"
 func join(args ...interface{}) (string, error) {
 	if len(args) == 0 {
 		return "", fmt.Errorf("join expects at least one argument")
@@ -667,7 +672,8 @@ func join(args ...interface{}) (string, error) {
 // Returns the first argument from list
 //
 // Example:
-//   first ["string1" "string2" "string3"] => "string1"
+//
+//	first ["string1" "string2" "string3"] => "string1"
 func first(args []string) (string, error) {
 	if len(args) == 0 {
 		return "", fmt.Errorf("first expects at least one argument")
@@ -680,9 +686,10 @@ func first(args []string) (string, error) {
 // '.' is not allowed
 //
 // Arguments:
-//   First argument is a text to convert
-//   Second optional argument is a size of the name (default is 63)
-//   Third optional argument is a delimiter (default is '-')
+//
+//	First argument is a text to convert
+//	Second optional argument is a size of the name (default is 63)
+//	Third optional argument is a delimiter (default is '-')
 func formatSubdomain(args ...interface{}) (string, error) {
 	if len(args) == 0 {
 		return "", fmt.Errorf("hostname expects at least one argument")

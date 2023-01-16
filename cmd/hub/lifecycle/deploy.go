@@ -711,7 +711,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 	}
 
 	processEnv := parametersInEnv(componentName, componentParameters)
-	impl, err := findImplementation(dir, verb)
+	impl, err := findImplementation(dir, verb, componentManifest)
 	if err != nil {
 		if componentManifest.Lifecycle.Bare == "allow" {
 			if config.Verbose {

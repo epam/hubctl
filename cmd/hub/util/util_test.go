@@ -1222,3 +1222,8 @@ func TestMaybeEnv(t *testing.T) {
 		})
 	}
 }
+
+func TestCoalesce(t *testing.T) {
+	assert.Equal(t, "a", Coalesce("", "a", "b", "c"))
+	assert.Equal(t, "", Coalesce("", "", "", ""))
+}
