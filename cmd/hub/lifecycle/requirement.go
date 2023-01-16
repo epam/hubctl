@@ -138,7 +138,7 @@ func setupRequirement(requirement string, provider string,
 	case "kubectl", "kubernetes":
 		kube.SetupKubernetes(parameters, provider, outputs, "", false, false)
 
-	case "aws", "azure", "gcp", "gcs",
+	case "aws", "azure", "arm", "gcp", "gcs",
 		"tiller", "external-dns", "cert-manager",
 		"helm", "terraform", "etcd", "vault", "ingress", "tls-ingress", "istio":
 		wellKnown, err := checkRequire(requirement)
@@ -161,6 +161,7 @@ func setupRequirement(requirement string, provider string,
 
 var bins = map[string][]string{
 	"aws":        {"aws", "s3", "ls", "--page-size", "5"},
+	"azure":      {"az", "version"},
 	"gcp":        {"gcloud", "version"},
 	"gcs":        {"gsutil", "version"},
 	"kubectl":    {"kubectl", "version", "--client"},
@@ -218,10 +219,15 @@ func checkRequire(require string) (bool, error) {
 		return true, nil
 	}
 	switch require {
-	case "azure":
+	case "azure", "arm":
 		err := checkRequiresAzure()
 		if err != nil {
 			return true, err
+		}
+		bin := bins["azure"]
+		_, err = checkRequiresBin(bin...)
+		if err != nil {
+			util.WarnOnce("Error accessing `%s` binary: %v", bin[0], err)
 		}
 		setupTerraformAzureOsEnv()
 
@@ -339,15 +345,14 @@ func setupTerraformAzureOsEnv() {
 			}
 		}
 	}
-	for _, v := range []string{"ARM_CLIENT_ID", "ARM_CLIENT_SECRET", "ARM_SUBSCRIPTION_ID", "ARM_TENANT_ID"} {
+
+	for _, v := range []string{"ARM_SUBSCRIPTION_ID", "ARM_CLIENT_ID", "ARM_CLIENT_SECRET", "ARM_SUBSCRIPTION_ID", "ARM_TENANT_ID"} {
 		src := "AZURE" + v[3:]
 		if value := os.Getenv(src); value != "" {
 			if config.Trace {
 				log.Printf("Setting %s=%s", v, value)
 			}
 			os.Setenv(v, value)
-		} else {
-			util.Warn("Unable to set %s: no %s env var set", v, src)
 		}
 	}
 	// TODO ARM_USE_MSI ARM_ENVIRONMENT?

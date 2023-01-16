@@ -69,12 +69,12 @@ func checkLifecycleVerbs(order []string, components []manifest.ComponentRef, com
 			if util.Contains(optionalVerbs, verb) {
 				continue
 			}
-			impl, err := probeImplementation(dir, verb)
+			componentManifest := manifest.ComponentManifestByRef(componentsManifests, component)
+			impl, err := probeImplementation(dir, verb, componentManifest)
 			if !impl {
 				msg := fmt.Sprintf("`%s` component in `%s` has no `%s` implementation: %v",
 					manifest.ComponentQualifiedNameFromRef(component), dir, verb, err)
-				manifest := manifest.ComponentManifestByRef(componentsManifests, component)
-				if manifest.Lifecycle.Bare == "allow" {
+				if componentManifest.Lifecycle.Bare == "allow" {
 					if config.Debug {
 						log.Print(msg)
 					}

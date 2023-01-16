@@ -18,6 +18,7 @@ import (
 
 	"github.com/epam/hubctl/cmd/hub/config"
 	"github.com/epam/hubctl/cmd/hub/ext"
+	"github.com/epam/hubctl/cmd/hub/manifest"
 	"github.com/epam/hubctl/cmd/hub/util"
 )
 
@@ -26,7 +27,7 @@ var hubToSkaffoldVerbs = map[string]string{
 	"undeploy": "delete",
 }
 
-func findImplementation(dir string, verb string) (*exec.Cmd, error) {
+func findImplementation(dir string, verb string, component *manifest.Manifest) (*exec.Cmd, error) {
 	makefile, err := probeMakefile(dir, verb)
 	if makefile {
 		binMake, err := exec.LookPath("make")
@@ -64,11 +65,24 @@ func findImplementation(dir string, verb string) (*exec.Cmd, error) {
 	if terraform != "" {
 		return &exec.Cmd{Path: terraform, Args: append([]string{terraform}, args...), Dir: dir}, nil
 	}
+	arm, args, err7 := probeArm(dir, verb, component)
+	if arm != "" {
+		return &exec.Cmd{Path: arm, Args: append([]string{arm}, args...), Dir: dir}, nil
+	}
+
 	return nil, fmt.Errorf("No `%s` implementation found in `%s`: %s",
-		verb, dir, util.Errors("; ", err, err2, err3, err4, err5, err6))
+		verb, dir, util.Errors("; ", err, err2, err3, err4, err5, err6, err7))
 }
 
-func probeImplementation(dir string, verb string) (bool, error) {
+func probeArm(dir string, verb string, component *manifest.Manifest) (string, []string, error) {
+	if util.Contains(component.Requires, "arm") {
+		path, args, err := ext.ExtensionPath([]string{"component", "arm", verb}, nil)
+		return path, args, err
+	}
+	return "", []string{verb}, nil
+}
+
+func probeImplementation(dir string, verb string, component *manifest.Manifest) (bool, error) {
 	makefile, err := probeMakefile(dir, verb)
 	if makefile {
 		return true, nil
@@ -93,7 +107,11 @@ func probeImplementation(dir string, verb string) (bool, error) {
 	if terraform != "" {
 		return true, nil
 	}
-	allErrs := util.Errors("; ", err, err2, err3, err4, err5, err6)
+	arm, _, err7 := probeArm(dir, verb, component)
+	if arm != "" {
+		return true, nil
+	}
+	allErrs := util.Errors("; ", err, err2, err3, err4, err5, err6, err7)
 	if config.Debug {
 		log.Printf("Found no `%s` implementations in `%s`: %s",
 			verb, dir, allErrs)

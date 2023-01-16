@@ -63,6 +63,15 @@ func Warn(format string, v ...interface{}) {
 	}
 }
 
+func Coalesce(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func WarnOnce(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
 	if _, emitted := warningsEmitted[msg]; emitted {

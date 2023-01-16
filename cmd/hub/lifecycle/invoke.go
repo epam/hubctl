@@ -91,7 +91,7 @@ func Invoke(request *Request) {
 	if config.Debug {
 		log.Printf("Component `%s` directory: %s", request.Component, dir)
 	}
-	impl, err := findImplementation(dir, request.Verb)
+	impl, err := findImplementation(dir, request.Verb, componentManifest)
 	if err != nil {
 		log.Fatalf("Failed to %s %s: %v", request.Verb, request.Component, err)
 	}
