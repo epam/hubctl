@@ -1,5 +1,5 @@
-# Copyright (c) 2022 EPAM Systems, Inc.
-# 
+# Copyright (c) 2023 EPAM Systems, Inc.
+#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -43,6 +43,14 @@ parameters:
     brief: Terraform state bucket name
   - name: region
     brief: Terraform state bucket region
+- name: azure
+  parameters:
+  - name: subscriptionId
+    brief: Azure Subscription ID
+  - name: resourceGroup
+    brief: Azure Resource Group
+  - name: location
+    brief: Azure Location
 
 bundles:
 - name: aws
