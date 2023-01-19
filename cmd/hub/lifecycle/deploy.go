@@ -27,6 +27,8 @@ import (
 
 const (
 	HubEnvVarNameComponentName    = "HUB_COMPONENT"
+	HubEnvVarNameComponentDir     = "HUB_COMPONENT_DIR"
+	HubEnvVarNameStackBasedir     = "HUB_BASE_DIR"
 	HubEnvVarNameRandom           = "HUB_RANDOM"
 	SkaffoldKubeContextEnvVarName = "SKAFFOLD_KUBE_CONTEXT"
 )
@@ -397,8 +399,7 @@ NEXT_COMPONENT:
 		verb := maybeTestVerb(request.Verb, request.DryRun)
 
 		preHookVerb := fmt.Sprintf("pre-%s", verb)
-		stdout, stderr, err := fireHooks(preHookVerb, stackBaseDir, componentName,
-			component.Hooks, componentParameters, osEnv)
+		stdout, stderr, err := fireHooks(preHookVerb, stackBaseDir, component, componentParameters, osEnv)
 		if err != nil {
 			if stateManifest != nil && request.WriteOplogToStateOnError {
 				stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
@@ -409,7 +410,7 @@ NEXT_COMPONENT:
 
 		stdout, stderr, err = delegate(verb,
 			component, componentManifest, componentParameters,
-			componentDir, osEnv, randomStr)
+			componentDir, osEnv, randomStr, stackBaseDir)
 		var rawOutputs parameters.RawOutputs
 		if err != nil {
 			if stateManifest != nil && request.WriteOplogToStateOnError {
@@ -470,8 +471,7 @@ NEXT_COMPONENT:
 		}
 
 		postHookVerb := fmt.Sprintf("post-%s", verb)
-		stdout, stderr, err = fireHooks(postHookVerb, stackBaseDir, componentName,
-			component.Hooks, componentParameters, osEnv)
+		stdout, stderr, err = fireHooks(postHookVerb, stackBaseDir, component, componentParameters, osEnv)
 		if err != nil {
 			if stateManifest != nil && request.WriteOplogToStateOnError {
 				stateManifest = state.AppendOperationLog(stateManifest, operationLogId,
@@ -625,9 +625,9 @@ func maybeTestVerb(verb string, test bool) string {
 	return verb
 }
 
-func fireHooks(currentHook, stackBaseDir, componentName string, componentHooks []manifest.Hook,
+func fireHooks(currentHook string, stackBaseDir string, component *manifest.ComponentRef,
 	componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
-	hooks := findRelevantHooks(currentHook, componentHooks)
+	hooks := findRelevantHooks(currentHook, component.Hooks)
 	if len(hooks) > 0 {
 		log.Printf("Running %s hooks:", currentHook)
 		if len(componentParameters) > 0 {
@@ -644,7 +644,7 @@ func fireHooks(currentHook, stackBaseDir, componentName string, componentHooks [
 		if hook.Brief != "" {
 			log.Printf("Brief: %s", hook.Brief)
 		}
-		stdout, stderr, err := delegateHook(&hook, stackBaseDir, componentName, componentParameters, osEnv)
+		stdout, stderr, err := delegateHook(&hook, stackBaseDir, component, componentParameters, osEnv)
 		if err != nil {
 			if strings.Contains(err.Error(), "fork/exec : no such file or directory") {
 				log.Printf("Error: file %s has not been found.", filePath)
@@ -677,10 +677,8 @@ func findRelevantHooks(trigger string, hooks []manifest.Hook) []manifest.Hook {
 	return matches
 }
 
-func delegateHook(hook *manifest.Hook,
-	stackBaseDir, componentName string,
-	componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
-	processEnv := parametersInEnv(componentName, componentParameters)
+func delegateHook(hook *manifest.Hook, stackBaseDir string, component *manifest.ComponentRef, componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
+	processEnv := parametersInEnv(component, componentParameters, stackBaseDir)
 	hookFilePath := fmt.Sprintf("%s/%s", stackBaseDir, hook.File)
 	if strings.HasPrefix(hook.File, "/") {
 		hookFilePath = hook.File
@@ -697,7 +695,7 @@ func delegateHook(hook *manifest.Hook,
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
 	componentParameters parameters.LockedParameters,
-	dir string, osEnv []string, random string) ([]byte, []byte, error) {
+	dir string, osEnv []string, random string, baseDir string) ([]byte, []byte, error) {
 
 	if config.Debug && len(componentParameters) > 0 {
 		log.Print("Component parameters:")
@@ -710,7 +708,7 @@ func delegate(verb string, component *manifest.ComponentRef, componentManifest *
 		return nil, nil, fmt.Errorf("Failed to process templates:\n\t%s", util.Errors("\n\t", errs...))
 	}
 
-	processEnv := parametersInEnv(componentName, componentParameters)
+	processEnv := parametersInEnv(component, componentParameters, baseDir)
 	impl, err := findImplementation(dir, verb, componentManifest)
 	if err != nil {
 		if componentManifest.Lifecycle.Bare == "allow" {
@@ -763,7 +761,7 @@ func skaffoldEnv(impl *exec.Cmd, processEnv []string) []string {
 	return nil
 }
 
-func parametersInEnv(componentName string, componentParameters parameters.LockedParameters) []string {
+func parametersInEnv(component *manifest.ComponentRef, componentParameters parameters.LockedParameters, baseDir string) []string {
 	envParameters := make([]string, 0)
 	envSetBy := make(map[string]string)
 	envValue := make(map[string]string)
@@ -789,13 +787,22 @@ func parametersInEnv(componentName string, componentParameters parameters.Locked
 
 	envComponentName := "COMPONENT_NAME"
 	if setBy, exist := envSetBy[envComponentName]; !exist {
-		envParameters = append(envParameters, fmt.Sprintf("%s=%s", envComponentName, componentName))
-	} else if config.Debug && envValue[envComponentName] != componentName {
+		envParameters = append(envParameters, fmt.Sprintf("%s=%s", envComponentName, component.Name))
+	} else if config.Debug && envValue[envComponentName] != component.Name {
 		log.Printf("Component `%s` env var `%s=%s` set by `%s`",
-			componentName, envComponentName, envValue[envComponentName], setBy)
+			component.Name, envComponentName, envValue[envComponentName], setBy)
+	}
+
+	var componentDir string
+	if filepath.IsAbs(component.Source.Dir) {
+		componentDir = component.Source.Dir
+	} else {
+		componentDir = filepath.Join(baseDir, component.Source.Dir)
 	}
 	// for `hub render`
-	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameComponentName, componentName))
+	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameComponentName, component.Name))
+	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameComponentDir, componentDir))
+	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameStackBasedir, baseDir))
 
 	return mergeOsEnviron(envParameters) // sort
 }
