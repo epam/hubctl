@@ -182,7 +182,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 		prepareComponentRequires(provides, componentManifest, stackParameters, allOutputs, optionalRequires, request.EnabledClouds)
 
 		dir := manifest.ComponentSourceDirFromRef(component, stackBaseDir, componentsBaseDir)
-		stdout, _, err := delegate(verb, component, componentManifest, componentParameters, dir, osEnv, "")
+		stdout, _, err := delegate(verb, component, componentManifest, componentParameters, dir, osEnv, "", stackBaseDir)
 
 		var rawOutputs parameters.RawOutputs
 		if len(stdout) > 0 {

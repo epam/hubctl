@@ -96,7 +96,7 @@ func Invoke(request *Request) {
 		log.Fatalf("Failed to %s %s: %v", request.Verb, request.Component, err)
 	}
 	processEnv := mergeOsEnviron(
-		parametersInEnv(componentName, componentParameters),
+		parametersInEnv(component, componentParameters, stackBaseDir),
 		additionalEnvironmentToList(additionalEnvironment))
 	impl.Env = mergeOsEnviron(osEnv, processEnv)
 	if config.Debug && len(processEnv) > 0 {
