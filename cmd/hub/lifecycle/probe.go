@@ -76,8 +76,7 @@ func findImplementation(dir string, verb string, component *manifest.Manifest) (
 
 func probeArm(dir string, verb string, component *manifest.Manifest) (string, []string, error) {
 	if util.Contains(component.Requires, "arm") {
-		path, args, err := ext.ExtensionPath([]string{"component", "arm", verb}, nil)
-		return path, args, err
+		return ext.ExtensionPath([]string{"component", "arm", verb}, nil)
 	}
 	return "", []string{verb}, nil
 }
