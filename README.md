@@ -5,10 +5,10 @@
 ## Example of usage
 
 ```shell
-hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
-hub deploy hub.yaml.elaborate -e NAME=stage
-hub version
-hub help
+hubctl elaborate hub.yaml params.yaml -o hub.yaml.elaborate
+hubctl deploy hub.yaml.elaborate -e NAME=stage
+hubctl version
+hubctl help
 ```
 
 ## Installation
@@ -18,31 +18,29 @@ hub help
 To download the latest release, run:
 
 ```shell
-curl -LJ "https://github.com/epam/hubctl/releases/latest/download/hub_$(uname -s)_$(uname -m).tar.gz" | tar xz -C /tmp
-sudo mv /tmp/hub /usr/local/bin
+curl -LJ "https://github.com/epam/hubctl/releases/latest/download/hubctl_$(uname -s)_$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/hubctl /usr/local/bin
 ```
 
-There are [macOS amd64](https://github.com/epam/hubctl/releases/latest/download/hub_Darwin_arm64.tar.gz), [macOS arm64](https://github.com/epam/hubctl/releases/latest/download/hub_Darwin_x86_64.tar.gz), [Linux amd64](https://github.com/epam/hubctl/releases/latest/download/hub_Linux_arm64.tar.gz), [Linux arm64](https://github.com/epam/hubctl/releases/latest/download/hub_Linux_x86_64.tar.gz) and [Windows x64](https://github.com/epam/hubctl/releases/latest/download/hub_Windows_x86_64.zip) binaries.
+There are [macOS amd64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Darwin_arm64.tar.gz), [macOS arm64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Darwin_x86_64.tar.gz), [Linux amd64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Linux_arm64.tar.gz), [Linux arm64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Linux_x86_64.tar.gz) and [Windows x64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Windows_x86_64.zip) binaries.
 
-### [Homebrew](https://brew.sh/)
+### [Homebrew](https://brew.sh/) Formula
 
 ```shell
-brew tap epam/tap
+brew tap epam/hubctl
 brew install epam/tap/hubctl
 ```
-
-Sorry for the name conflict with [GitHub hub](https://hub.github.com).
 
 ### Extensions
 
 Optionally, install extensions:
 
 ```shell
-hub extensions install
+hubctl extensions install
 ```
 
 Hub CTL Extensions requires: [jq] and [yq v4].
-Optionally install [Node.js] and NPM for `hub pull` extension, [AWS CLI], [Azure CLI], [GCP SDK] [kubectl], [eksctl] for `hub ext eks` extension.
+Optionally install [Node.js] and NPM for `hubctl pull` extension, [AWS CLI], [Azure CLI], [GCP SDK] [kubectl], [eksctl] for `hubctl ext eks` extension.
 
 ### macOS users
 
@@ -64,7 +62,7 @@ sudo spctl --master-disable
 
 Before make any changes you should configure git hooks for this repository
 
-```bash
+```shell
 git config core.hooksPath .githooks
 ```
 
@@ -117,7 +115,7 @@ Edit `$HOME/.hub-cache.yaml` to change settings:
 Set `disabled: true` to skip usage metrics reporting.
 Set `host: ""` to send the counter but not the UUID.
 
-You could always review an up-to-date help via `hub util metrics -h`.
+You could always review an up-to-date help via `hubctl util metrics -h`.
 
 ## What's next?
 
