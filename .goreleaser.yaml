@@ -1,4 +1,4 @@
-project_name: hub
+project_name: hubctl
 
 before:
   hooks:
@@ -28,12 +28,12 @@ builds:
       - -X 'github.com/epam/hubctl/cmd/hub/util.buildAt={{ time "2006.01.02 15:04:05 MST" }}'
 
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      amd64: x86_64
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
         format: zip
@@ -52,17 +52,17 @@ changelog:
       - "upd"
 
 brews:
-  - name: hub
+  - name: hubctl
 
     tap:
       owner: epam
-      name: homebrew-tap
+      name: homebrew-hubctl
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
 
     commit_author:
-      name: epambot
-      email: epambot@users.noreply.github.com
+      name: therealspaceship
+      email: therealspaceship@users.noreply.github.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Version }}"
 
     folder: Formula
@@ -73,10 +73,10 @@ brews:
     custom_block: |
       head "https://github.com/epam/hubctl"
     caveats: |
-      hub version
-      hub help
-      hub elaborate hub.yaml params.yaml -o hub.yaml.elaborate
-      hub deploy hub.yaml.elaborate -e NAME=stage
+      hubctl version
+      hubctl help
+      hubctl elaborate hub.yaml params.yaml -o hub.yaml.elaborate
+      hubctl deploy hub.yaml.elaborate -e NAME=stage
 
     dependencies:
       - name: jq
@@ -85,12 +85,12 @@ brews:
         type: optional
 
     test: |
-      output = shell_output("#{bin}/hub version").chomp
+      output = shell_output("#{bin}/hubctl version").chomp
       assert output.start_with?("Hub CTL git ")
       system "false"
 
     post_install: |
       hub_home = Pathname.new "#{Dir.home}/.hub"
       unless hub_home.exist?
-          system "#{Formula["hub"].opt_bin}/hub", "extensions", "install"
+          system "#{Formula["hub"].opt_bin}/hubctl", "extensions", "install"
       end
