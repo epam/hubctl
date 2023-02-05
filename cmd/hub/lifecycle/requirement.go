@@ -23,6 +23,7 @@ import (
 	"github.com/epam/hubctl/cmd/hub/manifest"
 	"github.com/epam/hubctl/cmd/hub/parameters"
 	"github.com/epam/hubctl/cmd/hub/util"
+	version "github.com/hashicorp/go-version"
 )
 
 const (
@@ -171,17 +172,25 @@ var bins = map[string][]string{
 }
 
 type BinVersion struct {
-	minVersion    string
+	minVersion    *version.Version
 	versionRegexp *regexp.Regexp
 }
 
-var binVersion = map[string]BinVersion{
-	"gcloud":    {"246.0.0", regexp.MustCompile(`Google Cloud SDK ([\d.]+)`)},
-	"gsutil":    {"4.38", regexp.MustCompile(`version: ([\d.]+)`)},
-	"vault":     {"1.3.2", regexp.MustCompile(`Vault v([\d.]+)`)},
-	"kubectl":   {"1.18.15", regexp.MustCompile(`GitVersion:"v([\d.]+)`)},
-	"helm":      {"3.5.1", regexp.MustCompile(`(?:SemVer|Version):"v([\d.]+)`)},
-	"terraform": {"0.14.0", regexp.MustCompile(`Terraform v([\d.]+)`)},
+func semver(s string) *version.Version {
+	v, err := version.NewVersion(s)
+	if err != nil {
+		log.Printf("Invalid version: %s", s)
+	}
+	return v
+}
+
+var binVersion = map[string]*BinVersion{
+	"gcloud":    {semver("246.0.0"), regexp.MustCompile(`Google Cloud SDK ([\d.]+)`)},
+	"gsutil":    {semver("4.38"), regexp.MustCompile(`version: ([\d.]+)`)},
+	"vault":     {semver("1.3.2"), regexp.MustCompile(`Vault v([\d.]+)`)},
+	"kubectl":   {semver("1.18.15"), regexp.MustCompile(`GitVersion:"v([\d.]+)`)},
+	"helm":      {semver("3.5.1"), regexp.MustCompile(`(?:SemVer|Version):"v([\d.]+)`)},
+	"terraform": {semver("0.14.0"), regexp.MustCompile(`Terraform v([\d.]+)`)},
 }
 
 func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {
@@ -242,7 +251,7 @@ func checkRequire(require string) (bool, error) {
 		}
 		verReq, exist := binVersion[bin[0]]
 		if exist {
-			err := checkRequiresBinVersion(verReq.minVersion, verReq.versionRegexp, out)
+			err := checkRequiresBinVersion(verReq, out)
 			if err != nil {
 				util.WarnOnce("`%s` version requirement cannot be satisfied: %s: %v; update `%[1]s` binary?",
 					bin[0], require, err)
@@ -278,18 +287,27 @@ func checkRequiresBin(bin ...string) ([]byte, error) {
 	return out, err
 }
 
-func checkRequiresBinVersion(minVer string, verRegexp *regexp.Regexp, out []byte) error {
+// validates binary version against minimum required version
+//
+//	reqVer: required version and regexp to extract version string
+//	currVer: raw output from binary
+//
+// returns error version is not valid
+func checkRequiresBinVersion(reqVer *BinVersion, out []byte) error {
 	if len(out) == 0 {
 		return errors.New("no output")
 	}
-	match := verRegexp.FindSubmatch(out)
+
+	match := reqVer.versionRegexp.FindSubmatch(out)
 	if len(match) != 2 {
 		return errors.New("no version string found")
 	}
-	ver := string(match[1])
-	// TODO here 1.6 > 1.10 which is not the case
-	if ver < minVer {
-		return fmt.Errorf("`%s` version detected; should have at least version `%s`", ver, minVer)
+	currVer, err := version.NewVersion(string(match[1]))
+	if err != nil {
+		return err
+	}
+	if currVer.LessThan(reqVer.minVersion) {
+		return fmt.Errorf("`%s` version detected; should have at least version `%s`", currVer, reqVer.minVersion.String())
 	}
 	return nil
 }
