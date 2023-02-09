@@ -100,12 +100,16 @@ func authorizer(resourcePick func(env *azure.Environment) string) (autorest.Auth
 			errs = append(errs, err)
 		}
 	} else {
-		authz, err = auth.NewAuthorizerFromEnvironmentWithResource(resource)
+		authz, err = auth.NewAuthorizerFromCLIWithResource(resource)
 		if err != nil {
 			errs = append(errs, err)
-			authz, err = auth.NewAuthorizerFromCLIWithResource(resource)
+			authz, err = auth.NewAuthorizerFromEnvironmentWithResource(resource)
 			if err != nil {
 				errs = append(errs, err)
+				authz, err = auth.NewAuthorizerFromCLIWithResource(resource)
+				if err != nil {
+					errs = append(errs, err)
+				}
 			}
 		}
 	}
