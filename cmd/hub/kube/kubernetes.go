@@ -22,8 +22,10 @@ import (
 )
 
 const (
-	kubernetesDomainOutput        = "dns.domain"
+	stackNameOutput               = "dns.name"
+	stackDomainOutput             = "dns.domain"
 	kubernetesFlavorOutput        = "kubernetes.flavor"
+	kubernetesContext             = "kubernetes.context"
 	kubernetesApiEndpointOutput   = "kubernetes.api.endpoint"
 	kubernetesApiTokenOutput      = "kubernetes.api.token"
 	kubernetesApiCaCertOutput     = "kubernetes.api.caCert"
@@ -45,7 +47,7 @@ var (
 		kubernetesApiClientCertOutput: "-client.pem",
 		kubernetesApiClientKeyOutput:  "-client-key.pem",
 	}
-	KubernetesParameters = []string{kubernetesDomainOutput, kubernetesFlavorOutput, kubernetesApiEndpointOutput,
+	KubernetesParameters = []string{stackDomainOutput, kubernetesFlavorOutput, kubernetesApiEndpointOutput,
 		kubernetesApiTokenOutput, kubernetesApiCaCertOutput, kubernetesApiClientCertOutput, kubernetesApiClientKeyOutput,
 		kubernetesEksClusterOutput, kubernetesGkeClusterOutput}
 	KubernetesKeysParameters = []string{
@@ -65,7 +67,7 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 		flavor = util.String(o.Value)
 	}
 
-	domainQName := parameters.OutputQualifiedName(kubernetesDomainOutput, componentName)
+	domainQName := parameters.OutputQualifiedName(stackDomainOutput, componentName)
 	if _, exists := componentOutputs[domainQName]; !exists {
 		util.Warn("Component `%s` declared to provide Kubernetes but no `%s` output found", componentName, domainQName)
 		if len(componentOutputs) > 0 {
@@ -141,13 +143,64 @@ func CaptureKubernetes(component *manifest.ComponentRef, stackBaseDir string, co
 	return outputs
 }
 
+// Returns the first non-empty environment variable value and name
+func getFirstEnviron(name ...string) (string, string) {
+	for _, n := range name {
+		if v := os.Getenv(n); v != "" {
+			return n, v
+		}
+	}
+	return "", ""
+}
+
 func SetupKubernetes(params parameters.LockedParameters,
 	provider string, outputs parameters.CapturedOutputs,
 	context string, overwrite, keepPems bool) {
 
 	kubectl := "kubectl"
+	domain, _ := mayOutput(params, outputs, provider, stackDomainOutput)
+	if domain == "" {
+		util.Debug("Parameters from %s are not providing: %s", provider, stackDomainOutput) // try to get domain from environment
+		name, val := getFirstEnviron("HUB_DOMAIN_NAME", "DOMAIN_NAME")
+		if val != "" {
+			util.Debug("Using %s from %s variable as %s", val, name, stackDomainOutput)
+			domain = val
+		} else {
+			// Porting fuzzy logic here from extensions, for compatibility
+			// When stack doesn't have a ingress domain.
+			// In this case user will declare only a stack name
+			util.Debug("Cannot find dns.domain from variables")
+			util.Debug("Trying %s instead for stack that doesn't use ingress", stackNameOutput)
+			stackName, _ := mayOutput(params, outputs, provider, stackNameOutput)
+			if stackName != "" {
+				domain = stackName
+			} else {
+				util.Debug("Trying environment variables")
+				name, val = getFirstEnviron("HUB_STACK_NAME", "STACK_NAME")
+				if val != "" {
+					util.Debug("Using %s from %s variable as %s", val, name, stackNameOutput)
+					domain = val
+				} else {
+					util.Warn("Giving up with domain name from %s", provider)
+				}
+			}
+		}
+	}
+	if domain == "" {
+		util.Errors("Unable to setup Kubeconfig: no domain name found")
+		os.Exit(1)
+		return
+	}
 
-	domain := mustOutput(params, outputs, provider, kubernetesDomainOutput)
+	if context != "" {
+		util.Debug("Using kube context: %s", context)
+	} else {
+		context, _ = mayOutput(params, outputs, provider, kubernetesContext)
+		if context == "" {
+			util.Debug("Parameters from %s are not providing: %s", provider, kubernetesContext)
+			util.Debug("Taking kube context from %s parameter %s", provider, stackDomainOutput)
+		}
+	}
 	if context == "" {
 		context = domain
 	}
@@ -284,6 +337,11 @@ func SetupKubernetes(params parameters.LockedParameters,
 		"--user="+user,
 		"--namespace=kube-system")
 	switchContext := config.SwitchKubeconfigContext
+	if os.Getenv("HUB_KUBECONFIG") != "" {
+		kubeconfig := os.Getenv("HUB_KUBECONFIG")
+		os.Setenv("KUBECONFIG", kubeconfig)
+	}
+
 	if !switchContext && os.Getenv("KUBECONFIG") != "" {
 		// Hub CTL extensions expects a private Kubeconfig with current-context set
 		outBytes, err := execOutput(kubectl, "config", "current-context")

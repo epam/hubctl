@@ -63,6 +63,13 @@ func Warn(format string, v ...interface{}) {
 	}
 }
 
+func Debug(format string, v ...interface{}) {
+	if config.Debug {
+		msg := fmt.Sprintf(format, v...)
+		log.Print(msg)
+	}
+}
+
 func Coalesce(values ...string) string {
 	for _, v := range values {
 		if v != "" {
