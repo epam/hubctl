@@ -25,7 +25,6 @@ const (
 	stackNameOutput               = "dns.name"
 	stackDomainOutput             = "dns.domain"
 	kubernetesFlavorOutput        = "kubernetes.flavor"
-	kubernetesContext             = "kubernetes.context"
 	kubernetesApiEndpointOutput   = "kubernetes.api.endpoint"
 	kubernetesApiTokenOutput      = "kubernetes.api.token"
 	kubernetesApiCaCertOutput     = "kubernetes.api.caCert"
@@ -194,12 +193,6 @@ func SetupKubernetes(params parameters.LockedParameters,
 
 	if context != "" {
 		util.Debug("Using kube context: %s", context)
-	} else {
-		context, _ = mayOutput(params, outputs, provider, kubernetesContext)
-		if context == "" {
-			util.Debug("Parameters from %s are not providing: %s", provider, kubernetesContext)
-			util.Debug("Taking kube context from %s parameter %s", provider, stackDomainOutput)
-		}
 	}
 	if context == "" {
 		context = domain
