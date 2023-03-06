@@ -1,4 +1,4 @@
-// Copyright (c) 2022 EPAM Systems, Inc.
+// Copyright (c) 2023 EPAM Systems, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -82,7 +82,7 @@ func expandRequestedOutputs(componentName, componentDir string,
 			Kind:      requestedOutput.Kind,
 		}
 		if requestedOutput.FromTfVar != "" {
-			variable, encodings := valueEncodings(requestedOutput.FromTfVar)
+			variable, encodings := head(requestedOutput.FromTfVar)
 			value, exist := tfOutputs[variable]
 			if !exist {
 				errs = append(errs, fmt.Errorf("Unable to capture raw output `%s` for component `%s` output `%s`",

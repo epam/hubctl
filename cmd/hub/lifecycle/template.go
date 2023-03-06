@@ -1,4 +1,4 @@
-// Copyright (c) 2022 EPAM Systems, Inc.
+// Copyright (c) 2023 EPAM Systems, Inc.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -403,7 +404,7 @@ var (
 	curlyReplacement    = regexp.MustCompile(`\$\{[a-zA-Z0-9_\.\|:/-]+\}`)
 	mustacheReplacement = regexp.MustCompile(`\{\{[a-zA-Z0-9_\.\|:/-]+\}\}`)
 
-	templateSubstitutionSupportedEncodings = []string{"base64", "unbase64", "json", "yaml"}
+	templateSubstitutionSupportedEncodings = []string{"base64", "unbase64", "json", "yaml", "first", "parseURL", "isSecure", "insecure", "hostname", "port", "scheme"}
 )
 
 func stripCurly(match string) string {
@@ -414,10 +415,15 @@ func stripMustache(match string) string {
 	return match[2 : len(match)-2]
 }
 
-func valueEncodings(variable string) (string, []string) {
-	if strings.Contains(variable, "/") {
-		parts := strings.Split(variable, "/")
-		return parts[0], parts[1:]
+// split string by one of the separators and
+//
+//	returns tuple of head and tail as slice
+func head(variable string, sep ...string) (string, []string) {
+	for _, s := range sep {
+		if strings.Contains(variable, s) {
+			parts := strings.Split(variable, s)
+			return parts[0], parts[1:]
+		}
 	}
 	return variable, nil
 }
@@ -431,7 +437,7 @@ func processReplacement(content, filename, componentName string, componentDepend
 	outContent := replacement.ReplaceAllStringFunc(content,
 		func(variable string) string {
 			variable = strip(variable)
-			variable, encodings := valueEncodings(variable)
+			variable, encodings := head(variable, "/", "|")
 			substitution, exist := parameters.FindValue(variable, componentName, componentDepends, kv)
 			if !exist {
 				errs = append(errs, fmt.Errorf("Template `%s` refer to unknown substitution `%s`", filename, variable))
@@ -450,44 +456,91 @@ func processReplacement(content, filename, componentName string, componentDepend
 					errs = append(errs, fmt.Errorf("Unknown encoding(s) %v processing template `%s` substitution `%s`",
 						unknown, filename, variable))
 				}
-				if util.Contains(encodings, "json") {
-					jsonBytes, err := json.Marshal(substitution)
-					if err != nil {
-						errs = append(errs, fmt.Errorf("Unable to marshal JSON from %v while processing template `%s` substitution `%s`: %v",
-							substitution, filename, variable, err))
-					} else {
-						substitution = string(jsonBytes)
-					}
-				} else if util.Contains(encodings, "yaml") {
-					// TODO YAML fragment on a single line
-					yamlBytes, err := yaml.Marshal(substitution)
-					if err != nil {
-						errs = append(errs, fmt.Errorf("Unable to marshal YAML from %v while processing template `%s` substitution `%s`: %v",
-							substitution, filename, variable, err))
-					} else {
-						substitution = string(yamlBytes)
+				for _, encoding := range encodings {
+					switch encoding {
+					case "base64":
+						substitution = base64.StdEncoding.EncodeToString([]byte(util.String(substitution)))
+					case "unbase64":
+						decoded, err := base64.StdEncoding.DecodeString(util.String(substitution))
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to decode base64 from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = string(decoded)
+						}
+					case "json":
+						jsonBytes, err := json.Marshal(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to marshal JSON from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = string(jsonBytes)
+						}
+					case "yaml":
+						// TODO YAML fragment on a single line
+						yamlBytes, err := yaml.Marshal(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to marshal YAML from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = string(yamlBytes)
+						}
+					case "first":
+						str := util.String(substitution)
+						if strings.Contains(str, " ") {
+							substitution = strings.Split(str, " ")[0]
+						}
+					case "parseURL":
+						str := util.String(substitution)
+						url, err := parseURL(str)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = url
+						}
+					case "isSecure":
+						url, err := toURL(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = isSecure(url)
+						}
+					case "insecure":
+						url, err := toURL(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = !isSecure(url)
+						}
+					case "hostname":
+						url, err := toURL(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = url.Hostname()
+						}
+					case "port":
+						url, err := toURL(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = url.Port()
+						}
+					case "scheme":
+						url, err := toURL(substitution)
+						if err != nil {
+							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
+								substitution, filename, variable, err))
+						} else {
+							substitution = url.Scheme
+						}
 					}
 				}
-				strSubstitution := util.String(substitution)
-				if util.Contains(encodings, "bcrypt") {
-					bytes, err := bcrypt.GenerateFromPassword([]byte(strSubstitution), bcrypt.DefaultCost)
-					if err != nil {
-						util.Warn("Unable to bcrypt encode `%s` value `%s`: %v", variable, util.Trim(strSubstitution), err)
-					} else {
-						strSubstitution = string(bytes)
-					}
-				}
-				if util.Contains(encodings, "base64") {
-					strSubstitution = base64.StdEncoding.EncodeToString([]byte(strSubstitution))
-				} else if util.Contains(encodings, "unbase64") {
-					bytes, err := base64.StdEncoding.DecodeString(strSubstitution)
-					if err != nil {
-						util.Warn("Unable to decode `%s` base64 value `%s`: %v", variable, util.Trim(strSubstitution), err)
-					} else {
-						strSubstitution = string(bytes)
-					}
-				}
-				return strSubstitution
 			}
 			return strings.TrimSpace(util.String(substitution))
 		})
@@ -748,6 +801,36 @@ func unquote(str string) (string, error) {
 		return str, err
 	}
 	return result, err
+}
+
+func isSecure(url *url.URL) bool {
+	return url.Scheme == "https"
+}
+
+func toURL(iface interface{}) (*url.URL, error) {
+	switch v := iface.(type) {
+	case string:
+		return parseURL(v)
+	case *url.URL:
+		return v, nil
+	default:
+		return nil, fmt.Errorf("invalid type %T", iface)
+	}
+}
+
+func parseURL(urlStr string) (*url.URL, error) {
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+	if u.Port() == "" {
+		if isSecure(u) {
+			u.Host = fmt.Sprintf("%s:443", u.Host)
+		} else if u.Scheme == "http" {
+			u.Host = fmt.Sprintf("%s:80", u.Host)
+		}
+	}
+	return u, nil
 }
 
 var hubGoTemplateFuncMap = map[string]interface{}{
