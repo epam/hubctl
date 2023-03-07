@@ -31,7 +31,6 @@ var extensionCmd = cobra.Command{
 		newArgs = append(newArgs, cmd.Use)
 		newArgs = append(newArgs, args...)
 		return arbitraryExtension(newArgs)
-		// return extension([]string{cmd.Use}, args)
 	},
 	DisableFlagParsing: true,
 }

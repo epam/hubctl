@@ -17,7 +17,7 @@ import (
 	"github.com/epam/hubctl/cmd/hub/util"
 )
 
-const extensionsGitRemote = "https://github.com/epam/hubctl-extensions.git"
+const extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
 
 func defaultExtensionsDir() string {
 	return filepath.Join(os.Getenv("HOME"), hubDir)
@@ -30,12 +30,13 @@ func Install(dir string) {
 
 	_, err := os.Stat(filepath.Join(dir, ".git"))
 	if err == nil {
-		util.Warn("`%s` already exist; try `hub extensions update`?", dir)
+		util.Warn("`%s` already exist; try `hubctl extensions update`?", dir)
+		return
 	}
 
 	cmd := exec.Cmd{
 		Path:   git.GitBinPath(),
-		Args:   []string{"git", "clone", "-b", "stable", extensionsGitRemote, dir},
+		Args:   []string{"git", "clone", "-b", "master", extensionsGitRemote, dir},
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,

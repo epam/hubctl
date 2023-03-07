@@ -26,7 +26,7 @@ var initializers []func()
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "hub",
+	Use:   "hubctl",
 	Short: "Hub CTL is a stack composition and lifecycle tool",
 	Long: `Hub CTL is a stack composition and lifecycle tool:
 - template and stack creation, stack deploy / undeploy / backup lifecycle;
@@ -39,7 +39,6 @@ var RootCmd = &cobra.Command{
 		}
 		maybeMeterCommand(cmd)
 	},
-
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		util.PrintAllWarnings()
 	},
