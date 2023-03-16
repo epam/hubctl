@@ -27,7 +27,7 @@ There are [macOS amd64](https://github.com/epam/hubctl/releases/latest/download/
 ### [Homebrew](https://brew.sh/) Formula
 
 ```shell
-brew tap epam/hubctl
+brew tap epam/tap
 brew install epam/tap/hubctl
 ```
 
