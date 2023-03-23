@@ -17,10 +17,21 @@ hubctl help
 
 To download the latest release, run:
 
+#### cURL
+
 ```shell
-curl -LJ "https://github.com/epam/hubctl/releases/latest/download/hubctl_$(uname -s)_$(uname -m).tar.gz" | tar xz -C /tmp
-sudo mv /tmp/hubctl /usr/local/bin
+curl -LJ "https://github.com/epam/hubctl/releases/latest/download/hubctl_$(uname -s)_$(uname -m).tar.gz" \|
+  tar xz -C /tmp && sudo mv /tmp/hubctl /usr/local/bin
 ```
+
+#### Wget
+
+```shell
+wget "https://github.com/epam/hubctl/releases/latest/download/hubctl_$(uname -s)_$(uname -m).tar.gz" -O - |\
+  tar xz -C /tmp && sudo mv /tmp/hubctl /usr/local/bin
+```
+
+#### Other pre-build binaries
 
 There are [macOS amd64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Darwin_arm64.tar.gz), [macOS arm64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Darwin_x86_64.tar.gz), [Linux amd64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Linux_arm64.tar.gz), [Linux arm64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Linux_x86_64.tar.gz) and [Windows x64](https://github.com/epam/hubctl/releases/latest/download/hubctl_Windows_x86_64.zip) binaries.
 
@@ -39,7 +50,7 @@ Optionally, install extensions:
 hubctl extensions install
 ```
 
-Hub CTL Extensions requires: [jq] and [yq v4].
+Hub CTL Extensions requires: [bash], [curl], [jq] and [yq v4].
 Optionally install [Node.js] and NPM for `hubctl pull` extension, [AWS CLI], [Azure CLI], [GCP SDK] [kubectl], [eksctl] for `hubctl ext eks` extension.
 
 ### macOS users
@@ -129,3 +140,5 @@ More information in the [wiki](https://github.com/epam/hubctl/wiki).
 [jq]: https://stedolan.github.io/jq/
 [yq v4]: https://github.com/mikefarah/yq
 [Node.js]: https://nodejs.org
+[bash]: https://www.gnu.org/software/bash
+[curl]: https://curl.se
