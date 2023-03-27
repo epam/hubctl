@@ -13,8 +13,9 @@ import (
 	"path/filepath"
 
 	"github.com/epam/hubctl/cmd/hub/config"
-	"github.com/epam/hubctl/cmd/hub/git"
 	"github.com/epam/hubctl/cmd/hub/util"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 const extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
@@ -34,25 +35,70 @@ func Install(dir string) {
 		return
 	}
 
-	cmd := exec.Cmd{
-		Path:   git.GitBinPath(),
-		Args:   []string{"git", "clone", "-b", "master", extensionsGitRemote, dir},
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
 	if config.Debug {
-		log.Printf("Cloning extensions repository: %v", cmd.Args)
+		log.Printf("Cloning extensions repository: %s", extensionsGitRemote)
 	}
-	err = cmd.Run()
+	_, err = git.PlainClone(dir, false, &git.CloneOptions{
+		URL:               extensionsGitRemote,
+		ReferenceName:     plumbing.ReferenceName("refs/heads/master"),
+		SingleBranch:      true,
+		Progress:          log.Default().Writer(),
+		RecurseSubmodules: git.NoRecurseSubmodules,
+	})
+
 	if err != nil {
 		log.Fatalf("Unable to git clone %s into %s: %v", extensionsGitRemote, dir, err)
 	}
 
+	postInstall(dir)
+
+	if config.Verbose {
+		log.Printf("Hub CTL extensions installed into %s", dir)
+	}
+}
+
+func Update(dir string) {
+	if dir == "" {
+		dir = defaultExtensionsDir()
+	}
+
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		log.Fatalf("Unable to run update in %s: %v", dir, err)
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		log.Fatalf("Unable to run update in %s: %v", dir, err)
+	}
+
+	err = worktree.Pull(&git.PullOptions{
+		RemoteName:        "origin",
+		ReferenceName:     plumbing.ReferenceName("refs/heads/master"),
+		SingleBranch:      true,
+		Progress:          log.Default().Writer(),
+		RecurseSubmodules: git.NoRecurseSubmodules,
+	})
+	if err != nil {
+		if err == git.NoErrAlreadyUpToDate {
+			log.Printf("%v", err)
+		} else {
+			log.Fatalf("Unable to run update in %s: %v", dir, err)
+		}
+	}
+
+	postInstall(dir)
+
+	if config.Verbose && err == nil {
+		log.Printf("Hub CTL extensions updated in %s", dir)
+	}
+}
+
+func postInstall(dir string) {
 	hook := filepath.Join(dir, "post-install")
-	_, err = os.Stat(hook)
+	_, err := os.Stat(hook)
 	if err == nil {
-		cmd = exec.Cmd{
+		cmd := exec.Cmd{
 			Path:   "post-install",
 			Dir:    dir,
 			Stdin:  os.Stdin,
@@ -65,37 +111,5 @@ func Install(dir string) {
 		}
 	} else {
 		util.Warn("No post-install hook %s: %v", hook, err)
-	}
-
-	if config.Verbose {
-		log.Printf("Hub CTL extensions installed into %s", dir)
-	}
-}
-
-func Update(dir string) {
-	if dir == "" {
-		dir = defaultExtensionsDir()
-	}
-
-	hook := filepath.Join(dir, "update")
-	_, err := os.Stat(hook)
-	if err == nil {
-		cmd := exec.Cmd{
-			Path:   "update",
-			Dir:    dir,
-			Stdin:  os.Stdin,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-		}
-		err = cmd.Run()
-		if err != nil {
-			util.Warn("Unable to run update in %s: %v", dir, err)
-		}
-	} else {
-		log.Fatalf("No update hook %s: %v", hook, err)
-	}
-
-	if config.Verbose && err == nil {
-		log.Printf("Hub CTL extensions updated in %s", dir)
 	}
 }

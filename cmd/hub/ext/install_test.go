@@ -1,23 +1,38 @@
 package ext
 
 import (
-	"os"
-	"os/exec"
+	"log"
 	"testing"
 
-	"github.com/epam/hubctl/cmd/hub/git"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExtensionsGitRepoUrlIsValid(t *testing.T) {
-	cmd := exec.Cmd{
-		Path:   git.GitBinPath(),
-		Args:   []string{"git", "ls-remote", "--tags", "--quiet", extensionsGitRemote},
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
+	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{extensionsGitRemote},
+	})
 
-	err := cmd.Run()
+	_, err := rem.List(&git.ListOptions{})
+
 	assert.NoError(t, err, "When extensions git repository URL is valid, git ls-remote should not return error")
+}
+
+func TestExtensionsInstall(t *testing.T) {
+	assert.NotPanics(t, func() {
+		Install(t.TempDir())
+	}, "When install extensions, it should not panic")
+}
+
+func TestExtensionsInstallAndUpdate(t *testing.T) {
+	assert.NotPanics(t, func() {
+		dir := t.TempDir()
+		log.Print("Install extensions")
+		Install(dir)
+		log.Print("Update extensions")
+		Update(dir)
+	}, "When install extensions and then update them, it should not panic")
 }
