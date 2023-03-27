@@ -1,5 +1,5 @@
 I'm sorry, but there are no canonical unit tests for Hub CTL.
-We test it via end-to-end test suites, that are proprietory.
+We test it via end-to-end test suites, that are proprietary.
 
 I'd [start](https://github.com/epam/hubctl/issues/7) with integration tests to cover:
 - elaborate - assemble manifest from components and compare with reference file;

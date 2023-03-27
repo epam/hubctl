@@ -8,6 +8,6 @@
 
 package metrics
 
-func putMetricsServiceMetric(cmd, host string, additionaTags []string) error {
+func putMetricsServiceMetric(cmd, host string, additionalTags []string) error {
 	return nil
 }

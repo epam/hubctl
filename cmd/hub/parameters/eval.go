@@ -18,7 +18,7 @@ import (
 )
 
 // ${var.name} or
-// #{cel - expression {optionaly one nested level of braces for maps}}
+// #{cel - expression {optionally one nested level of braces for maps}}
 var CurlyReplacement = regexp.MustCompile(`\$\{[^}]+\}|#\{(?:[^}{]|\{[^}{]+\})*\}`)
 
 func StripCurly(match string) (string, bool) {

@@ -95,7 +95,7 @@ Currently supported cluster types are:
 
 Cluster TLS auth is read from stdin in the order:
 - k8s-aws, hybrid, metal - Client cert, Client key, CA cert (optional).
-- eks - CA cert, optional if --eks-endpoint is omited, then it will be discovered via AWS API
+- eks - CA cert, optional if --eks-endpoint is omitted, then it will be discovered via AWS API
 - openshift - optional CA cert
 GKE and AKS certificates are discovered by import adapter component.
 

@@ -1118,7 +1118,7 @@ func mergeRequiresTuning(parent, child manifest.RequiresTuning) manifest.Require
 	eraseRequirement := make([]string, 0)
 	eraseComponent := make([]string, 0)
 
-	// go back to front skipping entries that are overriden by newer entries
+	// go back to front skipping entries that are overridden by newer entries
 	for _, req := range newestFirst {
 		skip := false
 		i := strings.Index(req, ":")

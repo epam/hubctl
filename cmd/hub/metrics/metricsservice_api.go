@@ -23,15 +23,15 @@ import (
 
 const metricsSeriesResource = "metrics/api/v1/series"
 
-func putMetricsServiceMetric(cmd, host string, additionaTags []string) error {
+func putMetricsServiceMetric(cmd, host string, additionalTags []string) error {
 	tags := map[string]string{
 		"command": cmd,
 	}
 	if host != "" {
 		tags["machine-id"] = host
 	}
-	if len(additionaTags) > 0 {
-		for _, t := range additionaTags {
+	if len(additionalTags) > 0 {
+		for _, t := range additionalTags {
 			kv := strings.SplitN(t, ":", 2)
 			k := kv[0]
 			v := "true"

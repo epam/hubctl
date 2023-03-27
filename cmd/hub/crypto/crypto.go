@@ -50,7 +50,7 @@ const (
 
 	helpPassword      = "HUB_CRYPTO_PASSWORD='random password'"
 	helpAwsKms        = "HUB_CRYPTO_AWS_KMS_KEY_ARN='arn:aws:kms:...'"
-	helpAzukeKeyvault = "HUB_CRYPTO_AZURE_KEYVAULT_KEY_ID='https://*.vault.azure.net/keys/...'"
+	helpAzureKeyvault = "HUB_CRYPTO_AZURE_KEYVAULT_KEY_ID='https://*.vault.azure.net/keys/...'"
 	helpGcpKms        = "HUB_CRYPTO_GCP_KMS_KEY_NAME='projects/*/locations/*/keyRings/my-key-ring/cryptoKeys/my-key'"
 )
 
@@ -69,7 +69,7 @@ func IsEncryptedData(data []byte) bool {
 // for password based key the blob is salt
 // for AWS KMS, Azure Key Vault, GCP KMS the blob is encrypted data key
 // if no blob is supplied then a new key is requested
-// if ver is supplied then it must match envionment setup
+// if ver is supplied then it must match environment setup
 func encryptionKeyInit(ver byte, blob []byte) (byte, []byte, []byte, error) {
 	if ver == encryptionV1MarkerByte1 && config.CryptoPassword == "" {
 		return 0, nil, nil,
@@ -81,7 +81,7 @@ func encryptionKeyInit(ver byte, blob []byte) (byte, []byte, []byte, error) {
 	}
 	if ver == encryptionV3MarkerByte1 && config.CryptoAzureKeyVaultKeyId == "" {
 		return 0, nil, nil,
-			fmt.Errorf("Set %s", helpAzukeKeyvault)
+			fmt.Errorf("Set %s", helpAzureKeyvault)
 	}
 	if ver == encryptionV4MarkerByte1 && config.CryptoGcpKmsKeyName == "" {
 		return 0, nil, nil,
@@ -121,7 +121,7 @@ func encryptionKeyInit(ver byte, blob []byte) (byte, []byte, []byte, error) {
 		return encryptionV4MarkerByte1, encryptedKey, clearKey, nil
 	}
 	return 0, nil, nil,
-		fmt.Errorf("Set %s or %s or %s", helpPassword, helpAwsKms, helpAzukeKeyvault)
+		fmt.Errorf("Set %s or %s or %s", helpPassword, helpAwsKms, helpAzureKeyvault)
 }
 
 func maybeEncryptionKeyInit() (byte, []byte, []byte, error) {

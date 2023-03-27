@@ -126,7 +126,7 @@ func Explain(elaborateManifests, stateFilenames []string, opLog, global bool, co
 			for _, component := range components {
 				if step, exist := state.Components[component]; exist {
 					fmt.Printf("Component: %s\n", headColor(component))
-					printComponenentState(component, step, prevOutputs, rawOutputs)
+					printComponentState(component, step, prevOutputs, rawOutputs)
 					prevOutputs = step.CapturedOutputs
 				}
 			}
@@ -209,7 +209,7 @@ var headColor = func(str string) string {
 	return str
 }
 
-func printComponenentState(componentName string, step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
+func printComponentState(componentName string, step *StateStep, prevOutputs []parameters.CapturedOutput, rawOutputs bool) {
 	fmt.Printf("-- Timestamp: %v\n", step.Timestamp.Truncate(time.Second))
 	if t := step.Timestamps; !t.End.IsZero() && !t.Start.IsZero() {
 		fmt.Printf("-- Duration: %v\n", t.End.Sub(t.Start).Round(time.Second).String())
