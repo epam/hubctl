@@ -7,7 +7,6 @@
 package git
 
 import (
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -45,39 +44,4 @@ func gitDebug(cmd *exec.Cmd) {
 			printGitArgs(cmd)
 		}
 	}
-}
-
-func gitDebug2(cmd *exec.Cmd, stdoutCopy io.Writer) {
-	if config.Trace {
-		stdoutCopy = io.MultiWriter(stdoutCopy, os.Stdout)
-		printGitArgs(cmd)
-	}
-	cmd.Stdout = stdoutCopy
-	if config.Debug {
-		cmd.Stderr = os.Stdout
-	}
-}
-
-//lint:ignore U1000 still needed?
-func gitDebug4(cmd *exec.Cmd, stdoutCopy io.Writer) {
-	if config.Trace {
-		printGitArgs(cmd)
-	}
-	cmd.Stdout = stdoutCopy
-	if config.Debug {
-		cmd.Stderr = os.Stdout
-	}
-}
-
-//lint:ignore U1000 still needed?
-func gitDebug3(cmd *exec.Cmd, stdoutCopy io.Writer, stderrCopy io.Writer) {
-	if config.Debug {
-		stderrCopy = io.MultiWriter(stderrCopy, os.Stdout)
-	}
-	if config.Trace {
-		stdoutCopy = io.MultiWriter(stdoutCopy, os.Stdout)
-		printGitArgs(cmd)
-	}
-	cmd.Stdout = stdoutCopy
-	cmd.Stderr = stderrCopy
 }
