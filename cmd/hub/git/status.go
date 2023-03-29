@@ -7,50 +7,31 @@
 package git
 
 import (
-	"bytes"
 	"fmt"
 	"log"
-	"os/exec"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 func HeadInfo(dir string) (string, string, error) {
 	what := "HEAD"
 	name := "(unknown)"
 	rev := "(unknown)"
-	var out bytes.Buffer
-	gitBin := GitBinPath()
 
-	cmd := exec.Cmd{
-		Path:   gitBin,
-		Dir:    dir,
-		Args:   []string{"git", "name-rev", "--name-only", what},
-		Stdout: &out,
-	}
-	gitDebug2(&cmd, &out)
-	err := cmd.Run()
+	repo, err := git.PlainOpen(dir)
 	if err != nil {
-		return name, rev,
-			fmt.Errorf("Unable to determine Git repo `%s` HEAD name: %v", dir, err)
+		return "", "", fmt.Errorf("directory %s is not valid git repository: %v", dir, err)
 	}
-	name = strings.Trim(out.String(), "\r\n")
 
-	out.Truncate(0)
-	cmd = exec.Cmd{
-		Path:   gitBin,
-		Dir:    dir,
-		Args:   []string{"git", "rev-parse", what},
-		Stdout: &out,
-	}
-	gitDebug2(&cmd, &out)
-	err = cmd.Run()
+	ref, err := repo.Reference(plumbing.ReferenceName(what), true)
 	if err != nil {
-		return name, rev,
-			fmt.Errorf("Unable to determine Git repo `%s` HEAD hash: %v", dir, err)
+		return "", "", fmt.Errorf("unable to get git repository %s %s name: %v", dir, what, err)
 	}
-	rev = strings.Trim(out.String(), "\r\n")
+
+	name = strings.Trim(ref.Name().String(), "\r\n")
+	rev = strings.Trim(ref.Hash().String(), "\r\n")
 
 	return name, rev, nil
 }

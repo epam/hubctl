@@ -21,3 +21,21 @@ func TestStatusOfInvalidGitRepo(t *testing.T) {
 	assert.True(t, clean, "should return clean as true if directory is valid git repo")
 	assert.NoError(t, err, "should return nil error if directory is valid git repo")
 }
+
+func TestHeadOf(t *testing.T) {
+	dir := t.TempDir()
+
+	name, rev, err := HeadInfo(dir)
+
+	assert.Empty(t, name, "should return empty name if directory is empty")
+	assert.Empty(t, rev, "should return empty revision if directory is empty")
+	assert.Error(t, err, "should return an error if directory is empty")
+
+	ext.Install(dir)
+
+	name, rev, err = HeadInfo(dir)
+
+	assert.NotEmpty(t, name, "Git reference name should not be empty in valid git repo")
+	assert.NotEmpty(t, rev, "Git reference revision should not be empty in valid git repo")
+	assert.NoError(t, err, "Git HeadOf of valid git repo should not produce an error")
+}
