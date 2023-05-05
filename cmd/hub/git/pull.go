@@ -12,7 +12,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -21,9 +20,9 @@ import (
 	"github.com/epam/hubctl/cmd/hub/util"
 )
 
-func Pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool) {
+func PullManifest(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool) {
 
-	components, repos, manifests := pull(manifestFilename, baseDir, reset, recurse, optimizeGitRemotes, asSubtree,
+	components, repos, manifests := pullManifest(manifestFilename, baseDir, reset, recurse, optimizeGitRemotes, asSubtree,
 		make([]string, 0), make([]LocalGitRepo, 0), make([]string, 0))
 
 	if len(repos) == 0 {
@@ -36,7 +35,7 @@ func Pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 	}
 }
 
-func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool,
+func pullManifest(manifestFilename string, baseDir string, reset, recurse, optimizeGitRemotes, asSubtree bool,
 	components []string, repos []LocalGitRepo, manifests []string) ([]string, []LocalGitRepo, []string) {
 
 	stackManifest, rest, _, err := manifest.ParseManifest([]string{manifestFilename})
@@ -94,7 +93,7 @@ func pull(manifestFilename string, baseDir string, reset, recurse, optimizeGitRe
 		if config.Debug {
 			log.Printf("Recursing into %s", fromStackManifestFilename)
 		}
-		components, repos, manifests = pull(fromStackManifestFilename, baseDir, reset, recurse, optimizeGitRemotes, asSubtree,
+		components, repos, manifests = pullManifest(fromStackManifestFilename, baseDir, reset, recurse, optimizeGitRemotes, asSubtree,
 			components, repos, manifests)
 	}
 
@@ -147,8 +146,6 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 		}
 	}
 
-	gitBin := GitBinPath()
-
 	if clone {
 		if config.Verbose {
 			log.Printf("Cloning from %s", remoteVerbose)
@@ -156,16 +153,9 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 		if asSubtree {
 			return components, repos, errors.New("not implemented")
 		} else {
-			cmd := exec.Cmd{
-				Path: gitBin,
-				Dir:  dir,
-				Args: []string{"git", "clone", "--branch", source.Ref, "--single-branch", "--no-tags", remote, dir},
-			}
-			gitDebug(&cmd)
-			err = cmd.Run()
+			err = Clone(remote, source.Ref, dir)
 			if err != nil {
-				return components, repos,
-					fmt.Errorf("Unable to clone Git repo %s at `%s` into `%s`: %v", remoteVerbose, source.Ref, dir, err)
+				return components, repos, err
 			}
 		}
 	} else {
@@ -188,26 +178,22 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 			return components, repos, errors.New("not implemented")
 		} else {
 			if reset {
-				cmd := exec.Cmd{
-					Path: gitBin,
-					Dir:  dir,
-					Args: []string{"git", "stash", "--include-untracked"},
-				}
-				gitDebug(&cmd)
-				err = cmd.Run()
-				if err != nil {
-					return components, repos,
-						fmt.Errorf("Unable to stash Git repo worktree `%s`: %v", dir, err)
-				}
+				// 	cmd := exec.Cmd{
+				// 		Path: gitBin,
+				// 		Dir:  dir,
+				// 		Args: []string{"git", "stash", "--include-untracked"},
+				// 	}
+				// 	gitDebug(&cmd)
+				// 	err = cmd.Run()
+				// 	if err != nil {
+				// 		return components, repos,
+				// 			fmt.Errorf("Unable to stash Git repo worktree `%s`: %v", dir, err)
+				// 	}
+				return components, repos, errors.New("not implemented")
 			}
-			cmd := exec.Cmd{
-				Path: gitBin,
-				Dir:  dir,
-				Args: []string{"git", "pull", "origin", source.Ref},
-			}
-			gitDebug(&cmd)
-			err = cmd.Run()
-			if err != nil && !upToDate(err) {
+
+			err = Pull(source.Ref, dir)
+			if err != nil {
 				return components, repos,
 					fmt.Errorf("Unable to pull Git repo %s into `%s`: %v", remoteVerbose, dir, err)
 			}
@@ -230,6 +216,8 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 		}),
 		nil
 }
+
+var dirMode = os.FileMode(0755)
 
 func emptyDir(dir string, removeContentIfForced bool) (bool, error) {
 	dirInfo, err := os.Stat(dir)
@@ -303,9 +291,9 @@ func findLocalClone(repos []LocalGitRepo, remote string, ref string) string {
 	return remote
 }
 
-func upToDate(err error) bool {
-	return strings.Contains(err.Error(), "already up-to-date")
-}
+// func upToDate(err error) bool {
+// 	return strings.Contains(err.Error(), "already up-to-date")
+// }
 
 func dirInRepoList(dir string, repos []LocalGitRepo) bool {
 	for _, repo := range repos {

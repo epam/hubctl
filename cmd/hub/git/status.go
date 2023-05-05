@@ -11,7 +11,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/go-git/go-git/v5"
+	goGit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
@@ -20,7 +20,7 @@ func HeadInfo(dir string) (string, string, error) {
 	name := "(unknown)"
 	rev := "(unknown)"
 
-	repo, err := git.PlainOpen(dir)
+	repo, err := goGit.PlainOpen(dir)
 	if err != nil {
 		return "", "", fmt.Errorf("directory %s is not valid git repository: %v", dir, err)
 	}
@@ -37,7 +37,7 @@ func HeadInfo(dir string) (string, string, error) {
 }
 
 func Status(dir string) (bool, error) {
-	repo, err := git.PlainOpen(dir)
+	repo, err := goGit.PlainOpen(dir)
 	if err != nil {
 		return false, fmt.Errorf("directory %s is not valid git repository: %v", dir, err)
 	}

@@ -1,10 +1,20 @@
+// Copyright (c) 2022 EPAM Systems, Inc.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package git
 
 import (
 	"testing"
 
-	"github.com/epam/hubctl/cmd/hub/ext"
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	testRemote = "https://github.com/epam/hubctl.git"
+	testRef    = "master"
 )
 
 func TestStatusOfInvalidGitRepo(t *testing.T) {
@@ -14,7 +24,8 @@ func TestStatusOfInvalidGitRepo(t *testing.T) {
 	assert.False(t, clean, "should return clean as false if directory is empty")
 	assert.Error(t, err, "should return error if directory is empty")
 
-	ext.Install(dir)
+	err = Clone(testRemote, testRef, dir)
+	assert.NoError(t, err, "should return nil error if repo and ref exist")
 
 	clean, err = Status(dir)
 
@@ -31,11 +42,12 @@ func TestHeadOf(t *testing.T) {
 	assert.Empty(t, rev, "should return empty revision if directory is empty")
 	assert.Error(t, err, "should return an error if directory is empty")
 
-	ext.Install(dir)
+	err = Clone(testRemote, testRef, dir)
+	assert.NoError(t, err, "should return nil error if repo and ref exist")
 
 	name, rev, err = HeadInfo(dir)
 
-	assert.NotEmpty(t, name, "Git reference name should not be empty in valid git repo")
-	assert.NotEmpty(t, rev, "Git reference revision should not be empty in valid git repo")
-	assert.NoError(t, err, "Git HeadOf of valid git repo should not produce an error")
+	assert.NotEmpty(t, name, "should not return empty name if directory is valid git repo")
+	assert.NotEmpty(t, rev, "should not be empty rev if directory is valid git repo")
+	assert.NoError(t, err, "should not return an error if directory is valid git repo")
 }
