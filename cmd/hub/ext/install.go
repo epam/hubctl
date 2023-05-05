@@ -13,12 +13,14 @@ import (
 	"path/filepath"
 
 	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/git"
 	"github.com/epam/hubctl/cmd/hub/util"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 )
 
-const extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
+const (
+	extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
+	extensionsRef       = "master"
+)
 
 func defaultExtensionsDir() string {
 	return filepath.Join(os.Getenv("HOME"), hubDir)
@@ -38,16 +40,11 @@ func Install(dir string) {
 	if config.Debug {
 		log.Printf("Cloning extensions repository: %s", extensionsGitRemote)
 	}
-	_, err = git.PlainClone(dir, false, &git.CloneOptions{
-		URL:               extensionsGitRemote,
-		ReferenceName:     plumbing.ReferenceName("refs/heads/master"),
-		SingleBranch:      true,
-		Progress:          log.Default().Writer(),
-		RecurseSubmodules: git.NoRecurseSubmodules,
-	})
+
+	err = git.Clone(extensionsGitRemote, extensionsRef, dir)
 
 	if err != nil {
-		log.Fatalf("Unable to git clone %s into %s: %v", extensionsGitRemote, dir, err)
+		log.Fatalf("unable to install extensions to `%s` directory: %v", dir, err)
 	}
 
 	postInstall(dir)
@@ -62,34 +59,14 @@ func Update(dir string) {
 		dir = defaultExtensionsDir()
 	}
 
-	repo, err := git.PlainOpen(dir)
+	err := git.Pull(extensionsRef, dir)
 	if err != nil {
-		log.Fatalf("Unable to run update in %s: %v", dir, err)
-	}
-
-	worktree, err := repo.Worktree()
-	if err != nil {
-		log.Fatalf("Unable to run update in %s: %v", dir, err)
-	}
-
-	err = worktree.Pull(&git.PullOptions{
-		RemoteName:        "origin",
-		ReferenceName:     plumbing.ReferenceName("refs/heads/master"),
-		SingleBranch:      true,
-		Progress:          log.Default().Writer(),
-		RecurseSubmodules: git.NoRecurseSubmodules,
-	})
-	if err != nil {
-		if err == git.NoErrAlreadyUpToDate {
-			log.Printf("%v", err)
-		} else {
-			log.Fatalf("Unable to run update in %s: %v", dir, err)
-		}
+		log.Fatalf("unable to update extensions in `%s` directory: %v", dir, err)
 	}
 
 	postInstall(dir)
 
-	if config.Verbose && err == nil {
+	if config.Verbose {
 		log.Printf("Hub CTL extensions updated in %s", dir)
 	}
 }

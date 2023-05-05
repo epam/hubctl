@@ -178,17 +178,7 @@ func getGit(source manifest.Git, baseDir string, relDir string, componentName st
 			return components, repos, errors.New("not implemented")
 		} else {
 			if reset {
-				// 	cmd := exec.Cmd{
-				// 		Path: gitBin,
-				// 		Dir:  dir,
-				// 		Args: []string{"git", "stash", "--include-untracked"},
-				// 	}
-				// 	gitDebug(&cmd)
-				// 	err = cmd.Run()
-				// 	if err != nil {
-				// 		return components, repos,
-				// 			fmt.Errorf("Unable to stash Git repo worktree `%s`: %v", dir, err)
-				// 	}
+				// TODO: same way as git stash --include-untracked
 				return components, repos, errors.New("not implemented")
 			}
 
@@ -290,10 +280,6 @@ func findLocalClone(repos []LocalGitRepo, remote string, ref string) string {
 	}
 	return remote
 }
-
-// func upToDate(err error) bool {
-// 	return strings.Contains(err.Error(), "already up-to-date")
-// }
 
 func dirInRepoList(dir string, repos []LocalGitRepo) bool {
 	for _, repo := range repos {

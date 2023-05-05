@@ -1,38 +1,41 @@
+// Copyright (c) 2022 EPAM Systems, Inc.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package ext
 
 import (
-	"log"
 	"testing"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
+	goGit "github.com/go-git/go-git/v5"
+	goGitConfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExtensionsGitRepoUrlIsValid(t *testing.T) {
-	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+	rem := goGit.NewRemote(memory.NewStorage(), &goGitConfig.RemoteConfig{
 		Name: "origin",
 		URLs: []string{extensionsGitRemote},
 	})
 
-	_, err := rem.List(&git.ListOptions{})
+	_, err := rem.List(&goGit.ListOptions{})
 
 	assert.NoError(t, err, "When extensions git repository URL is valid, git ls-remote should not return error")
 }
 
-func TestExtensionsInstall(t *testing.T) {
-	assert.NotPanics(t, func() {
-		Install(t.TempDir())
-	}, "When install extensions, it should not panic")
-}
-
 func TestExtensionsInstallAndUpdate(t *testing.T) {
+	dir := t.TempDir()
+
+	t.Log("Install extensions")
 	assert.NotPanics(t, func() {
-		dir := t.TempDir()
-		log.Print("Install extensions")
 		Install(dir)
-		log.Print("Update extensions")
+	}, "When install extensions it should not panic")
+
+	t.Log("Update extensions")
+	assert.NotPanics(t, func() {
 		Update(dir)
-	}, "When install extensions and then update them, it should not panic")
+	}, "When update extensions, it should not panic")
 }
