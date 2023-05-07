@@ -1,0 +1,103 @@
+name: Issue Notification
+run-name: "Notify issue #${{ github.event.issue.number }} ${{github.event.issue.event}}"
+on:
+  issues:
+    types: [opened, edited, closed, reopened, assigned]
+permissions:
+  contents: read
+  issues: write
+  repository-projects: write
+jobs:
+  notify-teams:
+    name: Notify Teams
+    environment: hubctl-gh-project
+    runs-on: ubuntu-latest
+    steps:
+    - name: send notification
+      uses: aliencube/microsoft-teams-actions@v0.8.0
+      with:
+        webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URI }}
+        title: "@${{github.event.issue.actor.display_login}} ${{github.event.issue.event}} ${{ github.event.repository.name }}#${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
+        text: ${{ github.event.issue.body }}
+        actions: '[{ "@type": "OpenUri", "name": "Link", "targets": [{ "os": "default", "uri": "http://github.com/epam/${{ github.event.repository.name }}/issues/${{ github.event.issue.number }}" }] }]'
+  assign-project:
+    name: Assign Project
+    runs-on: ubuntu-latest
+    environment: hubctl-gh-project
+    if: github.event.issue.state == 'open'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    steps:
+    - name: project-data
+      env:
+        ORGANIZATION: epam
+        PROJECT_NUMBER: 8
+        COLUMN_NAME: Todo
+      run: |
+        gh api graphql -f query='
+          query($org: String!, $number: Int!) {
+            organization(login: $org){
+              projectV2(number: $number) {
+                id
+                fields(first:20) {
+                  nodes {
+                    ... on ProjectV2Field {
+                      id
+                      name
+                    }
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }' -f org=$ORGANIZATION -F number=$PROJECT_NUMBER > project_data.json
+
+        echo 'PROJECT_ID='$(jq '.data.organization.projectV2.id' project_data.json) >> $GITHUB_ENV
+        echo 'STATUS_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
+        echo 'TODO_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
+    - name: get issue id
+      run: echo ISSUE_NUMBER=$(gh api -q '.node_id' "repos/epam/${{ github.event.repository.name }}/issues/${{ github.event.issue.number }}") >> $GITHUB_ENV
+    - name: Add issue to project
+      run: |
+        item_id="$( gh api graphql -f query='
+          mutation($project:ID!, $content:ID!) {
+            addProjectV2ItemById(input: {projectId: $project contentId: $content}) {
+              item {
+                id
+              }
+            }
+          }' -f project=$PROJECT_ID -f content=$ISSUE_NUMBER --jq '.data.addProjectV2ItemById.item.id')"
+          echo 'ITEM_ID='$item_id >> $GITHUB_ENV
+    - name: current date
+      run: echo "CURR_DATE=$(date +"%Y-%m-%d")" >> $GITHUB_ENV
+    - name: set status
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        gh api graphql -f query='
+          mutation (
+            $project: ID!
+            $item: ID!
+            $status_field: ID!
+            $status_value: String!
+          ) {
+            set_status: updateProjectV2ItemFieldValue(input: {
+              projectId: $project
+              itemId: $item
+              fieldId: $status_field
+              value: {
+                singleSelectOptionId: $status_value
+                }
+            }) {
+              projectV2Item {
+                id
+                }
+            }
+          }' -f project=$PROJECT_ID -f item=$ITEM_ID -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.TODO_OPTION_ID }} --silent
