@@ -20,7 +20,7 @@ To download the latest release, run:
 #### cURL
 
 ```shell
-curl -LJ "https://github.com/epam/hubctl/releases/latest/download/hubctl_$(uname -s)_$(uname -m).tar.gz" \|
+curl -LJ "https://github.com/epam/hubctl/releases/latest/download/hubctl_$(uname -s)_$(uname -m).tar.gz" |\
   tar xz -C /tmp && sudo mv /tmp/hubctl /usr/local/bin
 ```
 
