@@ -130,6 +130,7 @@ func Execute(request *Request, pipe io.WriteCloser) {
 					util.Warn("State meta.name = `%s` does not match elaborate meta.name = `%s`",
 						parsed.Meta.Name, stackManifest.Meta.Name)
 				}
+				stateManifest = parsed
 			}
 		}
 		var syncer func(*state.StateManifest)
