@@ -17,7 +17,10 @@ import (
 	"github.com/epam/hubctl/cmd/hub/util"
 )
 
-const extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
+const (
+	extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
+	extensionsRef       = "master"
+)
 
 func defaultExtensionsDir() string {
 	return filepath.Join(os.Getenv("HOME"), hubDir)
@@ -34,25 +37,45 @@ func Install(dir string) {
 		return
 	}
 
-	cmd := exec.Cmd{
-		Path:   git.GitBinPath(),
-		Args:   []string{"git", "clone", "-b", "master", extensionsGitRemote, dir},
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
 	if config.Debug {
-		log.Printf("Cloning extensions repository: %v", cmd.Args)
-	}
-	err = cmd.Run()
-	if err != nil {
-		log.Fatalf("Unable to git clone %s into %s: %v", extensionsGitRemote, dir, err)
+		log.Printf("Cloning extensions repository: %s", extensionsGitRemote)
 	}
 
+	err = git.Clone(extensionsGitRemote, extensionsRef, dir)
+
+	if err != nil {
+		log.Fatalf("unable to install extensions to `%s` directory: %v", dir, err)
+	}
+
+	postInstall(dir)
+
+	if config.Verbose {
+		log.Printf("Hub CTL extensions installed into %s", dir)
+	}
+}
+
+func Update(dir string) {
+	if dir == "" {
+		dir = defaultExtensionsDir()
+	}
+
+	err := git.Pull(extensionsRef, dir)
+	if err != nil {
+		log.Fatalf("unable to update extensions in `%s` directory: %v", dir, err)
+	}
+
+	postInstall(dir)
+
+	if config.Verbose {
+		log.Printf("Hub CTL extensions updated in %s", dir)
+	}
+}
+
+func postInstall(dir string) {
 	hook := filepath.Join(dir, "post-install")
-	_, err = os.Stat(hook)
+	_, err := os.Stat(hook)
 	if err == nil {
-		cmd = exec.Cmd{
+		cmd := exec.Cmd{
 			Path:   "post-install",
 			Dir:    dir,
 			Stdin:  os.Stdin,
@@ -65,37 +88,5 @@ func Install(dir string) {
 		}
 	} else {
 		util.Warn("No post-install hook %s: %v", hook, err)
-	}
-
-	if config.Verbose {
-		log.Printf("Hub CTL extensions installed into %s", dir)
-	}
-}
-
-func Update(dir string) {
-	if dir == "" {
-		dir = defaultExtensionsDir()
-	}
-
-	hook := filepath.Join(dir, "update")
-	_, err := os.Stat(hook)
-	if err == nil {
-		cmd := exec.Cmd{
-			Path:   "update",
-			Dir:    dir,
-			Stdin:  os.Stdin,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-		}
-		err = cmd.Run()
-		if err != nil {
-			util.Warn("Unable to run update in %s: %v", dir, err)
-		}
-	} else {
-		log.Fatalf("No update hook %s: %v", hook, err)
-	}
-
-	if config.Verbose && err == nil {
-		log.Printf("Hub CTL extensions updated in %s", dir)
 	}
 }
