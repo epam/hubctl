@@ -46,7 +46,7 @@ func gitStatus(dir string, calculateStatus bool) (map[string]string, error) {
 	}
 	clean := "not calculated"
 	if calculateStatus {
-		isClean, _, err := git.Status(dir)
+		isClean, err := git.Status(dir)
 		if err != nil {
 			util.Warn("%v", err)
 		} else {
