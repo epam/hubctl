@@ -36,7 +36,7 @@ func pull(args []string) error {
 	}
 
 	manifest := args[0]
-	git.Pull(manifest, componentsBaseDir, reset, recurse, optimizeGitRemotes, subtree)
+	git.PullManifest(manifest, componentsBaseDir, reset, recurse, optimizeGitRemotes, subtree)
 
 	return nil
 }

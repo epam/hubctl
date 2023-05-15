@@ -7,67 +7,54 @@
 package git
 
 import (
-	"bytes"
 	"fmt"
-	"os/exec"
+	"log"
 	"strings"
+
+	goGit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 func HeadInfo(dir string) (string, string, error) {
 	what := "HEAD"
 	name := "(unknown)"
 	rev := "(unknown)"
-	var out bytes.Buffer
-	gitBin := GitBinPath()
 
-	cmd := exec.Cmd{
-		Path:   gitBin,
-		Dir:    dir,
-		Args:   []string{"git", "name-rev", "--name-only", what},
-		Stdout: &out,
-	}
-	gitDebug2(&cmd, &out)
-	err := cmd.Run()
+	repo, err := goGit.PlainOpen(dir)
 	if err != nil {
-		return name, rev,
-			fmt.Errorf("Unable to determine Git repo `%s` HEAD name: %v", dir, err)
+		return "", "", fmt.Errorf("directory %s is not valid git repository: %v", dir, err)
 	}
-	name = strings.Trim(out.String(), "\r\n")
 
-	out.Truncate(0)
-	cmd = exec.Cmd{
-		Path:   gitBin,
-		Dir:    dir,
-		Args:   []string{"git", "rev-parse", what},
-		Stdout: &out,
-	}
-	gitDebug2(&cmd, &out)
-	err = cmd.Run()
+	ref, err := repo.Reference(plumbing.ReferenceName(what), true)
 	if err != nil {
-		return name, rev,
-			fmt.Errorf("Unable to determine Git repo `%s` HEAD hash: %v", dir, err)
+		return "", "", fmt.Errorf("unable to get git repository %s %s name: %v", dir, what, err)
 	}
-	rev = strings.Trim(out.String(), "\r\n")
+
+	name = strings.Trim(ref.Name().String(), "\r\n")
+	rev = strings.Trim(ref.Hash().String(), "\r\n")
 
 	return name, rev, nil
 }
 
-func Status(dir string) (bool, string, error) {
-	clean := false
-	status := "(unknown)"
-	var out bytes.Buffer
-	cmd := exec.Cmd{
-		Path:   GitBinPath(),
-		Dir:    dir,
-		Args:   []string{"git", "status"},
-		Stdout: &out,
-	}
-	gitDebug2(&cmd, &out)
-	err := cmd.Run()
+func Status(dir string) (bool, error) {
+	repo, err := goGit.PlainOpen(dir)
 	if err != nil {
-		return clean, status, fmt.Errorf("Unable to determine Git repo `%s` status: %v", dir, err)
+		return false, fmt.Errorf("directory %s is not valid git repository: %v", dir, err)
 	}
-	status = out.String()
-	clean = strings.Contains(status, "nothing to commit, working tree clean")
-	return clean, status, nil
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return false, fmt.Errorf("git repository %s has invalid worktree: %v", dir, err)
+	}
+
+	status, err := worktree.Status()
+	if err != nil {
+		return false, fmt.Errorf("unable to determine git repo %s status: %v", dir, err)
+	}
+
+	if status.String() != "" {
+		log.Printf("Git repository status: %s", status)
+	}
+
+	return status.IsClean(), nil
 }
