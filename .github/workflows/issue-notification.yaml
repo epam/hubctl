@@ -17,9 +17,10 @@ jobs:
       uses: aliencube/microsoft-teams-actions@v0.8.0
       with:
         webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URI }}
-        title: "@${{github.event.issue.actor.display_login}} ${{github.event.issue.event}} ${{ github.event.repository.name }}#${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
-        text: ${{ github.event.issue.body }}
-        actions: '[{ "@type": "OpenUri", "name": "Link", "targets": [{ "os": "default", "uri": "http://github.com/epam/${{ github.event.repository.name }}/issues/${{ github.event.issue.number }}" }] }]'
+        summary: "Issue ${{ github.event.repository.name }}#${{ github.event.issue.number }}"
+        title: "Issue ${{github.event.action}}: \"${{ github.event.issue.title }}\""
+        sections: '[{"activityTitle":"${{ github.event.sender.login }}","activitySubtitle":"${{ github.event.issue.updated_at }}","activityImage":"${{ github.event.sender.avatar_url }}","facts":[{"name":"Repository","value":"${{ github.event.repository.name }}"},{"name":"Issue #","value":"${{ github.event.issue.number }}"}],"text":"${{ github.event.issue.body }}"}]'
+        actions: '[{ "@type": "OpenUri", "name": "View in GitHub", "targets": [{ "os": "default", "uri": "http://github.com/epam/${{ github.event.repository.name }}/issues/${{ github.event.issue.number }}" }] }]'
   assign-project:
     name: Assign Project
     runs-on: ubuntu-latest
