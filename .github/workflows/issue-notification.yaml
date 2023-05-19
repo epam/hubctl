@@ -1,5 +1,5 @@
 name: Issue Notification
-run-name: "Notify issue #${{ github.event.issue.number }} ${{github.event.issue.event}}"
+run-name: "Issue #${{ github.event.issue.number }} ${{github.event.issue.event}}"
 on:
   issues:
     types: [opened, edited, closed, reopened, assigned]
@@ -27,7 +27,7 @@ jobs:
     environment: hubctl-gh-project
 #     if: github.event.issue.state == 'open'
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: project-data
       env:
