@@ -10,11 +10,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
 
 	"github.com/epam/hubctl/cmd/hub/config"
@@ -31,6 +34,7 @@ const (
 	HubEnvVarNameStackBasedir     = "HUB_BASE_DIR"
 	HubEnvVarNameRandom           = "HUB_RANDOM"
 	SkaffoldKubeContextEnvVarName = "SKAFFOLD_KUBE_CONTEXT"
+	HubEnvVarHubStackName         = "HUB_STACK_NAME"
 )
 
 func Execute(request *Request, pipe io.WriteCloser) {
@@ -164,11 +168,30 @@ func Execute(request *Request, pipe io.WriteCloser) {
 		}
 		deploymentId = u.String()
 	}
-	plainStackNameParameterName := "hub.stackName"
-	plainStackName := util.PlainName(stackManifest.Meta.Name)
+
+	stackNameParameterName := "hub.stackName"
+	stackName := ""
+	if stateManifest != nil {
+		for _, p := range stateManifest.StackParameters {
+			if p.Name == stackNameParameterName {
+				stackName = util.String(p.Value)
+				break
+			}
+		}
+	}
+	if stackName == "" {
+		stackName = os.Getenv(HubEnvVarHubStackName)
+		if stackName == "" {
+			rand.Seed(time.Now().UnixNano())
+			suffix := rand.Intn(1000) + 1
+			name := petname.Generate(2, "-")
+			stackName = fmt.Sprintf("%s-%d", name, suffix)
+		}
+	}
+
 	extraExpansionValues := []manifest.Parameter{
 		{Name: deploymentIdParameterName, Value: deploymentId},
-		{Name: plainStackNameParameterName, Value: plainStackName},
+		{Name: stackNameParameterName, Value: stackName},
 	}
 
 	// TODO state file has user-level parameters for undeploy operation
@@ -204,7 +227,7 @@ func Execute(request *Request, pipe io.WriteCloser) {
 		}
 	}
 	addLockedParameter(stackParameters, deploymentIdParameterName, "DEPLOYMENT_ID", deploymentId)
-	addLockedParameter(stackParameters, plainStackNameParameterName, "STACK_NAME", plainStackName)
+	addLockedParameter(stackParameters, stackNameParameterName, "STACK_NAME", stackName)
 	stackParametersNoLinks := parameters.ParametersWithoutLinks(stackParameters)
 
 	order = stackManifest.Lifecycle.Order
