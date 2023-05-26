@@ -67,7 +67,7 @@ brews:
 
     folder: Formula
 
-    homepage: "https://superhub.io/"
+    homepage: "https://hubctl.io/"
     description: "Hub CTL is stack composition and lifecycle tool."
     license: "MPL-2.0"
     custom_block: |
