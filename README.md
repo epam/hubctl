@@ -1,6 +1,6 @@
 # hubctl
 
-[hubctl](https://superhub.io) is a missing package manager for the cloud.
+[hubctl](https://hubctl.io) is a missing package manager for the cloud.
 
 ## Example of usage
 
