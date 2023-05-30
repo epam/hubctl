@@ -21,6 +21,9 @@ import (
 
 var (
 	knownExtensions = []string{"toolbox", "pull", "ls", "show", "configure", "stack"}
+
+	repo    string
+	channel string
 )
 
 var extensionCmd = cobra.Command{
@@ -53,8 +56,7 @@ var extensionsCmd = &cobra.Command{
 var extensionsInstallCmd = &cobra.Command{
 	Use:   "install [dir]",
 	Short: "Install Hub CTL extensions",
-	Long: `Install Hub CTL extension into ~/.hub/ by cloning git@github.com:epam/hub-extensions.git
-and installing dependencies.`,
+	Long:  fmt.Sprintf("Install Hub CTL extension into ~/.hub/ by cloning %s branch from %s by default and installing dependencies.", ext.ExtensionsRef, ext.ExtensionsGitRemote),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return extensionsInstall(args)
 	},
@@ -63,8 +65,7 @@ and installing dependencies.`,
 var extensionsUpdateCmd = &cobra.Command{
 	Use:   "update [dir]",
 	Short: "Update Hub CTL extensions",
-	Long: `Update Hub CTL extension via hub pull in ~/.hub/
-and refreshing dependencies.`,
+	Long:  "Update Hub CTL extension via git pull in ~/.hub/ by default and refreshing dependencies.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return extensionsUpdate(args)
 	},
@@ -118,8 +119,8 @@ func extensionsInstall(args []string) error {
 		dir = args[0]
 	}
 	config.AggWarnings = false
-	ext.Install(dir)
-	return nil
+
+	return ext.Install(repo, channel, dir)
 }
 
 func extensionsUpdate(args []string) error {
@@ -131,8 +132,8 @@ func extensionsUpdate(args []string) error {
 		dir = args[0]
 	}
 	config.AggWarnings = false
-	ext.Update(dir)
-	return nil
+
+	return ext.Update(dir)
 }
 
 func init() {
@@ -143,6 +144,12 @@ func init() {
 		RootCmd.AddCommand(&cmd)
 	}
 	RootCmd.AddCommand(arbitraryExtensionCmd)
+
+	extensionsInstallCmd.Flags().StringVarP(&repo, "repo", "", ext.ExtensionsGitRemote,
+		"Git repository remote URL with extensions")
+	extensionsInstallCmd.Flags().StringVarP(&channel, "channel", "", ext.ExtensionsRef,
+		"Git branch or tag name in remote git repository")
+
 	extensionsCmd.AddCommand(extensionsInstallCmd)
 	extensionsCmd.AddCommand(extensionsUpdateCmd)
 	RootCmd.AddCommand(extensionsCmd)

@@ -31,6 +31,7 @@ var RootCmd = &cobra.Command{
 	Long: `Hub CTL is a stack composition and lifecycle tool:
 - template and stack creation, stack deploy / undeploy / backup lifecycle;
 - stack and component parameters, output variables, and status`,
+	SilenceUsage: true,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		config.Update()
@@ -47,7 +48,6 @@ var RootCmd = &cobra.Command{
 func Execute() {
 	ctx := context.WithValue(context.Background(), contextKey, &CmdContext{})
 	if err := RootCmd.ExecuteContext(ctx); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
