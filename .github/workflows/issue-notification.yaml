@@ -27,7 +27,7 @@ jobs:
     environment: hubctl-gh-project
 #     if: github.event.issue.state == 'open'
     env:
-      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: project-data
       env:
