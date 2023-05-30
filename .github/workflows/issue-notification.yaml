@@ -1,5 +1,5 @@
 name: Issue Notification
-run-name: "Issue #${{ github.event.issue.number }} ${{github.event.issue.event}}"
+run-name: "Issue #${{ github.event.issue.number }} ${{ github.event.action }}"
 on:
   issues:
     types: [opened, edited, closed, reopened, assigned]
@@ -18,7 +18,7 @@ jobs:
       with:
         webhook_uri: ${{ secrets.TEAMS_WEBHOOK_URI }}
         summary: "Issue ${{ github.event.repository.name }}#${{ github.event.issue.number }}"
-        title: "Issue ${{github.event.action}}: \"${{ github.event.issue.title }}\""
+        title: "Issue ${{ github.event.action }}: \"${{ github.event.issue.title }}\""
         sections: '[{"activityTitle":"${{ github.event.sender.login }}","activitySubtitle":"${{ github.event.issue.updated_at }}","activityImage":"${{ github.event.sender.avatar_url }}","facts":[{"name":"Repository","value":"${{ github.event.repository.name }}"},{"name":"Issue #","value":"${{ github.event.issue.number }}"}],"text":"${{ github.event.issue.body }}"}]'
         actions: '[{ "@type": "OpenUri", "name": "View in GitHub", "targets": [{ "os": "default", "uri": "http://github.com/epam/${{ github.event.repository.name }}/issues/${{ github.event.issue.number }}" }] }]'
   assign-project:
