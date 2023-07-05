@@ -3,8 +3,8 @@ module github.com/epam/hubctl
 go 1.18
 
 require (
-	cloud.google.com/go/kms v1.4.0
-	cloud.google.com/go/storage v1.22.1
+	cloud.google.com/go/kms v1.6.0
+	cloud.google.com/go/storage v1.27.0
 	github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.27
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.11
@@ -22,18 +22,23 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.12.0
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.6.0
-	google.golang.org/api v0.83.0
-	google.golang.org/genproto v0.0.0-20220607223854-30acc4cbd2aa
+	google.golang.org/api v0.103.0
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	cloud.google.com/go v0.102.0 // indirect
-	cloud.google.com/go/compute v1.6.1 // indirect
-	cloud.google.com/go/iam v0.3.0 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.0 // indirect
+)
+
+require (
+	cloud.google.com/go v0.107.0 // indirect
+	cloud.google.com/go/compute v1.15.1 // indirect
+	cloud.google.com/go/iam v0.8.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.9.20 // indirect
 	github.com/Azure/go-autorest/autorest/azure/cli v0.4.5 // indirect
@@ -63,8 +68,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
-	github.com/googleapis/go-type-adapters v1.0.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
@@ -92,15 +96,15 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	go.opencensus.io v0.23.0 // indirect
+	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401 // indirect
+	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc v1.47.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/grpc v1.53.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
