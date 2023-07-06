@@ -25,15 +25,14 @@ jobs:
     name: Assign Project
     runs-on: ubuntu-latest
     environment: hubctl-gh-project
-#     if: github.event.issue.state == 'open'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    if: github.event.issue.state == 'open'
     steps:
     - name: project-data
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         ORGANIZATION: epam
         PROJECT_NUMBER: 8
-#         COLUMN_NAME: Todo
+        COLUMN_NAME: Todo
       run: |
         gh api graphql -f query='
           query($org: String!, $number: Int!) {
@@ -61,11 +60,15 @@ jobs:
           }' -f org=$ORGANIZATION -F number=$PROJECT_NUMBER > project_data.json
 
         echo 'PROJECT_ID='$(jq '.data.organization.projectV2.id' project_data.json) >> $GITHUB_ENV
-#        echo 'STATUS_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
-#        echo 'TODO_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
+        echo 'STATUS_FIELD_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id' project_data.json) >> $GITHUB_ENV
+        echo 'TODO_OPTION_ID='$(jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="${{ env.COLUMN_NAME }}") |.id' project_data.json) >> $GITHUB_ENV
     - name: get issue id
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: echo ISSUE_NUMBER=$(gh api -q '.node_id' "repos/epam/${{ github.event.repository.name }}/issues/${{ github.event.issue.number }}") >> $GITHUB_ENV
     - name: Add issue to project
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         item_id="$( gh api graphql -f query='
           mutation($project:ID!, $content:ID!) {
@@ -75,30 +78,30 @@ jobs:
               }
             }
           }' -f project=$PROJECT_ID -f content=$ISSUE_NUMBER --jq '.data.addProjectV2ItemById.item.id')"
-#          echo 'ITEM_ID='$item_id >> $GITHUB_ENV
-#     - name: current date
-#       run: echo "CURR_DATE=$(date +"%Y-%m-%d")" >> $GITHUB_ENV
-#     - name: set status
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-#       run: |
-#         gh api graphql -f query='
-#           mutation (
-#             $project: ID!
-#             $item: ID!
-#             $status_field: ID!
-#             $status_value: String!
-#           ) {
-#             set_status: updateProjectV2ItemFieldValue(input: {
-#               projectId: $project
-#               itemId: $item
-#               fieldId: $status_field
-#               value: {
-#                 singleSelectOptionId: $status_value
-#                 }
-#             }) {
-#               projectV2Item {
-#                 id
-#                 }
-#             }
-#           }' -f project=$PROJECT_ID -f item=$ITEM_ID -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.TODO_OPTION_ID }} --silent
+        echo 'ITEM_ID='$item_id >> $GITHUB_ENV
+    - name: current date
+      run: echo "CURR_DATE=$(date +"%Y-%m-%d")" >> $GITHUB_ENV
+    - name: set status
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh api graphql -f query='
+          mutation (
+            $project: ID!
+            $item: ID!
+            $status_field: ID!
+            $status_value: String!
+          ) {
+            set_status: updateProjectV2ItemFieldValue(input: {
+              projectId: $project
+              itemId: $item
+              fieldId: $status_field
+              value: {
+                singleSelectOptionId: $status_value
+              }
+            }) {
+              projectV2Item {
+                id
+              }
+            }
+          }' -f project=$PROJECT_ID -f item=$ITEM_ID -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.TODO_OPTION_ID }} --silent
