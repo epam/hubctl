@@ -21,27 +21,7 @@ import (
 const hubDir = ".hub"
 
 func ExtensionPath(what, args []string) (string, []string, error) {
-
-	searchDirs := []string{filepath.Join(".", hubDir)}
-
-	customHubDir := os.Getenv("HUB_EXTENSIONS")
-	if customHubDir != "" {
-		searchDirs = append(searchDirs, customHubDir)
-	}
-
-	home := os.Getenv("HOME")
-	homeHubDir := ""
-	if home != "" {
-		homeHubDir = filepath.Join(home, hubDir)
-		searchDirs = append(searchDirs, homeHubDir)
-	} else {
-		if config.Verbose {
-			util.Warn("Unable to lookup $HOME: no home directory set in OS environment")
-		}
-	}
-
-	searchDirs = append(searchDirs, "/usr/local/share/hub", "/usr/share/hub")
-
+	searchDirs := GetExtensionLocations()
 	for i := len(what); i > 0; i-- {
 		script := "hub-" + strings.Join(what[0:i], "-")
 		newArgs := append(what[i:], args...)
@@ -71,9 +51,20 @@ func ExtensionPath(what, args []string) (string, []string, error) {
 		}
 	}
 
+	customHubDir := os.Getenv("HUB_EXTENSIONS")
 	printCustomHubDir := ""
 	if customHubDir != "" {
 		printCustomHubDir = fmt.Sprintf(", $HUB_EXTENSIONS=%s", customHubDir)
+	}
+
+	home := os.Getenv("HOME")
+	homeHubDir := ""
+	if home != "" {
+		homeHubDir = filepath.Join(home, hubDir)
+	} else {
+		if config.Verbose {
+			util.Warn("Unable to lookup $HOME: no home directory set in OS environment")
+		}
 	}
 
 	maybeInstall := ""
@@ -89,6 +80,26 @@ func ExtensionPath(what, args []string) (string, []string, error) {
 	}
 
 	return "", nil, fmt.Errorf("Extension not found in %v%s, nor $PATH%s", searchDirs, printCustomHubDir, maybeInstall)
+}
+
+func GetExtensionLocations() []string {
+	results := []string{filepath.Join(".", hubDir)}
+
+	customHubDir := os.Getenv("HUB_EXTENSIONS")
+	if customHubDir != "" {
+		results = append(results, customHubDir)
+	}
+
+	if os.Getenv("HOME") != "" {
+		home := os.Getenv("HOME")
+		hubHome := filepath.Join(home, hubDir)
+		_, err := os.Stat(hubHome)
+		if err == nil {
+			results = append(results, hubHome)
+		}
+	}
+
+	return append(results, "/usr/local/share/hub", "/usr/share/hub")
 }
 
 func RunExtension(what, args []string) {

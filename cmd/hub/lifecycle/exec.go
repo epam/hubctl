@@ -69,8 +69,8 @@ func execImplementation(impl *exec.Cmd, passStdin, paginate bool) ([]byte, []byt
 	stderrWritter := io.MultiWriter(&stderrBuffer, stderr)
 	if impl.Path != "" {
 		dir := impl.Dir
-		fmt.Printf("--- Dir: %s\n", dir)
-		fmt.Printf("--- File: %s\n", impl.Path)
+		fmt.Printf("  Working dir: %s\n", dir)
+		fmt.Printf("  File: %s\n", impl.Path)
 		args := ""
 		if len(impl.Args) > 1 {
 			args = fmt.Sprintf("Args: %v", impl.Args[1:])
