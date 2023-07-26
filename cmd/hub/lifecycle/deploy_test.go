@@ -7,13 +7,14 @@
 package lifecycle
 
 import (
+	"os"
 	"testing"
 
 	"github.com/epam/hubctl/cmd/hub/manifest"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMaybeHooks(t *testing.T) {
+func TestHooksFilterByTrigger(t *testing.T) {
 	hooks := []manifest.Hook{
 		{
 			File: "/etc/hook1",
@@ -35,7 +36,7 @@ func TestMaybeHooks(t *testing.T) {
 			},
 		},
 	}
-	res := findRelevantHooks("pre-deploy", hooks)
+	res := findHooksByTrigger("pre-deploy", hooks)
 	assert.Equal(t, len(res), 2)
 	hooks = []manifest.Hook{
 		{
@@ -58,7 +59,7 @@ func TestMaybeHooks(t *testing.T) {
 			},
 		},
 	}
-	res = findRelevantHooks("pre-backup", hooks)
+	res = findHooksByTrigger("pre-backup", hooks)
 	assert.Equal(t, len(res), 1)
 	assert.Equal(t, res[0].File, "/etc/hook1")
 	hooks = []manifest.Hook{
@@ -82,7 +83,33 @@ func TestMaybeHooks(t *testing.T) {
 			},
 		},
 	}
-	res = findRelevantHooks("post-deploy", hooks)
+	res = findHooksByTrigger("post-deploy", hooks)
 	assert.Equal(t, len(res), 1)
 	assert.Equal(t, res[0].File, "/etc/hook3")
+}
+
+func TestFindScript(t *testing.T) {
+	temp := t.TempDir()
+	// always := []string{"*"}
+	result, err := findScript(temp+"/foo", temp)
+	assert.Empty(t, result, "It should not return value when script is not found")
+	assert.Error(t, err, "It should return error when script is not found")
+
+	helloWorld := []byte(`#!/bin/sh -e
+	echo "Hello, World"`)
+	os.WriteFile(temp+"/bar", helloWorld, 0755)
+
+	result, err = findScript(temp+"/bar", temp)
+	assert.NotEmpty(t, result, "It should return path to the actual file")
+	assert.FileExists(t, result, "It should return path to the actual file")
+	assert.NoError(t, err)
+
+	result, err = findScript("bar", temp)
+	assert.FileExists(t, result, "It should return path to the actual file")
+	assert.NoError(t, err)
+
+	os.WriteFile(temp+"/baz.sh", helloWorld, 0755)
+	result, err = findScript("baz", temp)
+	assert.FileExists(t, result, "It should return path to the actual file when extension is omitted")
+	assert.NoError(t, err)
 }
