@@ -758,20 +758,20 @@ func findScript(script string, dirs ...string) (string, error) {
 
 func delegateHook(script string, stackDir string, component *manifest.ComponentRef, componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
 	var err error
-	cwd := component.Source.Dir
+	componentDir := component.Source.Dir
 	// components usually stored as relative paths
-	if !filepath.IsAbs(cwd) {
-		cwd = filepath.Join(stackDir, cwd)
-		cwd, err = filepath.Abs(cwd)
+	if !filepath.IsAbs(componentDir) {
+		componentDir = filepath.Join(stackDir, componentDir)
+		componentDir, err = filepath.Abs(componentDir)
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
-	processEnv := parametersInEnv(component, componentParameters, cwd)
+	processEnv := parametersInEnv(component, componentParameters, stackDir)
 	command := &exec.Cmd{
 		Path: script,
-		Dir:  cwd,
+		Dir:  componentDir,
 		Env:  mergeOsEnviron(osEnv, processEnv),
 	}
 	return execImplementation(command, false, true)
@@ -882,14 +882,23 @@ func parametersInEnv(component *manifest.ComponentRef, componentParameters param
 		componentDir = component.Source.Dir
 	} else {
 		componentDir = filepath.Join(baseDir, component.Source.Dir)
+		if !filepath.IsAbs(componentDir) {
+			t, err := filepath.Abs(componentDir)
+			if err != nil {
+				util.Warn("Unable to set absolute path for HUB_COMPONENT_DIR (%s): %v", component.Name, err)
+				util.Warn("Falling back to %s directory: %s", component.Name, componentDir)
+			} else {
+				componentDir = t
+			}
+		}
 	}
-	if !filepath.IsAbs(componentDir) {
+
+	if !filepath.IsAbs(baseDir) {
 		t, err := filepath.Abs(componentDir)
 		if err != nil {
-			util.Warn("Unable to set absolute path for HUB_COMPONENT_DIR `%s`: %v", component.Name, err)
-			util.Warn("Falling back to %s directory: %s", component.Name, componentDir)
+			util.Warn("Unable to take absolute path for %s (%s): %v", HubEnvVarNameStackBasedir, baseDir, err)
 		} else {
-			componentDir = t
+			baseDir = t
 		}
 	}
 
