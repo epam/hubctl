@@ -877,6 +877,15 @@ func parametersInEnv(component *manifest.ComponentRef, componentParameters param
 			component.Name, envComponentName, envValue[envComponentName], setBy)
 	}
 
+	if !filepath.IsAbs(baseDir) {
+		t, err := filepath.Abs(baseDir)
+		if err != nil {
+			util.Warn("Unable to take absolute path for %s (%s): %v", HubEnvVarNameStackBasedir, baseDir, err)
+		} else {
+			baseDir = t
+		}
+	}
+
 	var componentDir string
 	if filepath.IsAbs(component.Source.Dir) {
 		componentDir = component.Source.Dir
@@ -892,16 +901,6 @@ func parametersInEnv(component *manifest.ComponentRef, componentParameters param
 			}
 		}
 	}
-
-	if !filepath.IsAbs(baseDir) {
-		t, err := filepath.Abs(componentDir)
-		if err != nil {
-			util.Warn("Unable to take absolute path for %s (%s): %v", HubEnvVarNameStackBasedir, baseDir, err)
-		} else {
-			baseDir = t
-		}
-	}
-
 	// for `hub render`
 	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameComponentName, component.Name))
 	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameComponentDir, componentDir))
