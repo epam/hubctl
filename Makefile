@@ -19,7 +19,7 @@ install: bin/$(OS)/gocloc bin/$(OS)/staticcheck bin/$(OS)/gotests
 bin/$(OS)/gocloc:
 	go install github.com/hhatto/gocloc/cmd/gocloc@latest
 bin/$(OS)/staticcheck:
-	go install honnef.co/go/tools/cmd/staticcheck@bc75918
+	go install honnef.co/go/tools/cmd/staticcheck@2022.1.2
 bin/$(OS)/gotests:
 	$ go get -u github.com/cweill/gotests/...
 
