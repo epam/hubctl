@@ -83,10 +83,34 @@ Steps like "update documentation on [hubct.io](http://github.com/epam/hubctl.io)
 
 If enhancement is rather large, then separate items in the checklist can be broken into multiple issues. Goal is not too have a one issue that will be in "In Progress" status for several weeks. Instead, we want to have a number of issues that can be implemented in a two days max.
 
+## Creating a PR
+
+1. PR should be created from the feature branch to `develop`
+2. All DOD items should be completed, and obviously all tests should be passing.
+3. PR should be reviewed by at least one other contributor.
+4. Squash and rebase PR into `develop` branch. The squashed commit message should contain original issue reference. For example, `Update foo bar #1234`
+5. Delete the feature branch.
+
+Example of PR text
+
+```markdown
+## What type of PR is this?
+
+## What this PR does / why we need it:
+
+## Which issue(s) this PR fixes:
+
+Fixes #
+
+## Special notes for your reviewer:
+
+Does this PR introduce a user-facing change?
+```
+
 ### Help, I am blocked!
 
 Sometimes, it happens.
-1. Mark the issue as []`Help wanted`](/epam/hubctl/labels/help%20wanted).
+1. Mark the issue as [`Help wanted`](/epam/hubctl/labels/help%20wanted).
 2. Notify other contributors about it. Ask for help.
 
 ## Branching Strategy
@@ -252,4 +276,3 @@ Instructions how to troubleshoot deployment
 
 References to the other stacks user can be interested after deloying the current
 ```
-
