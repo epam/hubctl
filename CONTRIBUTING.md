@@ -131,9 +131,11 @@ Few guidelines how to write good commit messages. Even if commits will be squash
 
 ## Release Guidelines
 
+0. Make sure all issues have been completed. It should not be possible to make a release for 'In Progress' issues.
 1. Release is always taken from `develop` branch
 2. Do not squash it but rebase to the `main` branch (or `master` if Github legacy naming is used)
 3. Create a tag with a version number. For example, `v0.1.0` (not aplicable for components and stacks). This should trigger the release workflow.
+4. Close issues that have been released.
 
 ## Coding Guidelines
 
@@ -159,4 +161,95 @@ Few notes when you change the shell scripts:
 ```
 
 If false-positive waring, then disable it in-place.
+
+### Writing Readme for Component
+
+Every component needs to have a README.md file. It should contain the following information:
+
+```markdown
+# Title
+
+Text description of the component
+
+## Requirements
+
+List of the tools and software required to run the component
+
+Example:
+* [helm](https://helm.sh)
+* [kustomize](https://kustomize.io)
+
+## Dependencies
+
+List of component dependencies (can be other components)
+
+Example:
+* Kubernetes cluster
+* Cert Manager
+* Istio
+
+## Parameters
+
+| Name      | Description | Default Value | Required
+| --------- | ---------   | ---------     | :---: |
+| `parameter.name` | Meaning for parameter | `default value` | `x`
+
+## Implementation Details
+
+Directory content description.
+
+To display directory content use the following command and comments for each file
+
+Write a deployment algorithm if applicable.
+
+## See also
+
+List of other components or what user should look next
+```
+
+See [kserve component](https://github.com/epam/hub-kubeflow-components/tree/main/kserve) for the example.
+
+Do not list `.env`, `.gitignore` and `.hub` and similar files or directories. It does not add any value. If a config has bene rendered by template. Then do not list a rendered file. Template file is just enough
+
+### Writing Readme for Stack
+
+```markdown
+# Title
+
+description of a stack
+
+## Requirements
+
+List of required tools needed to deploy a stack
+
+## Dependencies
+
+List of stack requirements (such as cloud provider, Kubernetes cluster etc)
+
+## Components
+
+List of components that have been used in the stack
+
+## Parameters
+
+| Component(s) |   Parameter name       |    Description                 |  Default value |
+|-------------|:------------------------|:---------------------------------|:-------------|
+| `component` | `parameter.name`        | Description | default value or name of environment variable |
+
+## Implementation Details
+
+Directory content description.
+
+## Validate Deployment
+
+Instructions how to validate deployment has been successful
+
+## Troubleshooting
+
+Instructions how to troubleshoot deployment
+
+## See Also
+
+References to the other stacks user can be interested after deloying the current
+```
 
