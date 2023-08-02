@@ -2,9 +2,24 @@
 
 Welcome to Hubctl. We are excited you have joined our community. This document will help you get started as a contributor.
 
-## Issues Tracking
 
-All activities has been tracked as a Github issues in several repositories and have been attached to [this](https://github.com/orgs/epam/projects/8/views/2) Github project.
+- [Issues Handling](#issues-handling))
+- [Branching Strategy](#branching-strategy)
+- [Release Procedure](#release-procedure)
+- [Coding Guidelines](#coding-guidelines)
+
+## Issues Handling
+
+All activities has been tracked as a Github issues in several repositories and have been attached to [this](https://github.com/orgs/epam/projects/8/) Github project.
+
+### Working with Github Project
+
+There are following statuses in the project:
+- To Do: Issues that are ready to be picked up by contributors.
+- In Progress: Issues that are being worked on.
+- In Review: Issues that are ready to be reviewed by other contributors. Typically backed by a PR. This is a good status for PR issues.
+- Done + Open: Issues that have been completed. Waiting for next released
+- Done + Closed: Issues that have been released.
 
 All issues attached to the project are in the status *"To Do"* and are ready to be picked up by contributors.
 
@@ -17,23 +32,7 @@ Status *"Done"* also means the feature branch have been integrated into `develop
 
 Issue from *"Done"* status goes into maybe moved *"In Progress"* status (or even reopened) if additional work have been identified. We do not want to keep duplicated issues (or regressions in case of bugs) as separate issues. Instead, please re-energize the existing issue.
 
-If duplicated issue have been identified it should be closed with labeld `duplicated` and reference to the original issue.
-
-## Branching Strategy
-
-There are three types of branches:
-
-- `main` (or `master`) branch - is the stable branch. It is used for releases only. No direct commits are allowed into this branch.
-- `develop` branch - is the integration branch. It contains the latest greatest features. Force push is not allowed here. Allows only lineal history. Changes merged on behalf of PRs (unless trivial, such as typo in readme file). Only merge-rebase workflow is allowed.
-- `feature branch` - created on behalf of feature/bugfix.
-
-    - Should be branched from `develop` branch.
-    - Should be merged back into `develop` branch.
-    - Should deleted once merged.
-    - Should contain issue number in the name. Before merged, a PR should be created. PR should be reviewed by at least one other developer.
-    - Force push is allowed here
-
-> Feature branches should be continuously integrated into `develop` branch. It should not take more than few days to integrate.
+If duplicated issue have been identified it should be closed with labeled as `duplicated` and reference to the original issue.
 
 ### Reporting Bugs
 
@@ -79,6 +78,29 @@ Steps like "update documentation on [hubct.io](http://github.com/epam/hubctl.io)
 
 If enhancement is rather large, then separate items in the checklist can be broken into multiple issues. Goal is not too have a one issue that will be in "In Progress" status for several weeks. Instead, we want to have a number of issues that can be implemented in a two days max.
 
+### Help, I am blocked!
+
+Sometimes, it happens.
+1. Mark the issue as `Help wanted`.
+2. Notify other contributors about it. Ask for help.
+
+## Branching Strategy
+
+There are three types of branches:
+
+- `main` (or `master`) branch - is the stable branch. It is used for releases only. No direct commits are allowed into this branch.
+- `develop` branch - is the integration branch. It contains the latest greatest features. Force push is not allowed here. Allows only lineal history. Changes merged on behalf of PRs (unless trivial, such as typo in readme file). Only merge-rebase workflow is allowed.
+- `feature branch` - created on behalf of feature/bugfix.
+
+    - Should be branched from `develop` branch.
+    - Should be merged back into `develop` branch.
+    - Should deleted once merged.
+    - Should contain issue number in the name. Before merged, a PR should be created. PR should be reviewed by at least one other developer.
+    - Force push is allowed here
+
+> Feature branches should be continuously integrated into `develop` branch. It should not take more than few days to integrate.
+
+
 ### Pushing Changes
 
 1. Pick and issue and update its status to "In Progress" and assign it to yourself.
@@ -91,7 +113,7 @@ If enhancement is rather large, then separate items in the checklist can be brok
 6. Delete the feature branch.
 7. Move the issue into "Done" status.
 
-### Git commit messages
+### Commit messages
 
 Few guidelines how to write good commit messages. Even if commits will be squashed afterwards it will make easier to identify what has been changed and why. Here are the guidelines for good commit messages:
 
@@ -100,13 +122,13 @@ Few guidelines how to write good commit messages. Even if commits will be squash
 3. Git commit message should be written in a present tense. For example, "Add foo" and should start from a capital letter.
 3. Git commit message should explain exactly what has been done. Such messages as: `Changes in readme` or `Make code better` are not acceptable.
 
-### Help, I am blocked!
+## Release Guidelines
 
-Sometimes, it happens.
-1. Mark the issue as `Help wanted`.
-2. Notify other contributors about it. Ask for help.
+TODO: Describe release procedure
 
-## Changing the Shell Scripts
+## Coding Guidelines
+
+### Changing the Shell Scripts
 
 Hubctl has a lot of shell scripts. Extensions, Hooks and pre/post deployment scripts are basically implemented as the shell scripts. This makes it easily extendable and "hackable".
 
