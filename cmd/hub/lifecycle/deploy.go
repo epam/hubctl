@@ -21,6 +21,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/epam/hubctl/cmd/hub/config"
+	"github.com/epam/hubctl/cmd/hub/ext"
 	"github.com/epam/hubctl/cmd/hub/manifest"
 	"github.com/epam/hubctl/cmd/hub/parameters"
 	"github.com/epam/hubctl/cmd/hub/state"
@@ -446,9 +447,8 @@ NEXT_COMPONENT:
 				updateStateComponentFailed)
 			failedComponents = append(failedComponents, componentName)
 		} else if isDeploy {
-			rawOutputsCaptured, componentOutputs, dynamicProvides, errs :=
-				captureOutputs(componentName, componentDir, componentManifest, componentParameters,
-					stdout, random)
+			rawOutputsCaptured, componentOutputs, dynamicProvides, errs := captureOutputs(componentName, componentDir, componentManifest, componentParameters,
+				stdout, random)
 			rawOutputs = rawOutputsCaptured
 			if len(errs) > 0 {
 				log.Printf("Component `%s` failed to %s", componentName, request.Verb)
@@ -649,29 +649,43 @@ func maybeTestVerb(verb string, test bool) string {
 	return verb
 }
 
-func fireHooks(currentHook string, stackBaseDir string, component *manifest.ComponentRef,
-	componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
-	hooks := findRelevantHooks(currentHook, component.Hooks)
-	if len(hooks) > 0 {
-		log.Printf("Running %s hooks:", currentHook)
-		if len(componentParameters) > 0 {
+func fireHooks(trigger string, stackBaseDir string, component *manifest.ComponentRef,
+	componentParameters parameters.LockedParameters, osEnv []string,
+) ([]byte, []byte, error) {
+	hooks := findHooksByTrigger(trigger, component.Hooks)
+	if len(hooks) == 0 {
+		return nil, nil, nil
+	}
+
+	extensions := ext.GetExtensionLocations()
+	paths := filepath.SplitList(os.Getenv("PATH"))
+
+	searchDirs := []string{
+		component.Source.Dir,
+		stackBaseDir,
+		filepath.Join(stackBaseDir, "bin"),
+		filepath.Join(stackBaseDir, ".hub"),
+		filepath.Join(stackBaseDir, ".hub", "bin"),
+	}
+	searchDirs = append(searchDirs, extensions...)
+	searchDirs = append(searchDirs, paths...)
+
+	for _, hook := range hooks {
+		var err error
+		script, err := findScript(hook.File, searchDirs...)
+		if err != nil || script == "" {
+			util.Warn("Unable to locate hook script `%s:` %v", hook.File, err)
+			continue
+		}
+		log.Printf("Running %s script: %s", trigger, util.HighlightColor(hook.File))
+		if config.Verbose && len(componentParameters) > 0 {
 			log.Print("Environment:")
 			parameters.PrintLockedParameters(componentParameters)
 		}
-	}
-	for i := range hooks {
-		hook := hooks[i]
-		filePath := fmt.Sprintf("%s/%s", stackBaseDir, hook.File)
-		if strings.HasPrefix(hook.File, "/") {
-			filePath = hook.File
-		}
-		if hook.Brief != "" {
-			log.Printf("Brief: %s", hook.Brief)
-		}
-		stdout, stderr, err := delegateHook(&hook, stackBaseDir, component, componentParameters, osEnv)
+		stdout, stderr, err := delegateHook(script, stackBaseDir, component, componentParameters, osEnv)
 		if err != nil {
 			if strings.Contains(err.Error(), "fork/exec : no such file or directory") {
-				log.Printf("Error: file %s has not been found.", filePath)
+				log.Printf("Error: file %s has not been found.", script)
 				return stdout, stderr, err
 			} else if hook.Error == "ignore" {
 				log.Printf("Error ignored: %s", err.Error())
@@ -685,13 +699,13 @@ func fireHooks(currentHook string, stackBaseDir string, component *manifest.Comp
 	return nil, nil, nil
 }
 
-func findRelevantHooks(trigger string, hooks []manifest.Hook) []manifest.Hook {
+func findHooksByTrigger(trigger string, hooks []manifest.Hook) []manifest.Hook {
 	matches := make([]manifest.Hook, 0)
 	for i := range hooks {
 		hook := hooks[i]
 		for t := range hook.Triggers {
-			triggerPattern := hook.Triggers[t]
-			matched, _ := filepath.Match(triggerPattern, trigger)
+			glob := hook.Triggers[t]
+			matched, _ := filepath.Match(glob, trigger)
 			if matched {
 				matches = append(matches, hook)
 				break
@@ -701,26 +715,72 @@ func findRelevantHooks(trigger string, hooks []manifest.Hook) []manifest.Hook {
 	return matches
 }
 
-func delegateHook(hook *manifest.Hook, stackBaseDir string, component *manifest.ComponentRef, componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
-	processEnv := parametersInEnv(component, componentParameters, stackBaseDir)
-	hookFilePath := fmt.Sprintf("%s/%s", stackBaseDir, hook.File)
-	if strings.HasPrefix(hook.File, "/") {
-		hookFilePath = hook.File
+func findScript(script string, dirs ...string) (string, error) {
+	var result string
+	// special case for absolute filenames - just check if it exists
+	if filepath.IsAbs(script) {
+		dir, f := filepath.Split(script)
+		found, err := probeScript(dir, f)
+		if err != nil {
+			return "", err
+		}
+		if found == "" {
+			return "", os.ErrNotExist
+		}
+		result = filepath.Join(dir, found)
+	} else {
+		var search []string
+		for _, dir := range dirs {
+			search = append(search, filepath.Join(dir, script))
+		}
+
+		for _, path := range search {
+			dir, f := filepath.Split(path)
+			found, _ := probeScript(dir, f)
+			if found != "" {
+				result = filepath.Join(dir, found)
+				break
+			}
+		}
 	}
-	hookDir, hookFileName := filepath.Split(hookFilePath)
-	script, err := probeScript(hookDir, hookFileName)
-	if err != nil {
-		return nil, nil, err
+	if result == "" {
+		return "", os.ErrNotExist
 	}
-	command := &exec.Cmd{Path: script, Dir: hookDir, Env: mergeOsEnviron(osEnv, processEnv)}
-	stdout, stderr, err := execImplementation(command, false, true)
-	return stdout, stderr, err
+	if !filepath.IsAbs(result) {
+		var err error
+		result, err = filepath.Abs(result)
+		if err != nil {
+			return "", err
+		}
+	}
+	return result, nil
+}
+
+func delegateHook(script string, stackDir string, component *manifest.ComponentRef, componentParameters parameters.LockedParameters, osEnv []string) ([]byte, []byte, error) {
+	var err error
+	componentDir := component.Source.Dir
+	// components usually stored as relative paths
+	if !filepath.IsAbs(componentDir) {
+		componentDir = filepath.Join(stackDir, componentDir)
+		componentDir, err = filepath.Abs(componentDir)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	processEnv := parametersInEnv(component, componentParameters, stackDir)
+	command := &exec.Cmd{
+		Path: script,
+		Dir:  componentDir,
+		Env:  mergeOsEnviron(osEnv, processEnv),
+	}
+	return execImplementation(command, false, true)
 }
 
 func delegate(verb string, component *manifest.ComponentRef, componentManifest *manifest.Manifest,
 	componentParameters parameters.LockedParameters,
-	dir string, osEnv []string, random string, baseDir string) ([]byte, []byte, error) {
-
+	dir string, osEnv []string, random string, baseDir string,
+) ([]byte, []byte, error) {
 	if config.Debug && len(componentParameters) > 0 {
 		log.Print("Component parameters:")
 		parameters.PrintLockedParameters(componentParameters)
@@ -817,11 +877,29 @@ func parametersInEnv(component *manifest.ComponentRef, componentParameters param
 			component.Name, envComponentName, envValue[envComponentName], setBy)
 	}
 
+	if !filepath.IsAbs(baseDir) {
+		t, err := filepath.Abs(baseDir)
+		if err != nil {
+			util.Warn("Unable to take absolute path for %s (%s): %v", HubEnvVarNameStackBasedir, baseDir, err)
+		} else {
+			baseDir = t
+		}
+	}
+
 	var componentDir string
 	if filepath.IsAbs(component.Source.Dir) {
 		componentDir = component.Source.Dir
 	} else {
 		componentDir = filepath.Join(baseDir, component.Source.Dir)
+		if !filepath.IsAbs(componentDir) {
+			t, err := filepath.Abs(componentDir)
+			if err != nil {
+				util.Warn("Unable to set absolute path for HUB_COMPONENT_DIR (%s): %v", component.Name, err)
+				util.Warn("Falling back to %s directory: %s", component.Name, componentDir)
+			} else {
+				componentDir = t
+			}
+		}
 	}
 	// for `hub render`
 	envParameters = append(envParameters, fmt.Sprintf("%s=%s", HubEnvVarNameComponentName, component.Name))

@@ -15,16 +15,12 @@ REF      ?= $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT   ?= $(shell git rev-parse HEAD | cut -c-7)
 BUILD_AT ?= $(shell date +"%Y.%m.%d %H:%M %Z")
 
-install: bin/$(OS)/gocloc bin/$(OS)/staticcheck bin/$(OS)/gotests
-bin/$(OS)/gocloc:
-	go install github.com/hhatto/gocloc/cmd/gocloc@latest
+install: bin/$(OS)/staticcheck bin/$(OS)/cel
 bin/$(OS)/staticcheck:
-	go install honnef.co/go/tools/cmd/staticcheck@2022.1.2
-bin/$(OS)/gotests:
-	$ go get -u github.com/cweill/gotests/...
+	go install honnef.co/go/tools/cmd/staticcheck@2023.1.3
 
 cel:
-	go get github.com/epam/hubctl/cmd/cel
+	go install github.com/epam/hubctl/cmd/cel@latest
 .PHONY: cel
 
 build:
@@ -58,10 +54,6 @@ vet:
 	go vet -composites=false github.com/epam/hubctl/...
 .PHONY: vet
 
-loc: bin/$(OS)/gocloc
-	@$(GOBIN)/gocloc cmd/hub --not-match-d='cmd/hub/bindata'
-.PHONY: loc
-
 staticcheck: bin/$(OS)/staticcheck
 	@$(GOBIN)/staticcheck github.com/epam/hubctl/...
 .PHONY: staticcheck
@@ -71,6 +63,6 @@ test:
 .PHONY: test
 
 clean:
-	@rm -f hub cel bin/hub bin/cel
-	@rm -rf bin/darwin* bin/linux* bin/windows*
+	@go clean -modcache -cache -testcache
+	@rm -rf bin/$(OS)*
 .PHONY: clean
