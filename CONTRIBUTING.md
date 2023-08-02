@@ -155,7 +155,16 @@ Few guidelines how to write good commit messages. Even if commits will be squash
 
 ## Release Guidelines
 
-0. Make sure all issues have been completed. It should not be possible to make a release for 'In Progress' issues.
+At the moment there is no release schedule. With the current pace of the development, release has been agreed by the contributors. This means release can be (and should be) done at any random moment of time. This emphasizes the importance of continuous relative stability of `develop` branch.
+
+### Before begin
+
+Make sure all issues have been completed. It should not be possible to make a release for 'In Progress' issues. If there is an issue in 'In Progress' but the code has been committed to `develop` then this is blocker for release.
+
+> For example: the feature has been implemented, yet DOD requires to update documenation published in [hubct.io](/epam/hubctl.io) that is different repository. This means  Release should not happen then.
+
+### Start the release
+
 1. Release is always taken from `develop` branch
 2. Do not squash it but rebase to the `main` branch (or `master` if Github legacy naming is used)
 3. Create a tag with a version number. For example, `v0.1.0` (not aplicable for components and stacks). This should trigger the release workflow.
