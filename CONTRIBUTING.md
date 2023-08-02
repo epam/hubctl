@@ -129,6 +129,11 @@ Few guidelines how to write good commit messages. Even if commits will be squash
 4. Avoid repetitive commits messages. Same applies to rephrase the same message. For example, "Fix foo" and "Foo has been fixed" are not acceptable.
 5. When you are fixing a bug and using squashing a PR: then use word "Fix foo #123" in the commit message. This will automatically close the issue once PR has been merged.
 
+## Release Guidelines
+
+1. Release is always taken from `develop` branch
+2. Do not squash it but rebase to the `main` branch (or `master` if Github legacy naming is used)
+3. Create a tag with a version number. For example, `v0.1.0` (not aplicable for components and stacks). This should trigger the release workflow.
 
 ## Coding Guidelines
 
