@@ -3,7 +3,7 @@
 Welcome to Hubctl. We are excited you have joined our community. This document will help you get started as a contributor.
 
 
-- [Issues Handling](#issues-handling))
+- [Issues Handling](#issues-handling)
 - [Branching Strategy](#branching-strategy)
 - [Release Procedure](#release-procedure)
 - [Coding Guidelines](#coding-guidelines)
@@ -24,7 +24,6 @@ There are following statuses in the project:
 All issues attached to the project are in the status *"To Do"* and are ready to be picked up by contributors.
 
 Once issue has been picked up it goes into *"In Progress"* status.
-If issue has been blocked it should be labeled as `Help wanted`. This allows to track issues that are blocked and need help from other contributors.
 
 Once feature have been fully implemented it goes into *"Done"* status. and __not__ closed. Issue closed only when it has been released.
 
@@ -51,6 +50,12 @@ Also contains information about environment (OS, shell, Golang variables etc.)
 ```
 
 Such issue should be labeled as a `bug`.
+
+### Before opening a new issue:
+
+1. Please check if it has been already reported. If so, please add a comment to the existing issue.
+2. If this is a regression, then reopen an existing issue.
+3. If there is work in progress (corresponding issue is in progress). Then please add a comment to the existing issue or a PR
 
 ### Suggesting Enhancements
 
@@ -81,7 +86,7 @@ If enhancement is rather large, then separate items in the checklist can be brok
 ### Help, I am blocked!
 
 Sometimes, it happens.
-1. Mark the issue as `Help wanted`.
+1. Mark the issue as []`Help wanted`](/epam/hubctl/labels/help%20wanted).
 2. Notify other contributors about it. Ask for help.
 
 ## Branching Strategy
@@ -113,7 +118,7 @@ There are three types of branches:
 6. Delete the feature branch.
 7. Move the issue into "Done" status.
 
-### Commit messages
+### Commit Messages
 
 Few guidelines how to write good commit messages. Even if commits will be squashed afterwards it will make easier to identify what has been changed and why. Here are the guidelines for good commit messages:
 
@@ -121,10 +126,9 @@ Few guidelines how to write good commit messages. Even if commits will be squash
 2. Git commit message should always have a reference to the issue number in a postfix
 3. Git commit message should be written in a present tense. For example, "Add foo" and should start from a capital letter.
 3. Git commit message should explain exactly what has been done. Such messages as: `Changes in readme` or `Make code better` are not acceptable.
+4. Avoid repetitive commits messages. Same applies to rephrase the same message. For example, "Fix foo" and "Foo has been fixed" are not acceptable.
+5. When you are fixing a bug and using squashing a PR: then use word "Fix foo #123" in the commit message. This will automatically close the issue once PR has been merged.
 
-## Release Guidelines
-
-TODO: Describe release procedure
 
 ## Coding Guidelines
 
