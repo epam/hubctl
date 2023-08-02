@@ -91,9 +91,41 @@ If enhancement is rather large, then separate items in the checklist can be brok
 6. Delete the feature branch.
 7. Move the issue into "Done" status.
 
+### Git commit messages
+
+Few guidelines how to write good commit messages. Even if commits will be squashed afterwards it will make easier to identify what has been changed and why. Here are the guidelines for good commit messages:
+
+1. Git commit message should always have a subject line and optionally a body.
+2. Git commit message should always have a reference to the issue number in a postfix
+3. Git commit message should be written in a present tense. For example, "Add foo" and should start from a capital letter.
+3. Git commit message should explain exactly what has been done. Such messages as: `Changes in readme` or `Make code better` are not acceptable.
+
 ### Help, I am blocked!
 
 Sometimes, it happens.
 1. Mark the issue as `Help wanted`.
 2. Notify other contributors about it. Ask for help.
+
+## Changing the Shell Scripts
+
+Hubctl has a lot of shell scripts. Extensions, Hooks and pre/post deployment scripts are basically implemented as the shell scripts. This makes it easily extendable and "hackable".
+
+Few notes when you change the shell scripts:
+
+1. POSIX compatible scripts and make sure you are using right shebang. Bash is not always available on the target system and should be avoided unless absolutely must.
+
+```bash
+#/bin/sh -e
+```
+
+2. Enable [shellcheck](http://shellcheck.net) in your editor. It is a great tool that helps to avoid common mistakes.
+
+3. Do not disable shellcheck warnings on a script level unless you are absolutely sure what you are doing. Instead, disable it on a line level.
+
+```bash
+#!/bin/sh -e
+#shellcheck disable=SC2039
+```
+
+If false-positive waring, then disable it in-place.
 
