@@ -687,7 +687,7 @@ func fireHooks(trigger string, stackBaseDir string, component *manifest.Componen
 		if err != nil {
 			// script found but can't be executed because of permissions
 			if strings.Contains(err.Error(), "permission denied") {
-				log.Printf("Error: Permission denied. Try chmod +x %s", script)
+				log.Printf("Error: permission denied (file not executable")
 				return stdout, stderr, err
 			} else if hook.Error == "ignore" {
 				log.Printf("Error ignored: %s", err.Error())
