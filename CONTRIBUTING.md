@@ -33,6 +33,7 @@ Issue from *"Done"* status goes into maybe moved *"In Progress"* status (or even
 
 If duplicated issue have been identified it should be closed with labeled as `duplicated` and reference to the original issue.
 
+
 ### Reporting Bugs
 
 If you find a bug, please report it by opening an issue. Please include as much information as possible, including:
