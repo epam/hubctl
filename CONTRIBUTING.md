@@ -85,11 +85,22 @@ If enhancement is rather large, then separate items in the checklist can be brok
 
 ## Creating a PR
 
-1. PR should be created from the feature branch to `develop`
-2. All DOD items should be completed, and obviously all tests should be passing.
-3. PR should be reviewed by at least one other contributor.
-4. Squash and rebase PR into `develop` branch. The squashed commit message should contain original issue reference. For example, `Update foo bar #1234`
-5. Delete the feature branch.
+
+Before PR
+
+1. Assign issue to yourself
+2. Create a feature branch and it to the issue (Select issue => 'development' => select `Create Branch` link)
+3. Implement a change.
+
+Submitting PR:
+1. PR should be created from the feature branch to `develop`.
+2. Link PR to the issue (select issue => Development => press gear button => find PR) or follow guidelines on [linking by keyword](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
+3. All DOD items should be completed, and obviously all tests should be passing.
+4. PR should be reviewed by at least one other contributor.
+5. Squash and rebase PR into `develop` branch. The squashed commit message should contain original issue reference. For example, `Update foo bar #1234`
+6. Delete the feature branch.
+
+> Note: PR doesn't have to be attached to the project
 
 Example of PR text
 
