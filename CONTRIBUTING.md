@@ -224,25 +224,35 @@ Example:
 
 ## Parameters
 
+The following component level parameters has been defined `hub-component.yaml`
+
 | Name      | Description | Default Value | Required
 | --------- | ---------   | ---------     | :---: |
 | `parameter.name` | Meaning for parameter | `default value` | `x`
+
+### Ouptuts
+
+This component provides the following output values that can be consumed by other components.
+
+| Name | Description |
+| :--- | :---        |
+| `ouptut.name` | Descripiton |
+
+> Note: Do not add this chapter if component does not produce any outputs
 
 ## Implementation Details
 
 Directory content description.
 
-```text
-Paste here content of the command exeution
-$ tree --dirsfirst -L 3 components/istio-ingressgateway
+Use following command (example) and paste the result of the command in the text snippet tag
+`tree --dirsfirst -L 3 "components/nginx"`
 
+Add following things to the text snippet
 - [ ] Remove files generated such as (values.yaml if there is values.yaml.template)
 - [ ] Add descripiton to each file prefixed wiht # and format so it would form clean line
 - [ ] Avoid meaningless description such `values.yaml # values file`
-```
 
-
-To display directory content use the following command and comments for each file
+> Note: parameters with default values have been omited as required parameters
 
 Write a deployment algorithm if applicable.
 
