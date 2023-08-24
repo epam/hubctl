@@ -207,7 +207,7 @@ Text description of the component
 
 ## Requirements
 
-List of the tools and software required to run the component
+List of the tools and software software packages or specific configuration required to deploy this component
 
 Example:
 * [helm](https://helm.sh)
@@ -215,7 +215,7 @@ Example:
 
 ## Dependencies
 
-List of component dependencies (can be other components)
+List of component dependencies (can be other components, or features expected from the environemnt)
 
 Example:
 * Kubernetes cluster
@@ -231,6 +231,16 @@ Example:
 ## Implementation Details
 
 Directory content description.
+
+```text
+Paste here content of the command exeution
+$ tree --dirsfirst -L 3 components/istio-ingressgateway
+
+- [ ] Remove files generated such as (values.yaml if there is values.yaml.template)
+- [ ] Add descripiton to each file prefixed wiht # and format so it would form clean line
+- [ ] Avoid meaningless description such `values.yaml # values file`
+```
+
 
 To display directory content use the following command and comments for each file
 
