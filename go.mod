@@ -14,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.29
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/cel-go v0.11.4
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-version v1.6.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
