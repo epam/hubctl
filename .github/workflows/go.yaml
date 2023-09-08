@@ -44,7 +44,7 @@ jobs:
 
       -
         name: Run tests
-        run: go test -race -timeout 30s ./cmd/hub/...
+        run: make test
 
       -
         name: Build
