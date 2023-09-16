@@ -1,8 +1,8 @@
-# Copyright (c) 2022 EPAM Systems, Inc.
+# Copyright (c) 2023 EPAM Systems, Inc.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# file, You can obtain one at https://www.mozilla.org/en-US/MPL/2.0/.
 
 .DEFAULT_GOAL := build
 
@@ -22,6 +22,10 @@ bin/$(OS)/staticcheck:
 cel:
 	go install github.com/epam/hubctl/cmd/cel@latest
 .PHONY: cel
+
+deps:
+	go mod download
+.PHONY: deps
 
 build:
 	go build \
@@ -59,7 +63,7 @@ staticcheck: bin/$(OS)/staticcheck
 .PHONY: staticcheck
 
 test:
-	go test -timeout 30s github.com/epam/hubctl/cmd/hub/...
+	go test -race -timeout 60s ./cmd/hub/...
 .PHONY: test
 
 clean:
