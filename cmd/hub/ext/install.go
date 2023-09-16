@@ -7,6 +7,7 @@
 package ext
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -18,15 +19,15 @@ import (
 )
 
 const (
-	extensionsGitRemote = "https://github.com/epam/hub-extensions.git"
-	extensionsRef       = "master"
+	ExtensionsGitRemote = "https://github.com/epam/hub-extensions.git"
+	ExtensionsRef       = "master"
 )
 
 func defaultExtensionsDir() string {
 	return filepath.Join(os.Getenv("HOME"), hubDir)
 }
 
-func Install(dir string) {
+func Install(repo, ref, dir string) error {
 	if dir == "" {
 		dir = defaultExtensionsDir()
 	}
@@ -34,17 +35,17 @@ func Install(dir string) {
 	_, err := os.Stat(filepath.Join(dir, ".git"))
 	if err == nil {
 		util.Warn("`%s` already exist; try `hubctl extensions update`?", dir)
-		return
+		return nil
 	}
 
 	if config.Debug {
-		log.Printf("Cloning extensions repository: %s", extensionsGitRemote)
+		log.Printf("Cloning extensions repository: %s", repo)
 	}
 
-	err = git.Clone(extensionsGitRemote, extensionsRef, dir)
+	err = git.Clone(repo, ref, dir)
 
 	if err != nil {
-		log.Fatalf("unable to install extensions to `%s` directory: %v", dir, err)
+		return fmt.Errorf("unable to install extensions to `%s` directory: %v", dir, err)
 	}
 
 	postInstall(dir)
@@ -52,16 +53,18 @@ func Install(dir string) {
 	if config.Verbose {
 		log.Printf("Hub CTL extensions installed into %s", dir)
 	}
+
+	return nil
 }
 
-func Update(dir string) {
+func Update(dir string) error {
 	if dir == "" {
 		dir = defaultExtensionsDir()
 	}
 
-	err := git.Pull(extensionsRef, dir)
+	err := git.Pull("", dir)
 	if err != nil {
-		log.Fatalf("unable to update extensions in `%s` directory: %v", dir, err)
+		return fmt.Errorf("unable to update extensions in `%s` directory: %v", dir, err)
 	}
 
 	postInstall(dir)
@@ -69,6 +72,8 @@ func Update(dir string) {
 	if config.Verbose {
 		log.Printf("Hub CTL extensions updated in %s", dir)
 	}
+
+	return nil
 }
 
 func postInstall(dir string) {

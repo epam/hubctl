@@ -18,7 +18,7 @@ import (
 func TestExtensionsGitRepoUrlIsValid(t *testing.T) {
 	rem := goGit.NewRemote(memory.NewStorage(), &goGitConfig.RemoteConfig{
 		Name: "origin",
-		URLs: []string{extensionsGitRemote},
+		URLs: []string{ExtensionsGitRemote},
 	})
 
 	_, err := rem.List(&goGit.ListOptions{})
@@ -26,16 +26,26 @@ func TestExtensionsGitRepoUrlIsValid(t *testing.T) {
 	assert.NoError(t, err, "When extensions git repository URL is valid, git ls-remote should not return error")
 }
 
-func TestExtensionsInstallAndUpdate(t *testing.T) {
+func TestExtensionsInstallAndUpdateBranchChannel(t *testing.T) {
 	dir := t.TempDir()
 
 	t.Log("Install extensions")
-	assert.NotPanics(t, func() {
-		Install(dir)
-	}, "When install extensions it should not panic")
+	err := Install(ExtensionsGitRemote, ExtensionsRef, dir)
+	assert.NoError(t, err, "When install extensions it should not panic")
 
 	t.Log("Update extensions")
-	assert.NotPanics(t, func() {
-		Update(dir)
-	}, "When update extensions, it should not panic")
+	err = Update(dir)
+	assert.NoError(t, err, "When update extensions, it should not panic")
+}
+
+func TestExtensionsInstallAndUpdateTagChannel(t *testing.T) {
+	dir := t.TempDir()
+
+	t.Log("Install extensions")
+	err := Install(ExtensionsGitRemote, "stable", dir)
+	assert.NoError(t, err, "When install extensions it should not panic")
+
+	t.Log("Update extensions")
+	err = Update(dir)
+	assert.NoError(t, err, "When update extensions, it should not panic")
 }
