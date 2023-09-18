@@ -11,7 +11,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/alexkappa/mustache v0.0.0-20191113130723-8bb9cfca2bfa
 	github.com/arkadijs/golang-socketio v0.0.0-20180405140456-dc2d2a43165c
-	github.com/aws/aws-sdk-go v1.44.29
+	github.com/aws/aws-sdk-go v1.45.11
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/cel-go v0.11.4
 	github.com/google/uuid v1.3.0
