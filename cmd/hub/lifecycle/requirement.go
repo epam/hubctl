@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -28,7 +27,7 @@ import (
 
 const (
 	providedByEnv          = "*environment*"
-	gcpServiceAccountsHelp = "https://cloud.google.com/docs/authentication/getting-started"
+	gcpServiceAccountsHelp = "https://cloud.google.com/docs/authentication/provide-credentials-adc"
 	azureGoSdkAuthHelp     = "https://docs.microsoft.com/en-us/go/azure/azure-sdk-go-authorization"
 )
 
@@ -161,14 +160,15 @@ func setupRequirement(requirement string, provider string,
 }
 
 var bins = map[string][]string{
-	"aws":        {"aws", "s3", "ls", "--page-size", "5"},
+	"aws":        {"aws", "--version"},
 	"azure":      {"az", "version"},
 	"gcp":        {"gcloud", "version"},
 	"gcs":        {"gsutil", "version"},
-	"kubectl":    {"kubectl", "version", "--client"},
-	"kubernetes": {"kubectl", "version", "--client"},
-	"helm":       {"helm", "version", "--client"},
-	"etcd":       {"etcdctl", "--version"},
+	"kubectl":    {"kubectl", "version", "--client", "--output=json"},
+	"kubernetes": {"kubectl", "version", "--client", "--output=json"},
+	"vault":      {"vault", "version"},
+	"helm":       {"helm", "version"},
+	"terraform":  {"terraform", "version"},
 }
 
 type BinVersion struct {
@@ -185,12 +185,14 @@ func semver(s string) *version.Version {
 }
 
 var binVersion = map[string]*BinVersion{
-	"gcloud":    {semver("246.0.0"), regexp.MustCompile(`Google Cloud SDK ([\d.]+)`)},
-	"gsutil":    {semver("4.38"), regexp.MustCompile(`version: ([\d.]+)`)},
-	"vault":     {semver("1.3.2"), regexp.MustCompile(`Vault v([\d.]+)`)},
-	"kubectl":   {semver("1.18.15"), regexp.MustCompile(`GitVersion:"v([\d.]+)`)},
-	"helm":      {semver("3.5.1"), regexp.MustCompile(`(?:SemVer|Version):"v([\d.]+)`)},
-	"terraform": {semver("0.14.0"), regexp.MustCompile(`Terraform v([\d.]+)`)},
+	"aws":       {semver("2.10.0"), regexp.MustCompile(`aws-cli/([\d.]+)`)},
+	"az":        {semver("2.40.0"), regexp.MustCompile(`"azure-cli": "([\d.]+)"`)},
+	"gcloud":    {semver("400.0.0"), regexp.MustCompile(`Google Cloud SDK ([\d.]+)`)},
+	"gsutil":    {semver("5.0"), regexp.MustCompile(`version: ([\d.]+)`)},
+	"vault":     {semver("1.10"), regexp.MustCompile(`Vault v([\d.]+)`)},
+	"kubectl":   {semver("1.19"), regexp.MustCompile(`"gitVersion": "v([\d.]+)"`)},
+	"helm":      {semver("3.11"), regexp.MustCompile(`(?:SemVer|Version):"v([\d.]+)"`)},
+	"terraform": {semver("1.0"), regexp.MustCompile(`Terraform v([\d.]+)`)},
 }
 
 func checkStackRequires(requires []string, optional, requiresOfOptionalComponents map[string][]string) map[string][]string {
@@ -290,7 +292,7 @@ func checkRequiresBin(bin ...string) ([]byte, error) {
 // validates binary version against minimum required version
 //
 //	reqVer: required version and regexp to extract version string
-//	currVer: raw output from binary
+//	out: raw output from binary
 //
 // returns error version is not valid
 func checkRequiresBinVersion(reqVer *BinVersion, out []byte) error {
@@ -395,7 +397,7 @@ func checkRequiresGcp() error {
 		return err
 	}
 
-	jsonData, err := ioutil.ReadFile(credsFile)
+	jsonData, err := os.ReadFile(credsFile)
 	if err != nil {
 		return fmt.Errorf("Unable to read `%s`: %v", credsFile, err)
 	}
