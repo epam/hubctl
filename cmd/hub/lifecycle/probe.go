@@ -118,7 +118,7 @@ func probeImplementation(dir string, verb string, component *manifest.Manifest) 
 	return false, errors.New(allErrs)
 }
 
-// TODO folowing probes relies on impl file presence
+// TODO following probes relies on impl file presence
 // that may not be the case if the impl is templated
 
 func probeMakefile(dir string, verb string) (bool, error) {

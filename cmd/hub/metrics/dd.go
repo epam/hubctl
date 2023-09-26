@@ -33,14 +33,14 @@ func init() {
 	}
 }
 
-func putDDMetric(cmd, host string, additionaTags []string) error {
-	tags := make([]string, 0, 2+len(additionaTags))
+func putDDMetric(cmd, host string, additionalTags []string) error {
+	tags := make([]string, 0, 2+len(additionalTags))
 	tags = append(tags, "command:"+cmd)
 	if host != "" {
 		tags = append(tags, "machine-id:"+host)
 	}
-	if len(additionaTags) > 0 {
-		tags = append(tags, additionaTags...)
+	if len(additionalTags) > 0 {
+		tags = append(tags, additionalTags...)
 	}
 	series := DDSeries{
 		[]DDMetric{{
