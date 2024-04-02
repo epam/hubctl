@@ -675,7 +675,7 @@ func fireHooks(trigger string, stackBaseDir string, component *manifest.Componen
 		script, err := findScript(hook.File, searchDirs...)
 		if err != nil || script == "" {
 			// script file not found
-			util.Warn("Error: Unable to locate hook script `%s:` %v", hook.File, err)
+			log.Printf("Error: unable to locate hook script `%s:` %v", hook.File, err)
 			return nil, nil, err
 		}
 		log.Printf("Running %s script: %s", trigger, util.HighlightColor(hook.File))
@@ -687,7 +687,7 @@ func fireHooks(trigger string, stackBaseDir string, component *manifest.Componen
 		if err != nil {
 			// script found but can't be executed because of permissions
 			if strings.Contains(err.Error(), "permission denied") {
-				log.Printf("Error: permission denied (file not executable")
+				log.Print("Error: permission denied (file not executable)")
 				return stdout, stderr, err
 			} else if hook.Error == "ignore" {
 				log.Printf("Error ignored: %s", err.Error())
