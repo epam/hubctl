@@ -2,10 +2,9 @@
 
 Welcome to Hubctl. We are excited you have joined our community. This document will help you get started as a contributor.
 
-
 - [Issues Handling](#issues-handling)
 - [Branching Strategy](#branching-strategy)
-- [Release Procedure](#release-procedure)
+- [Release Procedure](#release-guidelines)
 - [Coding Guidelines](#coding-guidelines)
 
 ## Issues Handling
@@ -15,6 +14,7 @@ All activities has been tracked as a Github issues in several repositories and h
 ### Working with Github Project
 
 There are following statuses in the project:
+
 - To Do: Issues that are ready to be picked up by contributors.
 - In Progress: Issues that are being worked on.
 - In Review: Issues that are ready to be reviewed by other contributors. Typically backed by a PR. This is a good status for PR issues.
@@ -32,7 +32,6 @@ Status *"Done"* also means the feature branch have been integrated into `develop
 Issue from *"Done"* status goes into maybe moved *"In Progress"* status (or even reopened) if additional work have been identified. We do not want to keep duplicated issues (or regressions in case of bugs) as separate issues. Instead, please re-energize the existing issue.
 
 If duplicated issue have been identified it should be closed with labeled as `duplicated` and reference to the original issue.
-
 
 ### Reporting Bugs
 
@@ -52,7 +51,7 @@ Also contains information about environment (OS, shell, Golang variables etc.)
 
 Such issue should be labeled as a `bug`.
 
-### Before opening a new issue:
+### Before opening a new issue
 
 1. Please check if it has been already reported. If so, please add a comment to the existing issue.
 2. If this is a regression, then reopen an existing issue.
@@ -108,9 +107,10 @@ Fixes #
 Does this PR introduce a user-facing change?
 ```
 
-### Help, I am blocked!
+### Help, I am blocked
 
 Sometimes, it happens.
+
 1. Mark the issue as [`Help wanted`](/epam/hubctl/labels/help%20wanted).
 2. Notify other contributors about it. Ask for help.
 
@@ -122,14 +122,13 @@ There are three types of branches:
 - `develop` branch - is the integration branch. It contains the latest greatest features. Force push is not allowed here. Allows only lineal history. Changes merged on behalf of PRs (unless trivial, such as typo in readme file). Only merge-rebase workflow is allowed.
 - `feature branch` - created on behalf of feature/bugfix.
 
-    - Should be branched from `develop` branch.
-    - Should be merged back into `develop` branch.
-    - Should deleted once merged.
-    - Should contain issue number in the name. Before merged, a PR should be created. PR should be reviewed by at least one other developer.
-    - Force push is allowed here
+  - Should be branched from `develop` branch.
+  - Should be merged back into `develop` branch.
+  - Should deleted once merged.
+  - Should contain issue number in the name. Before merged, a PR should be created. PR should be reviewed by at least one other developer.
+  - Force push is allowed here
 
 > Feature branches should be continuously integrated into `develop` branch. It should not take more than few days to integrate.
-
 
 ### Pushing Changes
 
@@ -150,9 +149,9 @@ Few guidelines how to write good commit messages. Even if commits will be squash
 1. Git commit message should always have a subject line and optionally a body.
 2. Git commit message should always have a reference to the issue number in a postfix
 3. Git commit message should be written in a present tense. For example, "Add foo" and should start from a capital letter.
-3. Git commit message should explain exactly what has been done. Such messages as: `Changes in readme` or `Make code better` are not acceptable.
-4. Avoid repetitive commits messages. Same applies to rephrase the same message. For example, "Fix foo" and "Foo has been fixed" are not acceptable.
-5. When you are fixing a bug and using squashing a PR: then use word "Fix foo #123" in the commit message. This will automatically close the issue once PR has been merged.
+4. Git commit message should explain exactly what has been done. Such messages as: `Changes in readme` or `Make code better` are not acceptable.
+5. Avoid repetitive commits messages. Same applies to rephrase the same message. For example, "Fix foo" and "Foo has been fixed" are not acceptable.
+6. When you are fixing a bug and using squashing a PR: then use word "Fix foo #123" in the commit message. This will automatically close the issue once PR has been merged.
 
 ## Release Guidelines
 
@@ -181,18 +180,17 @@ Few notes when you change the shell scripts:
 
 1. POSIX compatible scripts and make sure you are using right shebang. Bash is not always available on the target system and should be avoided unless absolutely must.
 
-```bash
-#/bin/sh -e
-```
+    ```bash
+    #/bin/sh -e
+    ```
 
-2. Enable [shellcheck](http://shellcheck.net) in your editor. It is a great tool that helps to avoid common mistakes.
+1. Enable [shellcheck](http://shellcheck.net) in your editor. It is a great tool that helps to avoid common mistakes.
+1. Do not disable shellcheck warnings on a script level unless you are absolutely sure what you are doing. Instead, disable it on a line level.
 
-3. Do not disable shellcheck warnings on a script level unless you are absolutely sure what you are doing. Instead, disable it on a line level.
-
-```bash
-#!/bin/sh -e
-#shellcheck disable=SC2039
-```
+    ```bash
+    #!/bin/sh -e
+    #shellcheck disable=SC2039
+    ```
 
 If false-positive waring, then disable it in-place.
 
