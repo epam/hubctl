@@ -24,7 +24,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.7.2
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/crypto v0.6.0
+	golang.org/x/crypto v0.17.0
 	google.golang.org/api v0.83.0
 	google.golang.org/genproto v0.0.0-20220607223854-30acc4cbd2aa
 	gopkg.in/yaml.v2 v2.4.0
@@ -48,7 +48,7 @@ require (
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220418222510-f25a4f6275ed // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
@@ -93,10 +93,10 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
