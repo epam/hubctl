@@ -1,8 +1,7 @@
+.env
 .envrc
-.DS_Store
-
-.vscode/
-!.vscode/launch.json
+.vscode/*
+!.vscode/*.json.example
 !.vscode/README.md
 bin/
-vendor
+vendor/
