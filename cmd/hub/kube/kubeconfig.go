@@ -148,7 +148,7 @@ func writeKubeconfig(filename string, config *KubeConfig) error {
 	if err != nil {
 		return fmt.Errorf("Unable to marshall `%s`: %v", filename, err)
 	}
-	_, err = file.Seek(0, os.SEEK_SET)
+	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return fmt.Errorf("Unable to seek `%s`: %v", filename, err)
 	}

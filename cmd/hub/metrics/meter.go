@@ -168,7 +168,7 @@ func meteringConfig() (bool, string, error) {
 			return !conf.Disabled, "", errors.New("No cache file created")
 		}
 		defer file.Close()
-		_, err = file.Seek(0, os.SEEK_SET)
+		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			return !conf.Disabled, "", err
 		}
