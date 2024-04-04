@@ -3,6 +3,7 @@ package util_test
 import (
 	"errors"
 	"reflect"
+	"slices"
 	"testing"
 
 	. "github.com/epam/hubctl/cmd/hub/util"
@@ -713,6 +714,34 @@ func TestIndex(t *testing.T) {
 	}
 }
 
+func TestKeys(t *testing.T) {
+	type args struct {
+		m map[string]string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{"Should return empty slice if pass nil", args{nil}, []string{}},
+		{"Should return empty slice", args{map[string]string{}}, []string{}},
+		{"Should return slice with map keys 1", args{map[string]string{"c": "3"}}, []string{"c"}},
+		{"Should return slice with map keys 2", args{map[string]string{"a": "1", "b": "2", "c": "3"}}, []string{"a", "b", "c"}},
+		{"Should return slice with map keys 3", args{map[string]string{"c": "1", "a": "2", "b": "3"}}, []string{"a", "b", "c"}},
+		{"Should return slice with map keys 4", args{map[string]string{"b": "1", "c": "2", "a": "3"}}, []string{"a", "b", "c"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Keys(tt.args.m)
+			for _, v := range got {
+				if !slices.Contains(tt.want, v) {
+					t.Errorf("Keys() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
+
 func TestSortedKeys(t *testing.T) {
 	type args struct {
 		m map[string]string
@@ -722,32 +751,17 @@ func TestSortedKeys(t *testing.T) {
 		args args
 		want []string
 	}{
-		// TODO: Add test cases.
+		{"Should return empty slice if pass nil", args{nil}, []string{}},
+		{"Should return empty slice", args{map[string]string{}}, []string{}},
+		{"Should return slice with sorted map keys 1", args{map[string]string{"c": "3"}}, []string{"c"}},
+		{"Should return slice with sorted map keys 2", args{map[string]string{"a": "1", "b": "2", "c": "3"}}, []string{"a", "b", "c"}},
+		{"Should return slice with sorted map keys 3", args{map[string]string{"c": "1", "a": "2", "b": "3"}}, []string{"a", "b", "c"}},
+		{"Should return slice with sorted map keys 4", args{map[string]string{"b": "1", "c": "2", "a": "3"}}, []string{"a", "b", "c"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := SortedKeys(tt.args.m); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("SortedKeys() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestSortedKeys2(t *testing.T) {
-	type args struct {
-		m map[string][]string
-	}
-	tests := []struct {
-		name string
-		args args
-		want []string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := SortedKeys2(tt.args.m); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SortedKeys2() = %v, want %v", got, tt.want)
 			}
 		})
 	}
