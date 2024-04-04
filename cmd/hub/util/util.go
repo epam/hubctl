@@ -21,6 +21,8 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/mattn/go-isatty"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/epam/hubctl/cmd/hub/config"
 )
@@ -590,7 +592,7 @@ func initSecretSuffixes() []string {
 	for _, suf := range seed {
 		suffixes = append(suffixes, "."+suf)
 		suffixes = append(suffixes, "_"+suf)
-		suffixes = append(suffixes, strings.Title(suf))
+		suffixes = append(suffixes, cases.Title(language.Und).String(suf))
 		suffixes = append(suffixes, strings.ToUpper(suf))
 	}
 	return suffixes

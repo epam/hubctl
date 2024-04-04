@@ -13,9 +13,10 @@ import (
 	"io"
 	"log"
 	"os"
-	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v2"
 
 	"github.com/epam/hubctl/cmd/hub/config"
@@ -136,7 +137,7 @@ func BackupCreate(request *Request, bundles []string, jsonOutput, allowPartial b
 	}
 
 	if config.Verbose {
-		log.Printf("%s %v", strings.Title(verb), implementsBackup)
+		log.Printf("%s %v", cases.Title(language.Und).String(verb), implementsBackup)
 	}
 
 	bundle := state.BackupManifest{

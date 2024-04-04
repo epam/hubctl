@@ -19,6 +19,8 @@ import (
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/epam/hubctl/cmd/hub/config"
 	"github.com/epam/hubctl/cmd/hub/ext"
@@ -579,7 +581,7 @@ NEXT_COMPONENT:
 		if isDeploy {
 			provides2 := noEnvironmentProvides(provides)
 			if len(provides2) > 0 {
-				log.Printf("%s provides:", strings.Title(stackManifest.Kind))
+				log.Printf("%s provides:", cases.Title(language.Und).String(stackManifest.Kind))
 				util.PrintDeps(provides2)
 			}
 			printStackOutputs(stackOutputs)

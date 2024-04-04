@@ -8,13 +8,14 @@ package storage
 
 import (
 	"log"
-	"strings"
 
 	"github.com/epam/hubctl/cmd/hub/util"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func printFiles(files []File, kind string) {
-	log.Printf("%s %s:", strings.Title(kind), util.Plural(len(files), "file"))
+	log.Printf("%s %s:", cases.Title(language.Und).String(kind), util.Plural(len(files), "file"))
 	for _, file := range files {
 		locked := ""
 		if file.Locked {
