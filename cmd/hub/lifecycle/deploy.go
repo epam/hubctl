@@ -15,7 +15,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
@@ -185,7 +184,6 @@ func Execute(request *Request, pipe io.WriteCloser) {
 	if stackName == "" {
 		stackName = os.Getenv(HubEnvVarHubStackName)
 		if stackName == "" {
-			rand.Seed(time.Now().UnixNano())
 			suffix := rand.Intn(1000) + 1
 			name := petname.Generate(2, "-")
 			stackName = fmt.Sprintf("%s-%d", name, suffix)
