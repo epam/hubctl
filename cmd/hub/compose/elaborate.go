@@ -120,7 +120,7 @@ func Elaborate(manifestFilename string,
 		// at least there will be a warning for mismatched values
 		setValuesFromState(stackManifest.Parameters, st, useStateStackParameters)
 		stackManifest.Requires = connectStateProvides(stackManifest.Requires, st.Provides)
-		platformProvides = util.MergeUnique(platformProvides, util.SortedKeys2(st.Provides))
+		platformProvides = util.MergeUnique(platformProvides, util.SortedKeys(st.Provides))
 	}
 	if len(platformProvides) > 0 {
 		stackManifest.Platform.Provides = util.MergeUnique(stackManifest.Platform.Provides, platformProvides)
