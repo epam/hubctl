@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -395,7 +394,7 @@ func checkRequiresGcp() error {
 		return err
 	}
 
-	jsonData, err := ioutil.ReadFile(credsFile)
+	jsonData, err := os.ReadFile(credsFile)
 	if err != nil {
 		return fmt.Errorf("Unable to read `%s`: %v", credsFile, err)
 	}

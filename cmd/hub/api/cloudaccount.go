@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -556,7 +555,7 @@ func cloudSpecificCredentials(provider, region string, args []string) (string, m
 			return "", nil, fmt.Errorf("Unable to open credentials file: %v", err)
 		}
 		defer file.Close()
-		data, err := ioutil.ReadAll(file)
+		data, err := io.ReadAll(file)
 		if err != nil {
 			return "", nil, fmt.Errorf("Unable to read credentials file `%s`: %v", credentialsFile, err)
 		}

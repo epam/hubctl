@@ -11,8 +11,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -94,7 +94,7 @@ func expandRequestedOutputs(componentName, componentDir string,
 					if !filepath.IsAbs(filename) {
 						filename = filepath.Join(componentDir, filename)
 					}
-					bytes, err := ioutil.ReadFile(filename)
+					bytes, err := os.ReadFile(filename)
 					if err != nil {
 						util.Warn("Unable to read raw output `%s` from `%s` for component `%s` output `%s`: %v",
 							variable, filename, componentName, requestedOutput.Name, err)

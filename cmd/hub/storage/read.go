@@ -8,7 +8,6 @@ package storage
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -252,7 +251,7 @@ func readFile(file *File) ([]byte, error) {
 
 	switch file.Kind {
 	case "fs":
-		data, err = ioutil.ReadFile(file.Path)
+		data, err = os.ReadFile(file.Path)
 
 	case "s3":
 		data, err = aws.ReadS3(file.Path)

@@ -16,7 +16,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -609,7 +608,7 @@ func readImportSecrets(secretsOrder []Secret, pems io.Reader) ([]Secret, error) 
 		}
 		log.Printf("Reading TLS auth certs and key%s", stdin)
 	}
-	pemBytes, err := ioutil.ReadAll(pems)
+	pemBytes, err := io.ReadAll(pems)
 	if err != nil {
 		return nil, err
 	}

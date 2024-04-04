@@ -9,7 +9,7 @@ package kube
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -125,7 +125,7 @@ func readKubeconfig(filename string) (*KubeConfig, error) {
 		return nil, fmt.Errorf("Unable to open `%s`: %v", filename, err)
 	}
 	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read `%s`: %v", filename, err)
 	}

@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -109,7 +109,7 @@ func installApplication(args []string) error {
 	if createRaw {
 		api.RawInstallApplication(os.Stdin, waitAndTailDeployLogs)
 	} else {
-		createBytes, err := ioutil.ReadAll(os.Stdin)
+		createBytes, err := io.ReadAll(os.Stdin)
 		if err != nil || len(createBytes) < 3 {
 			return fmt.Errorf("Unable to read data (read %d bytes): %v", len(createBytes), err)
 		}
@@ -133,7 +133,7 @@ func patchApplication(args []string) error {
 	if patchRaw {
 		api.RawPatchApplication(selector, os.Stdin, waitAndTailDeployLogs)
 	} else {
-		patchBytes, err := ioutil.ReadAll(os.Stdin)
+		patchBytes, err := io.ReadAll(os.Stdin)
 		if err != nil || len(patchBytes) < 3 {
 			return fmt.Errorf("Unable to read patch data (read %d bytes): %v", len(patchBytes), err)
 		}
