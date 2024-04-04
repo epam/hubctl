@@ -8,26 +8,19 @@ package lifecycle
 
 import (
 	"bytes"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	gotemplate "text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/alexkappa/mustache"
-	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/yaml.v2"
 
 	"github.com/epam/hubctl/cmd/hub/config"
 	"github.com/epam/hubctl/cmd/hub/manifest"
@@ -104,7 +97,7 @@ func processTemplates(component *manifest.ComponentRef, templateSetup *manifest.
 		for _, e := range cannot {
 			diag = append(diag, fmt.Sprintf("\t`%s`: %v", e.Filename, e.Error))
 		}
-		return []error{fmt.Errorf("Unable to open `%s` component template input(s):\n%s", componentName, strings.Join(diag, "\n"))}
+		return []error{fmt.Errorf("unable to open `%s` component template input(s):\n%s", componentName, strings.Join(diag, "\n"))}
 	}
 
 	// during lifecycle operation `outputs` is nil - only parameters are available in templates
@@ -169,7 +162,7 @@ func maybeExpandParametersInTemplateGlob(glob string, kv map[string]interface{},
 	}
 	value, errs := expandParametersInTemplateGlob(fmt.Sprintf("%s.%d", section, index), glob, kv)
 	if len(errs) > 0 {
-		return "", fmt.Errorf("Failed to expand template globs:\n\t%s", util.Errors("\n\t", errs...))
+		return "", fmt.Errorf("failed to expand template globs:\n\t%s", util.Errors("\n\t", errs...))
 	}
 	return value, nil
 }
@@ -258,7 +251,7 @@ func checkKind(kind string) (string, error) {
 	if util.Contains(kinds, kind) {
 		return kind, nil
 	}
-	return "", fmt.Errorf("Template kind `%s` not recognized; supported %v", kind, kinds)
+	return "", fmt.Errorf("template kind `%s` not recognized; supported %v", kind, kinds)
 }
 
 func scanTemplates(componentName string, baseDir string, templateSetup *manifest.TemplateSetup) []TemplateRef {
@@ -357,11 +350,11 @@ func processTemplate(filename, kind, componentName string,
 
 	tmpl, err := os.Open(filename)
 	if err != nil {
-		return []error{fmt.Errorf("Unable to open `%s` component template input `%s`: %v", componentName, filename, err)}
+		return []error{fmt.Errorf("unable to open `%s` component template input `%s`: %v", componentName, filename, err)}
 	}
 	byteContent, err := io.ReadAll(tmpl)
 	if err != nil {
-		return []error{fmt.Errorf("Unable to read `%s` component template content `%s`: %v", componentName, filename, err)}
+		return []error{fmt.Errorf("unable to read `%s` component template content `%s`: %v", componentName, filename, err)}
 	}
 	statInfo, err := tmpl.Stat()
 	if err != nil {
@@ -380,7 +373,7 @@ func processTemplate(filename, kind, componentName string,
 	}
 	out, err := os.Create(outPath)
 	if err != nil {
-		return []error{fmt.Errorf("Unable to open `%s` component template output `%s`: %v", componentName, outPath, err)}
+		return []error{fmt.Errorf("unable to open `%s` component template output `%s`: %v", componentName, outPath, err)}
 	}
 	defer out.Close()
 	if statInfo != nil {
@@ -394,7 +387,7 @@ func processTemplate(filename, kind, componentName string,
 	if len(outContent) > 0 {
 		written, err := strings.NewReader(outContent).WriteTo(out)
 		if err != nil || written != int64(len(outContent)) {
-			errs = append(errs, fmt.Errorf("Error writting `%s` component template output `%s`: %v", componentName, outPath, err))
+			errs = append(errs, fmt.Errorf("error writting `%s` component template output `%s`: %v", componentName, outPath, err))
 		}
 	}
 	return errs
@@ -403,8 +396,6 @@ func processTemplate(filename, kind, componentName string,
 var (
 	curlyReplacement    = regexp.MustCompile(`\$\{[a-zA-Z0-9_\.\|:/-]+\}`)
 	mustacheReplacement = regexp.MustCompile(`\{\{[a-zA-Z0-9_\.\|:/-]+\}\}`)
-
-	templateSubstitutionSupportedEncodings = []string{"base64", "unbase64", "json", "yaml", "first", "parseURL", "isSecure", "insecure", "hostname", "port", "scheme"}
 )
 
 func stripCurly(match string) string {
@@ -437,10 +428,10 @@ func processReplacement(content, filename, componentName string, componentDepend
 	outContent := replacement.ReplaceAllStringFunc(content,
 		func(variable string) string {
 			variable = strip(variable)
-			variable, encodings := head(variable, "/", "|")
+			variable, tplFunctions := head(variable, "/", "|")
 			substitution, exist := parameters.FindValue(variable, componentName, componentDepends, kv)
 			if !exist {
-				errs = append(errs, fmt.Errorf("Template `%s` refer to unknown substitution `%s`", filename, variable))
+				errs = append(errs, fmt.Errorf("template `%s` refer to unknown substitution `%s`", filename, variable))
 				return "(unknown)"
 			}
 			if parameters.RequireExpansion(substitution) {
@@ -451,94 +442,18 @@ func processReplacement(content, filename, componentName string, componentDepend
 				log.Printf("--- %s | %s => %v", variable, componentName, substitution)
 			}
 			replaced = true
-			if len(encodings) > 0 {
-				if unknown := util.OmitAll(encodings, templateSubstitutionSupportedEncodings); len(unknown) > 0 {
-					errs = append(errs, fmt.Errorf("Unknown encoding(s) %v processing template `%s` substitution `%s`",
+			if len(tplFunctions) > 0 {
+				if unknown := util.OmitAll(tplFunctions, supportedTplFunctions); len(unknown) > 0 {
+					errs = append(errs, fmt.Errorf("unknown function(s) %v processing template `%s` substitution `%s`",
 						unknown, filename, variable))
 				}
-				for _, encoding := range encodings {
-					switch encoding {
-					case "base64":
-						substitution = base64.StdEncoding.EncodeToString([]byte(util.String(substitution)))
-					case "unbase64":
-						decoded, err := base64.StdEncoding.DecodeString(util.String(substitution))
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to decode base64 from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = string(decoded)
-						}
-					case "json":
-						jsonBytes, err := json.Marshal(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to marshal JSON from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = string(jsonBytes)
-						}
-					case "yaml":
-						// TODO YAML fragment on a single line
-						yamlBytes, err := yaml.Marshal(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to marshal YAML from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = string(yamlBytes)
-						}
-					case "first":
-						str := util.String(substitution)
-						if strings.Contains(str, " ") {
-							substitution = strings.Split(str, " ")[0]
-						}
-					case "parseURL":
-						str := util.String(substitution)
-						url, err := parseURL(str)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = url
-						}
-					case "isSecure":
-						url, err := toURL(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = isSecure(url)
-						}
-					case "insecure":
-						url, err := toURL(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = !isSecure(url)
-						}
-					case "hostname":
-						url, err := toURL(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = url.Hostname()
-						}
-					case "port":
-						url, err := toURL(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = url.Port()
-						}
-					case "scheme":
-						url, err := toURL(substitution)
-						if err != nil {
-							errs = append(errs, fmt.Errorf("Unable to parse URL from %v while processing template `%s` substitution `%s`: %v",
-								substitution, filename, variable, err))
-						} else {
-							substitution = url.Scheme
-						}
+				for _, tplFunction := range tplFunctions {
+					value, err := tplFunctionsMap[tplFunction](substitution)
+					if err != nil {
+						errMsg := "unable to use %s from %v while processing template `%s` substitution `%s`: %v"
+						errs = append(errs, fmt.Errorf(errMsg, tplFunction, substitution, filename, variable, err))
+					} else {
+						substitution = value
 					}
 				}
 			}
@@ -563,11 +478,11 @@ func processMustache(content, filename, componentName string, kv map[string]inte
 	template := mustache.New(mustache.SilentMiss(false))
 	err := template.ParseString(content)
 	if err != nil {
-		return "", fmt.Errorf("Unable to parse mustache template `%s`: %v", filename, err)
+		return "", fmt.Errorf("unable to parse mustache template `%s` of component `%s`: %v", filename, componentName, err)
 	}
 	outContent, err := template.RenderString(kv)
 	if err != nil {
-		return outContent, fmt.Errorf("Unable to render mustache template `%s`: %v", filename, err)
+		return outContent, fmt.Errorf("unable to render mustache template `%s` of component `%s`: %v", filename, componentName, err)
 	}
 	return outContent, nil
 }
@@ -613,246 +528,18 @@ func goTemplateBindings(kv map[string]interface{}) map[string]interface{} {
 	return gkv
 }
 
-func bcryptStr(str string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(str), bcrypt.DefaultCost)
-	if err != nil {
-		return str, err
-	}
-	return string(bytes), nil
-}
-
-// Splits the string into a list of strings
-//
-//	First argument is a string to split
-//	Second optional argument is a separator (default is space)
-//
-// Example:
-//
-//	split "a b c" => ["a", "b", "c"]
-//	split "a-b-c", "-" => ["a", "b", "c"]
-func split(args ...string) ([]string, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("split expects one or two arguments")
-	}
-	if len(args) == 1 {
-		return strings.Fields(args[0]), nil
-	}
-	return strings.Split(args[0], args[1]), nil
-}
-
-// Removes empty string from the list of strings
-// Accepts variable arguments arguments (easier tolerate template nature):
-//
-// Example:
-//
-//	compact "string1" (compatibility with parametersx)
-//	compact "string1" "string2" "string3"
-//	compact ["string1", "string2", "string3"]
-func compact(args ...interface{}) ([]string, error) {
-	var results []string
-	for _, arg := range args {
-		a := reflect.ValueOf(arg)
-		if a.Kind() == reflect.Slice {
-			if a.Len() == 0 {
-				continue
-			}
-			ret := make([]interface{}, a.Len())
-			for i := 0; i < a.Len(); i++ {
-				ret[i] = a.Index(i).Interface()
-			}
-			res, _ := compact(ret...)
-			results = append(results, res...)
-			continue
-		}
-		if a.Kind() == reflect.String {
-			trimmed := strings.TrimSpace(a.String())
-			if trimmed == "" {
-				continue
-			}
-			results = append(results, trimmed)
-			continue
-		}
-		return nil, fmt.Errorf("Argument type %T not yet supported", arg)
-	}
-	return results, nil
-}
-
-// Joins the list of strings into a single string
-// Last argument is a delimiter (default is space)
-// Accepts variable arguments arguments (easier tolerate template nature)
-//
-// Example:
-//
-//	join "string1" "string2" "delimiter"
-//	join ["string1", "string2"] "delimiter"
-//	join ["string1", "string2"]
-//	join "string1"
-func join(args ...interface{}) (string, error) {
-	if len(args) == 0 {
-		return "", fmt.Errorf("join expects at least one argument")
-	}
-	var del string
-	if len(args) > 1 {
-		del = fmt.Sprintf("%v", args[len(args)-1])
-		args = args[:len(args)-1]
-	}
-	if del == "" {
-		del = " "
-	}
-
-	var result []string
-	for _, arg := range args {
-		a := reflect.ValueOf(arg)
-		if a.Kind() == reflect.Slice {
-			if a.Len() == 0 {
-				continue
-			}
-			for i := 0; i < a.Len(); i++ {
-				result = append(result, fmt.Sprintf("%v", a.Index(i).Interface()))
-			}
-			continue
-		}
-		if a.Kind() == reflect.String {
-			result = append(result, a.String())
-			continue
-		}
-		return "", fmt.Errorf("Argument type %T not yet supported", arg)
-	}
-
-	return strings.Join(result, del), nil
-}
-
-// Returns the first argument from list
-//
-// Example:
-//
-//	first ["string1" "string2" "string3"] => "string1"
-func first(args []string) (string, error) {
-	if len(args) == 0 {
-		return "", fmt.Errorf("first expects at least one argument")
-	}
-	return args[0], nil
-}
-
-// Converts the string into kubernetes acceptable name
-// which consist of kebab lower case with alphanumeric characters.
-// '.' is not allowed
-//
-// Arguments:
-//
-//	First argument is a text to convert
-//	Second optional argument is a size of the name (default is 63)
-//	Third optional argument is a delimiter (default is '-')
-func formatSubdomain(args ...interface{}) (string, error) {
-	if len(args) == 0 {
-		return "", fmt.Errorf("hostname expects at least one argument")
-	}
-	arg0 := reflect.ValueOf(args[0])
-	if arg0.Kind() != reflect.String {
-		return "", fmt.Errorf("hostname expects string as first argument")
-	}
-	text := strings.TrimSpace(arg0.String())
-	if text == "" {
-		return "", nil
-	}
-
-	size := 63
-	if len(args) > 1 {
-		arg1 := reflect.ValueOf(args[1])
-		if arg1.Kind() == reflect.Int {
-			size = int(reflect.ValueOf(args[1]).Int())
-		} else if arg1.Kind() == reflect.String {
-			size, _ = strconv.Atoi(arg1.String())
-		} else {
-			return "", fmt.Errorf("Argument type %T not yet supported", args[1])
-		}
-	}
-
-	var del = "-"
-	if len(args) > 2 {
-		del = fmt.Sprintf("%v", args[2])
-	}
-
-	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-	var matchNonAlphanumericEnd = regexp.MustCompile("[^a-zA-Z0-9]+$")
-	var matchNonLetterStart = regexp.MustCompile("^[^a-zA-Z]+")
-	var matchNonAnumericOrDash = regexp.MustCompile("[^a-zA-Z0-9-]+")
-	var matchTwoOrMoreDashes = regexp.MustCompile("-{2,}")
-
-	text = matchNonLetterStart.ReplaceAllString(text, "")
-	text = matchAllCap.ReplaceAllString(text, "${1}-${2}")
-	text = matchNonAnumericOrDash.ReplaceAllString(text, "-")
-	text = matchTwoOrMoreDashes.ReplaceAllString(text, "-")
-	text = strings.ToLower(text)
-	if len(text) > size {
-		text = text[:size]
-	}
-	text = matchNonAlphanumericEnd.ReplaceAllString(text, "")
-	if del != "-" {
-		text = strings.ReplaceAll(text, "-", del)
-	}
-	return text, nil
-}
-
-// Removes single or double or back quotes from the string
-func unquote(str string) (string, error) {
-	result, err := strconv.Unquote(str)
-	if err != nil && err.Error() == "invalid syntax" {
-		return str, err
-	}
-	return result, err
-}
-
-func isSecure(url *url.URL) bool {
-	return url.Scheme == "https"
-}
-
-func toURL(iface interface{}) (*url.URL, error) {
-	switch v := iface.(type) {
-	case string:
-		return parseURL(v)
-	case *url.URL:
-		return v, nil
-	default:
-		return nil, fmt.Errorf("invalid type %T", iface)
-	}
-}
-
-func parseURL(urlStr string) (*url.URL, error) {
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-	if u.Port() == "" {
-		if isSecure(u) {
-			u.Host = fmt.Sprintf("%s:443", u.Host)
-		} else if u.Scheme == "http" {
-			u.Host = fmt.Sprintf("%s:80", u.Host)
-		}
-	}
-	return u, nil
-}
-
-var hubGoTemplateFuncMap = map[string]interface{}{
-	"bcrypt":          bcryptStr,
-	"split":           split,
-	"compact":         compact,
-	"join":            join,
-	"first":           first,
-	"formatSubdomain": formatSubdomain,
-	"unquote":         unquote,
-	"uquote":          unquote,
-}
-
 func processGo(content, filename, componentName string, kv map[string]interface{}) (string, error) {
-	tmpl, err := gotemplate.New(filepath.Base(filename)).Funcs(sprig.TxtFuncMap()).Funcs(hubGoTemplateFuncMap).Parse(content)
+	tmpl, err := gotemplate.New(filepath.Base(filename)).
+		Funcs(sprig.TxtFuncMap()).
+		Funcs(hubGoTemplateFuncMap).
+		Parse(content)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("unable to parse go template `%s` of component `%s`: %v", filename, componentName, err)
 	}
 	var buffer bytes.Buffer
 	err = tmpl.Execute(&buffer, kv)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("unable to render go template `%s` of component `%s`: %v", filename, componentName, err)
 	}
 	return buffer.String(), nil
 }

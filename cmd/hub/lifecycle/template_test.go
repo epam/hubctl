@@ -7,135 +7,75 @@
 package lifecycle
 
 import (
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
-func TestSplit(t *testing.T) {
-	result, _ := split("")
-	assert.Equal(t, 0, len(result))
-
-	result, _ = split("a/b/c", "/")
-	expected := []string{"a", "b", "c"}
-	assert.EqualValues(t, expected, result)
-
-	result, _ = split("a b c")
-	assert.EqualValues(t, expected, result)
+func TestProcessGo(t *testing.T) {
+	type args struct {
+		content string
+		kv      map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"Should render go template with split", args{`{{range (.a | split " ")}}{{.}}{{end}}`, map[string]interface{}{"a": "a b c d"}}, `abcd`},
+		{"Should render go template with join", args{`{{.a | join ","}}`, map[string]interface{}{"a": []string{"a", "b", "c", "d"}}}, `a,b,c,d`},
+		{"Should render go template with compact", args{`{{.a | compact | join ""}}`, map[string]interface{}{"a": []string{"a", "", "b", "", "c", "d", ""}}}, `abcd`},
+		{"Should render go template with first", args{`{{.a | first}}`, map[string]interface{}{"a": []string{"a", "b", "c", "d"}}}, `a`},
+		{"Should render go template with formatSubdomain", args{`{{.a | formatSubdomain}}`, map[string]interface{}{"a": "1a.b_c_d+2--3?"}}, `a-b-c-d-2-3`},
+		{"Should render go template with unquote", args{`{{.a | unquote}}`, map[string]interface{}{"a": `"test"`}}, `test`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := processGo(tt.args.content, "test.gotemplate", "test-component", tt.args.kv)
+			if !reflect.DeepEqual(got, tt.want) || err != nil {
+				if err != nil {
+					t.Errorf("processGo() error: %v", err)
+				} else {
+					t.Errorf("processGo() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
 }
 
-func TestCompact(t *testing.T) {
-	sample := []string{}
-	result, _ := compact(sample)
-	assert.Equal(t, 0, len(result))
-
-	sample = []string{"a", "b", "c"}
-	result, _ = compact(sample)
-	assert.EqualValues(t, []string{"a", "b", "c"}, result)
-
-	sample = []string{"a", "", "c"}
-	result, _ = compact(sample)
-	assert.EqualValues(t, []string{"a", "c"}, result)
-
-	result, _ = compact("abc")
-	assert.EqualValues(t, []string{"abc"}, result)
-
-	result, _ = compact("a", "", "c")
-	assert.EqualValues(t, []string{"a", "c"}, result)
-}
-
-func TestFirst(t *testing.T) {
-	sample := []string{}
-	result, _ := first(sample)
-	assert.Equal(t, "", result)
-
-	sample = []string{"a", "b", "c"}
-	result, _ = first(sample)
-	assert.Equal(t, "a", result)
-}
-
-func TestJoin(t *testing.T) {
-	sample := []string{}
-	result, _ := join(sample)
-	assert.Equal(t, "", result)
-
-	sample = []string{"a", "b", "c"}
-	result, _ = join(sample)
-	assert.Equal(t, "a b c", result)
-
-	sample = []string{"a", "b", "c"}
-	result, _ = join(sample, "/")
-	assert.Equal(t, "a/b/c", result)
-
-	result, _ = join("a", "b", "c", "/")
-	assert.Equal(t, "a/b/c", result)
-}
-
-func TestFormatSubdomain(t *testing.T) {
-	result, _ := formatSubdomain("")
-	assert.Equal(t, "", result)
-
-	result, _ = formatSubdomain("a")
-	assert.Equal(t, "a", result)
-
-	result, _ = formatSubdomain("a b")
-	assert.Equal(t, "a-b", result)
-
-	// dashes cannot repeat
-	result, _ = formatSubdomain("A B  c")
-	assert.Equal(t, "a-b-c", result)
-
-	// cannot start and finish with dash
-	result, _ = formatSubdomain("--a b c--")
-	assert.Equal(t, "a-b-c", result)
-
-	// cannot start but can finish with digit
-	result, _ = formatSubdomain("12a3 b c4")
-	assert.Equal(t, "a3-b-c4", result)
-
-	// max length
-	result, _ = formatSubdomain("a b c", 3)
-	assert.Equal(t, "a-b", result)
-
-	// second param may be string
-	result, _ = formatSubdomain("a b c", "3")
-	assert.Equal(t, "a-b", result)
-
-	// max length and delimiter
-	result, _ = formatSubdomain("a b c", 3, "_")
-	assert.Equal(t, "a_b", result)
-}
-
-func TestUnquote(t *testing.T) {
-	result, _ := unquote("")
-	assert.Equal(t, "", result)
-
-	result, _ = unquote("a")
-	assert.Equal(t, "a", result)
-
-	result, _ = unquote("'a'")
-	assert.Equal(t, "a", result)
-
-	result, _ = unquote("\"a\"")
-	assert.Equal(t, "a", result)
-
-	result, _ = unquote("\"a")
-	assert.Equal(t, "\"a", result)
-
-	result, _ = unquote("a\"")
-	assert.Equal(t, "a\"", result)
-
-	result, err := unquote("'a")
-	assert.Equal(t, "'a", result)
-	assert.EqualError(t, err, "invalid syntax")
-
-	result, err = unquote("a'")
-	assert.Equal(t, "a'", result)
-	assert.EqualError(t, err, "invalid syntax")
-
-	result, _ = unquote("\"a'b\"")
-	assert.Equal(t, "a'b", result)
-
-	_, err = unquote("'a\"b'")
-	assert.EqualError(t, err, "invalid syntax")
+func TestProcessReplacement(t *testing.T) {
+	type args struct {
+		content string
+		kv      map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"Should render curly template with base64", args{`${a|base64}`, map[string]interface{}{"a": "hubctl"}}, `aHViY3Rs`},
+		{"Should render go template with unbase64", args{`${a|unbase64}`, map[string]interface{}{"a": "aHViY3Rs"}}, `hubctl`},
+		{"Should render go template with json", args{`${a|json}`, map[string]interface{}{"a": map[string]string{"a": "1", "b": "2", "c": "3"}}}, `{"a":"1","b":"2","c":"3"}`},
+		{"Should render go template with yaml", args{`${a|yaml}`, map[string]interface{}{"a": map[string]string{"a": "1", "b": "2", "c": "3"}}}, `a: "1"
+b: "2"
+c: "3"`},
+		{"Should render go template with first", args{`${a|first}`, map[string]interface{}{"a": "a b c"}}, `a`},
+		{"Should render go template with parseURL", args{`${a|parseURL}`, map[string]interface{}{"a": "https://hubctl.io"}}, `https://hubctl.io:443`},
+		{"Should render go template with parseURL", args{`${a|isSecure}`, map[string]interface{}{"a": "https://hubctl.io"}}, `true`},
+		{"Should render go template with insecure", args{`${a|insecure}`, map[string]interface{}{"a": "https://hubctl.io"}}, `false`},
+		{"Should render go template with hostname", args{`${a|hostname}`, map[string]interface{}{"a": "https://hubctl.io"}}, `hubctl.io`},
+		{"Should render go template with port", args{`${a|port}`, map[string]interface{}{"a": "https://hubctl.io"}}, `443`},
+		{"Should render go template with scheme", args{`${a|scheme}`, map[string]interface{}{"a": "https://hubctl.io"}}, `https`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, errs := processReplacement(tt.args.content, "test.template", "test-component", []string{}, tt.args.kv, curlyReplacement, stripCurly)
+			if !reflect.DeepEqual(got, tt.want) || len(errs) > 0 {
+				if len(errs) > 0 {
+					t.Errorf("processReplacement() error: %v", errs)
+				} else {
+					t.Errorf("processReplacement() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
 }

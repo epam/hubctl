@@ -7,6 +7,7 @@
 package util
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -369,27 +371,22 @@ func Index(list []string, search string) int {
 	return index
 }
 
-func SortedKeys(m map[string]string) []string {
+func Keys[K cmp.Ordered, V any](m map[K]V) []K {
 	if len(m) == 0 {
-		return []string{}
+		return []K{}
 	}
-	keys := make([]string, 0, len(m))
-	for name := range m {
-		keys = append(keys, name)
+	i := 0
+	keys := make([]K, len(m))
+	for key := range m {
+		keys[i] = key
+		i++
 	}
-	sort.Strings(keys)
 	return keys
 }
 
-func SortedKeys2(m map[string][]string) []string {
-	if len(m) == 0 {
-		return []string{}
-	}
-	keys := make([]string, 0, len(m))
-	for name := range m {
-		keys = append(keys, name)
-	}
-	sort.Strings(keys)
+func SortedKeys[K cmp.Ordered, V any](m map[K]V) []K {
+	keys := Keys(m)
+	slices.Sort(keys)
 	return keys
 }
 

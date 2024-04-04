@@ -639,7 +639,7 @@ func addLockedParameter2(params []parameters.LockedParameter, name, env, value s
 }
 
 func addHubProvides(params []parameters.LockedParameter, provides map[string][]string) []parameters.LockedParameter {
-	return addLockedParameter2(params, "hub.provides", "HUB_PROVIDES", strings.Join(util.SortedKeys2(provides), " "))
+	return addLockedParameter2(params, "hub.provides", "HUB_PROVIDES", strings.Join(util.SortedKeys(provides), " "))
 }
 
 func maybeTestVerb(verb string, test bool) string {
