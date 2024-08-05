@@ -17,6 +17,8 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v2"
 
 	"github.com/epam/hubctl/cmd/hub/config"
@@ -204,7 +206,7 @@ func elaborate(manifestFilename string, parametersFilenames []string, overrides 
 		if len(stackManifest.Components) > 0 {
 			components = fmt.Sprintf("with components: %s", strings.Join(stackManifest.Lifecycle.Order, ", "))
 		}
-		log.Printf("*** %s %s %s", strings.Title(stackManifest.Kind), stackManifest.Meta.Name,
+		log.Printf("*** %s %s %s", cases.Title(language.Und).String(stackManifest.Kind), stackManifest.Meta.Name,
 			components)
 	}
 

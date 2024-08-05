@@ -9,7 +9,7 @@ package kube
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -125,7 +125,7 @@ func readKubeconfig(filename string) (*KubeConfig, error) {
 		return nil, fmt.Errorf("Unable to open `%s`: %v", filename, err)
 	}
 	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to read `%s`: %v", filename, err)
 	}
@@ -148,7 +148,7 @@ func writeKubeconfig(filename string, config *KubeConfig) error {
 	if err != nil {
 		return fmt.Errorf("Unable to marshall `%s`: %v", filename, err)
 	}
-	_, err = file.Seek(0, os.SEEK_SET)
+	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return fmt.Errorf("Unable to seek `%s`: %v", filename, err)
 	}

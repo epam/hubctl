@@ -8,7 +8,6 @@ package lifecycle
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -57,7 +56,7 @@ func AskParameter(parameter manifest.Parameter,
 			}
 		}
 		if filename != "" {
-			bytes, err := ioutil.ReadFile(filename)
+			bytes, err := os.ReadFile(filename)
 			if err != nil {
 				return "(error)", fmt.Errorf("Error reading `%s`: %v", filename, err)
 			}

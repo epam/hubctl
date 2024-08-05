@@ -9,7 +9,7 @@ package gcp
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"strings"
@@ -95,7 +95,7 @@ func ReadGCS(path string) ([]byte, error) {
 		return nil, err
 	}
 	defer reader.Close()
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read GCS object `%s`: %v", path, err)
 	}

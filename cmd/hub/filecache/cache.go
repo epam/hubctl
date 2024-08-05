@@ -9,7 +9,7 @@ package filecache
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -33,7 +33,7 @@ func ReadCache(flag int) (*os.File, *FileCache, error) {
 		}
 		return nil, nil, err
 	}
-	yamlBytes, err := ioutil.ReadAll(file)
+	yamlBytes, err := io.ReadAll(file)
 	if err != nil {
 		file.Close()
 		return nil, nil, err

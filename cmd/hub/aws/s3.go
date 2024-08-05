@@ -9,7 +9,7 @@ package aws
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -110,7 +110,7 @@ func ReadS3(s3path string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to GET S3 object `%s`: %v\n\t%s", s3path, err, optionsHelp)
 	}
-	data, err := ioutil.ReadAll(obj.Body)
+	data, err := io.ReadAll(obj.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read S3 object `%s`: %v", s3path, err)
 	}

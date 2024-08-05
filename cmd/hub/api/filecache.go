@@ -11,6 +11,7 @@ package api
 import (
 	"errors"
 	"hash/crc64"
+	"io"
 	"os"
 
 	"github.com/epam/hubctl/cmd/hub/filecache"
@@ -50,7 +51,7 @@ func storeAccessToken(apiBaseUrl, loginToken string, tokens *SigninResponse) err
 		return errors.New("No cache file created")
 	}
 	defer file.Close()
-	_, err = file.Seek(0, os.SEEK_SET)
+	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"io/ioutil"
+	"io"
 )
 
 func IsGzipData(data []byte) bool {
@@ -23,7 +23,7 @@ func Gunzip(compressed []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadAll(gunzip)
+	data, err := io.ReadAll(gunzip)
 	if err != nil {
 		return nil, err
 	}

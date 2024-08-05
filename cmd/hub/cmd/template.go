@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -166,7 +166,7 @@ func createTemplate(args []string) error {
 	if createRaw {
 		api.RawCreateTemplate(os.Stdin)
 	} else {
-		createBytes, err := ioutil.ReadAll(os.Stdin)
+		createBytes, err := io.ReadAll(os.Stdin)
 		if err != nil || len(createBytes) < 3 {
 			return fmt.Errorf("Unable to read data (read %d bytes): %v", len(createBytes), err)
 		}
@@ -200,7 +200,7 @@ func patchTemplate(args []string) error {
 	if patchRaw {
 		api.RawPatchTemplate(selector, os.Stdin)
 	} else {
-		patchBytes, err := ioutil.ReadAll(os.Stdin)
+		patchBytes, err := io.ReadAll(os.Stdin)
 		if err != nil || len(patchBytes) < 3 {
 			return fmt.Errorf("Unable to read patch data (read %d bytes): %v", len(patchBytes), err)
 		}

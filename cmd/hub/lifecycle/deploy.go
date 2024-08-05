@@ -15,10 +15,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
 	"github.com/google/uuid"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/epam/hubctl/cmd/hub/config"
 	"github.com/epam/hubctl/cmd/hub/ext"
@@ -183,7 +184,6 @@ func Execute(request *Request, pipe io.WriteCloser) {
 	if stackName == "" {
 		stackName = os.Getenv(HubEnvVarHubStackName)
 		if stackName == "" {
-			rand.Seed(time.Now().UnixNano())
 			suffix := rand.Intn(1000) + 1
 			name := petname.Generate(2, "-")
 			stackName = fmt.Sprintf("%s-%d", name, suffix)
@@ -579,7 +579,7 @@ NEXT_COMPONENT:
 		if isDeploy {
 			provides2 := noEnvironmentProvides(provides)
 			if len(provides2) > 0 {
-				log.Printf("%s provides:", strings.Title(stackManifest.Kind))
+				log.Printf("%s provides:", cases.Title(language.Und).String(stackManifest.Kind))
 				util.PrintDeps(provides2)
 			}
 			printStackOutputs(stackOutputs)

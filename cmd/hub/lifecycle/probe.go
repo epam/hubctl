@@ -9,7 +9,7 @@ package lifecycle
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -130,7 +130,7 @@ func probeMakefile(dir string, verb string) (bool, error) {
 		}
 		return false, fmt.Errorf("%s: %v", filename, err)
 	}
-	bytes, err := ioutil.ReadAll(makefile)
+	bytes, err := io.ReadAll(makefile)
 	if err != nil {
 		return false, fmt.Errorf("%s: %v", filename, err)
 	}

@@ -8,7 +8,6 @@ package storage
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -21,6 +20,8 @@ import (
 	"github.com/epam/hubctl/cmd/hub/crypto"
 	"github.com/epam/hubctl/cmd/hub/gcp"
 	"github.com/epam/hubctl/cmd/hub/util"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var remoteStorageSchemes = []string{"s3", "gs", "az"}
@@ -45,7 +46,7 @@ func checkPath(path, kind string) (*File, error) {
 			err = fmt.Errorf("Unable to parse `%s` %s file path as URL: %v", path, kind, err)
 		} else if !util.Contains(remoteStorageSchemes, remote.Scheme) {
 			err = fmt.Errorf("%s file `%s` scheme `%s` not supported. Supported schemes: %v",
-				strings.Title(kind), path, remote.Scheme, remoteStorageSchemes)
+				cases.Title(language.Und).String(kind), path, remote.Scheme, remoteStorageSchemes)
 		}
 		if err != nil {
 			return nil, err
@@ -252,7 +253,7 @@ func readFile(file *File) ([]byte, error) {
 
 	switch file.Kind {
 	case "fs":
-		data, err = ioutil.ReadFile(file.Path)
+		data, err = os.ReadFile(file.Path)
 
 	case "s3":
 		data, err = aws.ReadS3(file.Path)

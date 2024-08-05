@@ -11,7 +11,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -89,7 +89,7 @@ func createSecret(entityKind string, args []string) error {
 			value = value[len(maybeKey)+1:]
 		}
 		if value == "-" {
-			valueBytes, err := ioutil.ReadAll(os.Stdin)
+			valueBytes, err := io.ReadAll(os.Stdin)
 			if err != nil || len(valueBytes) == 0 {
 				return fmt.Errorf("Bad secret value read from stdin (read %d bytes): %s",
 					len(valueBytes), util.Errors2(err))

@@ -12,7 +12,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
@@ -104,7 +104,7 @@ func otpEncode(args []string) error {
 		log.Fatalf("Unable to decode base64 random: %v", err)
 	}
 
-	input, err := ioutil.ReadAll(os.Stdin)
+	input, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		log.Fatalf("Unable to read input (read %d bytes): %v", len(input), err)
 	}

@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -359,7 +359,7 @@ func processTemplate(filename, kind, componentName string,
 	if err != nil {
 		return []error{fmt.Errorf("Unable to open `%s` component template input `%s`: %v", componentName, filename, err)}
 	}
-	byteContent, err := ioutil.ReadAll(tmpl)
+	byteContent, err := io.ReadAll(tmpl)
 	if err != nil {
 		return []error{fmt.Errorf("Unable to read `%s` component template content `%s`: %v", componentName, filename, err)}
 	}

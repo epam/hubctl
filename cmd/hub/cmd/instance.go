@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 
@@ -254,7 +254,7 @@ func createInstance(args []string) error {
 	if createRaw {
 		api.RawCreateStackInstance(os.Stdin)
 	} else {
-		createBytes, err := ioutil.ReadAll(os.Stdin)
+		createBytes, err := io.ReadAll(os.Stdin)
 		if err != nil || len(createBytes) < 3 {
 			return fmt.Errorf("Unable to read data (read %d bytes): %v", len(createBytes), err)
 		}
@@ -278,7 +278,7 @@ func patchInstance(args []string) error {
 	if patchRaw {
 		api.RawPatchStackInstance(selector, os.Stdin, patchReplace)
 	} else {
-		patchBytes, err := ioutil.ReadAll(os.Stdin)
+		patchBytes, err := io.ReadAll(os.Stdin)
 		if err != nil || len(patchBytes) < 3 {
 			return fmt.Errorf("Unable to read patch data (read %d bytes): %v", len(patchBytes), err)
 		}
