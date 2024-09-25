@@ -62,7 +62,7 @@ staticcheck: bin/$(OS)/staticcheck
 	@$(GOBIN)/staticcheck github.com/epam/hubctl/...
 .PHONY: staticcheck
 
-test:
+test: deps
 	go test -race -timeout 60s ./cmd/hub/...
 .PHONY: test
 
