@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/kms v1.10.1
 	cloud.google.com/go/storage v1.28.1
 	github.com/Azure/azure-sdk-for-go v65.0.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.11.27
+	github.com/Azure/go-autorest/autorest v0.11.30
 	github.com/Azure/go-autorest/autorest/azure/auth v0.5.12
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/alexkappa/mustache v0.0.0-20191113130723-8bb9cfca2bfa
@@ -45,7 +45,7 @@ require (
 	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/iam v0.13.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
-	github.com/Azure/go-autorest/autorest/adal v0.9.20 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.9.22 // indirect
 	github.com/Azure/go-autorest/autorest/azure/cli v0.4.5 // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
