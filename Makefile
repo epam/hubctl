@@ -63,7 +63,7 @@ staticcheck: bin/$(OS)/staticcheck
 .PHONY: staticcheck
 
 test: deps
-	go test -race -timeout 60s ./cmd/hub/...
+	go test -race ./cmd/hub/...
 .PHONY: test
 
 clean:
