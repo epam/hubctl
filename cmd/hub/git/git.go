@@ -14,6 +14,7 @@ import (
 	goGit "github.com/go-git/go-git/v5"
 	goGitConfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
@@ -67,7 +68,11 @@ func Pull(targetRef, dir string) error {
 		}
 		defer refs.Close()
 
-		for ref, err := refs.Next(); err == nil; {
+		refIter := storer.NewReferenceFilteredIter(func(r *plumbing.Reference) bool {
+			return r.Hash() == reference.Hash() && r.Name() != plumbing.HEAD
+		}, refs)
+
+		for ref, err := refIter.Next(); err == nil; {
 			if ref.Hash() == reference.Hash() {
 				reference = ref
 				break

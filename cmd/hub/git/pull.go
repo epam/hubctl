@@ -223,6 +223,7 @@ func emptyDir(dir string, removeContentIfForced bool) (bool, error) {
 			if err != nil {
 				return false, fmt.Errorf("Unable to force remove `%s`: %v", dir, err)
 			}
+			dir = filepath.Dir(dir)
 		} else {
 			return false, fmt.Errorf("Pull target `%s` is not a directory, add -f / --force to override", dir)
 		}
