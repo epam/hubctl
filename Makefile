@@ -16,12 +16,12 @@ COMMIT   ?= $(shell git rev-parse HEAD | cut -c-7)
 BUILD_AT ?= $(shell date +"%Y.%m.%d %H:%M %Z")
 
 install: bin/$(OS)/staticcheck bin/$(OS)/cel
-bin/$(OS)/staticcheck:
-	go install honnef.co/go/tools/cmd/staticcheck@2023.1.3
 
-cel:
+bin/$(OS)/staticcheck:
+	go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
+
+bin/$(OS)/cel:
 	go install github.com/epam/hubctl/cmd/cel@latest
-.PHONY: cel
 
 deps:
 	go mod download
