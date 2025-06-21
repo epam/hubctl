@@ -24,7 +24,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.10.0
 	github.com/xeipuuv/gojsonschema v1.2.0
-	golang.org/x/crypto v0.37.0
+	golang.org/x/crypto v0.39.0
 	google.golang.org/api v0.114.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -100,8 +100,8 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.26.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/grpc v1.56.3 // indirect
