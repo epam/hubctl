@@ -1,3 +1,5 @@
+version: 2
+
 project_name: hubctl
 
 before:
@@ -36,13 +38,13 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ["zip"]
 
 checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 changelog:
   filters:
@@ -51,10 +53,10 @@ changelog:
       - "(?i)^[typo]{4}"
       - "upd"
 
-brews:
+homebrew_casks:
   - name: hubctl
 
-    tap:
+    repository:
       owner: epam
       name: homebrew-hubctl
       branch: main
@@ -65,7 +67,7 @@ brews:
       email: therealspaceship@users.noreply.github.com
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Version }}"
 
-    folder: Formula
+    directory: Casks
 
     homepage: "https://hubctl.io/"
     description: "Hub CTL is stack composition and lifecycle tool."
@@ -79,18 +81,16 @@ brews:
       hubctl deploy hub.yaml.elaborate -e NAME=stage
 
     dependencies:
-      - name: jq
-      - name: yq
-      - name: npm
-        type: optional
+      - formula: jq
+      - formula: yq
+      - formula: npm
 
-    test: |
-      output = shell_output("#{bin}/hubctl version").chomp
-      assert output.start_with?("Hub CTL git ")
-      system "false"
+    hooks:
+      post:
+        install: |
+          hub_home = Pathname.new "#{Dir.home}/.hub"
+          unless hub_home.exist?
+              system_command "#{Formula["hub"].opt_bin}/hubctl", args: ["extensions", "install"]
+          end
 
-    post_install: |
-      hub_home = Pathname.new "#{Dir.home}/.hub"
-      unless hub_home.exist?
-          system "#{Formula["hub"].opt_bin}/hubctl", "extensions", "install"
-      end
+    skip_upload: true

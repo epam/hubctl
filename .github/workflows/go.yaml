@@ -19,33 +19,30 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      -
-        name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.23.10
+          go-version: 1.25.9
 
-      -
-        name: Check out code
-        uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v6
 
-      -
-        name: Restore Go modules cache
-        uses: actions/cache@v3
+      - name: Restore Go modules cache
+        uses: actions/cache@v5
         with:
-          path: ~/go/pkg/mod
-          key: go-${{ runner.os }}-${{ hashFiles('go.mod') }}
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            go-${{ runner.os }}-
+            ${{ runner.os }}-go-
 
-      -
-        name: Download dependencies
+      - name: Download dependencies
         run: go mod download
 
-      -
-        name: Run tests
+      - name: Run tests
         run: go test -race ./cmd/hub/...
 
-      -
-        name: Build
+      - name: Build
         run: go build -v ./cmd/hub
