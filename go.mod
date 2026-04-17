@@ -12,7 +12,7 @@ require (
 	github.com/alexkappa/mustache v0.0.0-20191113130723-8bb9cfca2bfa
 	github.com/arkadijs/golang-socketio v0.0.0-20180405140456-dc2d2a43165c
 	github.com/aws/aws-sdk-go v1.55.5
-	github.com/go-git/go-git/v5 v5.17.1
+	github.com/go-git/go-git/v5 v5.18.0
 	github.com/google/cel-go v0.11.4
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.0
